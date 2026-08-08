@@ -103,6 +103,48 @@ export interface StringDecodeOptions extends StringEncodeOptions {
     strict?: boolean;
 }
 
+export type EscapeRegexMode = "tc39" | "non_alphanumeric_ascii";
+
+export interface EscapeRegexOptions {
+    /**
+     * Escaping mode:
+     * - "tc39" (default): TC39 ECMAScript standard specification (syntax metacharacters + set operators).
+     * - "non_alphanumeric_ascii": Escapes all non-alphanumeric ASCII characters ([^A-Za-z0-9]) matching Polars / Rust regex::escape.
+     */
+    mode?: EscapeRegexMode;
+}
+
+
+export interface ExtractRegexEngineOptions {
+    /**
+     * Index or name of the capture group to extract.
+     */
+    groupIndex?: number | string;
+    /**
+     * Whether matching should be case-insensitive for ASCII characters.
+     */
+    asciiCaseInsensitive?: boolean;
+    /**
+     * Whether to return all matches (global flag). Defaults to false.
+     */
+    global?: boolean;
+}
+
+export interface ExtractManyOptions extends ExtractRegexEngineOptions {
+    /**
+     * Whether overlapping matches are allowed.
+     */
+    overlapping?: boolean;
+    /**
+     * Guarantees in case there are overlapping matches that the leftmost match is used.
+     * In case there are multiple candidates for the leftmost match, the pattern which comes
+     * first in patterns is used. May not be used together with overlapping = true.
+     */
+    leftmost?: boolean;
+}
+
+
+
 export type BusinessDayRollType = "raise" | "forward" | "backward";
 
 export interface IsBusinessDayOptions {

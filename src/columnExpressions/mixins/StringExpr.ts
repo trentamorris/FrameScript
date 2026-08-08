@@ -1,4 +1,12 @@
-import type { IExpr, StrptimeOptions, StringDecodeOptions, StringEncodeOptions } from "../../types";
+import type {
+    IExpr,
+    StrptimeOptions,
+    StringDecodeOptions,
+    StringEncodeOptions,
+    EscapeRegexOptions,
+    ExtractManyOptions,
+    ExtractRegexEngineOptions
+} from "../../types";
 import { ExprBase, derive } from "../ExprBase";
 import { kleeneUnary, kleeneBinary } from "../utils";
 import {
@@ -12,7 +20,12 @@ import {
     isRegExp,
     changeCase,
     encodeString,
-    decodeString
+    decodeString,
+    escapeRegExp,
+    extractRegex,
+    extractRegexAll,
+    extractRegexMany,
+    extractRegexGroups
 } from "../../utils";
 
 /**
@@ -125,26 +138,40 @@ export class StringExprNamespace {
      * │ apple  │ 1       │
      * └────────┴─────────┘
      */
-    count_matches(pattern: string | RegExp) {
+    count_matches(pattern: string | RegExp | any, options: { literal?: boolean } | boolean = {}) {
+        const literal = typeof options === "boolean" ? options : (options?.literal ?? false);
         return this._patternGuard(pattern, () =>
             this._deriveString((str) => {
-                if (isRegExp(pattern)) {
+                if (!literal && isRegExp(pattern)) {
+                    try { pattern.lastIndex = 0; } catch { }
                     const regex = pattern.global
                         ? pattern
                         : new RegExp(pattern.source, pattern.flags + "g");
-                    const matches = str.match(regex);
-                    return matches ? matches.length : 0;
-                } else {
-                    let count = 0;
-                    let pos = str.indexOf(pattern);
-                    while (pos !== -1) {
-                        count++;
-                        pos = str.indexOf(pattern, pos + pattern.length);
-                    }
-                    return count;
+                    return str.match(regex)?.length ?? 0;
                 }
+
+                const patStr = String(pattern);
+                return patStr.length === 0 ? str.length + 1 : str.split(patStr).length - 1;
             })
         );
+    }
+
+    /**
+     * Escapes special regular expression characters in string elements.
+     * @returns ColumnExpression
+     * @example
+     * >>> const df = $df.data({ pat: ["a.b", "c$d"] })
+     * >>> df.with_columns($df.col("pat").str.escape_regex().alias("escaped"))
+     * shape: (2, 2)
+     * ┌───────┬─────────┐
+     * │ pat   │ escaped │
+     * ├───────┼─────────┤
+     * │ a.b   │ a\.b    │
+     * │ c$d   │ c\$d    │
+     * └───────┴─────────┘
+     */
+    escape_regex(options: EscapeRegexOptions = {}) {
+        return this._deriveString((str) => escapeRegExp(str, options));
     }
 
     /**
@@ -182,8 +209,6 @@ export class StringExprNamespace {
     encode(options: StringEncodeOptions) {
         return this._deriveString((str) => encodeString(str, options.encoding));
     }
-
-
 
     /**
      * Decodes Uniform Resource Identifier (URI) components.
@@ -268,13 +293,13 @@ export class StringExprNamespace {
     }
 
     /**
-     * Extracts captured group matching a regular expression pattern.
+     * Extracts a captured group from the first regex match.
      * @param pattern The regex pattern containing capture groups.
-     * @param group Group index to extract (default 0 for whole match).
+     * @param options Options object. Use `groupIndex` to select the group (default 1).
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ info: ["id:123"] })
-     * >>> df.with_columns($df.col("info").str.extract(/id:(\d+)/, 1).alias("id"))
+     * >>> df.with_columns($df.col("info").str.extract(/id:(\d+)/).alias("id"))
      * shape: (1, 2)
      * ┌────────┬─────┐
      * │ info   │ id  │
@@ -282,13 +307,71 @@ export class StringExprNamespace {
      * │ id:123 │ 123 │
      * └────────┴─────┘
      */
-    extract(pattern: RegExp, group: number = 0) {
+    extract(pattern: RegExp | string, options?: ExtractRegexEngineOptions) {
         return this._patternGuard(pattern, () =>
-            this._deriveString((str) => {
-                const match = str.match(pattern);
-                if (!match) return null;
-                return match[group] !== undefined ? match[group] : null;
-            })
+            this._deriveString((str) => extractRegex(str, pattern, options))
+        );
+    }
+
+    /**
+     * Extracts all occurrences matching a regular expression pattern.
+     * @param pattern Search pattern (string or RegExp).
+     * @param options Options object. Use `groupIndex` to select the group (default 0).
+     * @returns ColumnExpression
+     * @example
+     * >>> const df = $df.data({ text: ["foo 123 bar 456"] })
+     * >>> df.with_columns($df.col("text").str.extract_all(/\d+/).alias("nums"))
+     * shape: (1, 2)
+     * ┌─────────────────┬──────────────┐
+     * │ text            │ nums         │
+     * ├─────────────────┼──────────────┤
+     * │ foo 123 bar 456 │ [123, 456]   │
+     * └─────────────────┴──────────────┘
+     */
+    extract_all(pattern: string | RegExp, options?: ExtractRegexEngineOptions) {
+        return this._patternGuard(pattern, () =>
+            this._deriveString((str) => extractRegexAll(str, pattern, options) ?? [])
+        );
+    }
+
+    /**
+     * Extracts all captured groups from the first regex match into a structured object (struct).
+     * @param pattern Search pattern containing capture groups.
+     * @returns ColumnExpression
+     * @example
+     * >>> const df = $df.data({ info: ["id:123-name:alice"] })
+     * >>> df.with_columns($df.col("info").str.extract_groups(/(?<id>\d+)-(?<name>\w+)/).alias("parsed"))
+     * shape: (1, 2)
+     * ┌────────────────────┬─────────────────────────────┐
+     * │ info               │ parsed                      │
+     * ├────────────────────┼─────────────────────────────┤
+     * │ id:123-name:alice  │ { id: "123", name: "alice" }│
+     * └────────────────────┴─────────────────────────────┘
+     */
+    extract_groups(pattern: string | RegExp, options: ExtractManyOptions = {}) {
+        return this._patternGuard(pattern, () =>
+            this._deriveString((str) => extractRegexGroups(str, pattern, options))
+        );
+    }
+
+    /**
+     * Extracts the first regex match for each pattern in a list of patterns.
+     * @param patterns Array of regular expression patterns or strings.
+     * @param options Named options object ({ asciiCaseInsensitive, overlapping }).
+     * @returns ColumnExpression
+     * @example
+     * >>> const df = $df.data({ text: ["user_123_PROD"] })
+     * >>> df.with_columns($df.col("text").str.extract_many([/user_\d+/, /prod/], { asciiCaseInsensitive: true }).alias("extracted"))
+     * shape: (1, 2)
+     * ┌───────────────┬──────────────────────────┐
+     * │ text          │ extracted                │
+     * ├───────────────┼──────────────────────────┤
+     * │ user_123_PROD │ ["user_123", "PROD"]     │
+     * └───────────────┴──────────────────────────┘
+     */
+    extract_many(patterns: (string | RegExp)[], options: ExtractManyOptions = {}) {
+        return this._patternGuard(patterns, () =>
+            this._deriveString((str) => extractRegexMany(str, patterns, options))
         );
     }
 

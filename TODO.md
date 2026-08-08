@@ -112,10 +112,10 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
 ### 🔤 String Column Expressions (`.str`)
 - [ ] **Unimplemented String Expressions**:
   * [x] **`contains_any`**: Check if string contains any pattern from a collection.
-  * [ ] **`count_matches`**: Count total occurrences of regex or sub-string pattern matches.
+  * [x] **`count_matches`**: Count total occurrences of regex or sub-string pattern matches.
   * [x] **`decode` / `encode`**: Binary encoding/decoding (Hex, Base64, etc.).
-  * [ ] **`escape_regex`**: Escape literal characters for safe regex usage.
-  * [ ] **`extract_all` / `extract_groups` / `extract_many`**: Advanced multi-match and structured group extractions.
+  * [x] **`escape_regex`**: Escape literal characters for safe regex usage.
+  * [x] **`extract_all` / `extract_groups` / `extract_many`**: Advanced multi-match and structured group extractions.
   * [ ] **`find` / `find_many`**: Find pattern match indices within string elements.
   * [ ] **`join`**: Join list of string elements using a delimiter.
   * [ ] **`json_decode` / `json_path_match`**: Parse JSON strings and extract fields using JSONPath syntax.
