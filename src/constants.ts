@@ -2,6 +2,9 @@ export const NEWLINE = "\n";
 export const CARRIAGE_RETURN = "\r";
 export const UTF8_BOM = "\ufeff";
 
+/** Reusable singleton TextEncoder instance for UTF-8 string encoding across the codebase. */
+export const TEXT_ENCODER = new TextEncoder();
+
 export const MS_PER_WEEK = 604_800_000;
 export const MS_PER_DAY = 86_400_000;
 export const MS_PER_HOUR = 3_600_000;

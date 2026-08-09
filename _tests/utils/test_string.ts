@@ -24,7 +24,10 @@ import {
     extractRegex,
     extractRegexAll,
     extractRegexMany,
-    extractRegexGroups
+    extractRegexGroups,
+    findRegex,
+    findManyRegex,
+    splitString
 } from "../../src/utils/string";
 
 console.log("=========================================");
@@ -486,6 +489,16 @@ try {
     if (extractRegex(tupleMatch, "(\\w+)-(\\w+)-(\\w+)", { groupIndex: -10 }) !== null) throw new Error("negative out-of-bounds groupIndex failed");
     if (extractRegex(tupleMatch, "(\\w+)-(\\w+)-(\\w+)", { groupIndex: 99 }) !== null) throw new Error("positive out-of-bounds groupIndex failed");
 
+    // 24e-2. Negative groupIndex combined with named capture groups
+    const namedAndNumberedLast = extractRegex("2026-08-08", "(?<year>\\d{4})-(?<month>\\d{2})", { groupIndex: -1 });
+    if (namedAndNumberedLast !== "08") {
+        throw new Error(`Negative groupIndex -1 with named groups failed: expected '08', got ${namedAndNumberedLast}`);
+    }
+    const namedAndNumberedFirstGroup = extractRegex("2026-08-08", "(?<year>\\d{4})-(?<month>\\d{2})", { groupIndex: -2 });
+    if (namedAndNumberedFirstGroup !== "2026") {
+        throw new Error(`Negative groupIndex -2 with named groups failed: expected '2026', got ${namedAndNumberedFirstGroup}`);
+    }
+
     // 24f. Named capture group resolution & unmatched optional capture group nulls
     const optPattern = "(?<first>a)?(?<second>b)";
     if (extractRegex("b", optPattern, { groupIndex: "first" }) !== null) throw new Error("unmatched optional named group should return null");
@@ -521,7 +534,58 @@ try {
         throw new Error("toCleanRegExp failed to add 'i' flag when asciiCaseInsensitive: true was passed");
     }
 
-    // 24i-2. Sticky flag 'y' stripping & unanchored free-position matching
+    // 24i-2. Unicode sets (/v) and Unicode (/u) flag preservation
+    const unicodeSetReg = /[\p{Script=Greek}&&[\p{Letter}]]/v;
+    const resV = extractRegex("αβγ", unicodeSetReg, { groupIndex: 0 });
+    if (resV !== "α") {
+        throw new Error(`Unicode set /v flag test failed: expected 'α', got ${resV}`);
+    }
+    const unicodeGreekReg = /\p{Script=Greek}/u;
+    const resU = extractRegex("αβγ", unicodeGreekReg, { groupIndex: 0 });
+    if (resU !== "α") {
+        throw new Error(`Unicode /u flag test failed: expected 'α', got ${resU}`);
+    }
+
+    // 24i-3. Leftmost flag differentiation (leftmost: true vs leftmost: false)
+    const resLeftmostTrue = extractRegexMany("abcdef", [/cde/, /bc/], { leftmost: true });
+    if (resLeftmostTrue?.[0] !== null || resLeftmostTrue?.[1] !== "bc") {
+        throw new Error(`leftmost: true failed: got ${JSON.stringify(resLeftmostTrue)}`);
+    }
+    const resLeftmostFalse = extractRegexMany("abcdef", [/cde/, /bc/], { leftmost: false });
+    if (resLeftmostFalse?.[0] !== "cde" || resLeftmostFalse?.[1] !== null) {
+        throw new Error(`leftmost: false failed: got ${JSON.stringify(resLeftmostFalse)}`);
+    }
+
+    // 24i-3b. Non-leftmost spatial ordering when matches are far apart (non-overlapping)
+    const spatialString = "hello world ... baz foo";
+    const resSpatialNonLeftmost = extractRegexMany(spatialString, [/foo/, /world/], { leftmost: false });
+    if (resSpatialNonLeftmost?.[0] !== "foo" || resSpatialNonLeftmost?.[1] !== "world") {
+        throw new Error(`Non-leftmost spatial ordering failed to keep non-overlapping earlier match: got ${JSON.stringify(resSpatialNonLeftmost)}`);
+    }
+
+    // 24i-3c. Prototype pollution safety with named groups like (?<toString>...)
+    const protoPollutionRecord = extractRegexGroups("test", "(?<toString>test)");
+    if ((protoPollutionRecord as Record<string, any>)?.[ "toString" ] !== "test") {
+        throw new Error(`Named group (?<toString>...) failed or polluted prototype`);
+    }
+
+    // 24i-3d. String pattern containing \\p{Letter} (u flag) and \\p{RGI_Emoji} (v flag)
+    const unicodeStringPattern = extractRegex("café", "\\p{Letter}+", { groupIndex: 0 });
+    if (unicodeStringPattern !== "café") {
+        throw new Error(`String pattern with \\p{Letter} failed: got ${unicodeStringPattern}`);
+    }
+    const rgiEmojiPattern = extractRegex("🚀", "\\p{RGI_Emoji}", { groupIndex: 0 });
+    if (rgiEmojiPattern !== "🚀") {
+        throw new Error(`String pattern with \\p{RGI_Emoji} (/v flag) failed: got ${rgiEmojiPattern}`);
+    }
+
+    // 24i-3e. Zero-width pattern matches (^, \\b)
+    const zeroWidthManyRes = extractRegexMany("hello", ["^", "\\b"], { leftmost: true });
+    if (!Array.isArray(zeroWidthManyRes) || zeroWidthManyRes.length !== 2) {
+        throw new Error(`Zero-width matches failed: got ${JSON.stringify(zeroWidthManyRes)}`);
+    }
+
+    // 24i-4. Sticky flag 'y' stripping & unanchored free-position matching
     const cleanSticky = toCleanRegExp("hello world", /world/y);
     if (cleanSticky?.reg.flags.includes("y")) {
         throw new Error("toCleanRegExp failed to strip sticky 'y' flag");
@@ -531,7 +595,7 @@ try {
         throw new Error(`extractRegexEngine with sticky /world/y failed to match unanchored: got ${stickyMatchNotAtStart}`);
     }
 
-    // 24i-3. Optional capture group returning null (no fallback to group 0)
+    // 24i-5. Optional capture group returning null (no fallback to group 0)
     const optionalGroupResult = extractRegex("abc", /(x)?abc/, { groupIndex: 1 });
     if (optionalGroupResult !== null) {
         throw new Error(`extractRegexEngine optional group should return null, got ${optionalGroupResult}`);
@@ -805,10 +869,457 @@ try {
         throw new Error(`extractRegexGroups pattern without groups failed: expected { '0': 'hello' }, got ${JSON.stringify(noGroupsRes)}`);
     }
 
-    // 24p-16. extractRegex asciiCaseInsensitive: false stripping existing /i flag
-    const stripCaseInsensitiveRes = extractRegex("HELLO", /hello/i, { asciiCaseInsensitive: false, groupIndex: 0 });
-    if (stripCaseInsensitiveRes !== null) {
-        throw new Error(`extractRegex asciiCaseInsensitive: false failed to strip /i flag: expected null, got ${JSON.stringify(stripCaseInsensitiveRes)}`);
+    // 25. findRegex and findManyRegex tests
+    // 25a. Basic findRegex regex vs literal
+    if (findRegex("user_123_PROD", /\d+/) !== 5) {
+        throw new Error(`findRegex regex match failed: expected 5, got ${findRegex("user_123_PROD", /\d+/)}`);
+    }
+    if (findRegex("user_123_PROD", "PROD", { literal: true }) !== 9) {
+        throw new Error(`findRegex literal match failed: expected 9, got ${findRegex("user_123_PROD", "PROD", { literal: true })}`);
+    }
+    if (findRegex("user_123_PROD", "notFound") !== null) {
+        throw new Error("findRegex non-matching pattern should return null");
+    }
+    if (findRegex(null, /\d+/) !== null) {
+        throw new Error("findRegex null input should return null");
+    }
+    if (findRegex(undefined, /\d+/) !== null) {
+        throw new Error("findRegex undefined input should return null");
+    }
+    if (findRegex("hello", null as any) !== null) {
+        throw new Error("findRegex null pattern should return null");
+    }
+
+    // 25b. Zero-length string & zero-width regex matches
+    if (findRegex("", "") !== 0) {
+        throw new Error(`findRegex empty string match failed: got ${findRegex("", "")}`);
+    }
+    if (findRegex("", /(?:)/) !== 0) {
+        throw new Error(`findRegex zero-width regex match on empty string failed: got ${findRegex("", /(?:)/)}`);
+    }
+    if (findRegex("abc", /(?:)/) !== 0) {
+        throw new Error(`findRegex zero-width match on non-empty string failed: got ${findRegex("abc", /(?:)/)}`);
+    }
+
+    // 25c. Case insensitivity & flag handling in findRegex
+    if (findRegex("USER_123", "user", { literal: true, asciiCaseInsensitive: true }) !== 0) {
+        throw new Error("findRegex literal case insensitive failed");
+    }
+    if (findRegex("USER_123", /user/, { asciiCaseInsensitive: true }) !== 0) {
+        throw new Error("findRegex regex case insensitive failed");
+    }
+    if (findRegex("HELLO", /hello/i, { asciiCaseInsensitive: false }) !== null) {
+        throw new Error("findRegex asciiCaseInsensitive: false failed to strip pre-existing /i flag");
+    }
+    if (findRegex("hello world", /world/y) !== 6) {
+        throw new Error("findRegex failed to strip sticky /y flag for unanchored match");
+    }
+
+    // 25d. Literal vs Regex metacharacter handling
+    if (findRegex("a.b", "a.b", { literal: true }) !== 0) {
+        throw new Error("findRegex literal string with metacharacters failed");
+    }
+    if (findRegex("axb", "a.b", { literal: true }) !== null) {
+        throw new Error("findRegex literal string should not treat '.' as regex wildcard");
+    }
+    if (findRegex("axb", "a.b", { literal: false }) !== 0) {
+        throw new Error("findRegex regex mode should treat '.' as wildcard");
+    }
+
+    // 25e. Multi-byte UTF-8 byte offsets (2-byte, 3-byte, 4-byte unicode)
+    // 2-byte: 'é' is 2 bytes (café_bar -> 'café_' is 4 + 2 + 1 = 6 bytes offset for 'bar')
+    if (findRegex("café_bar", "bar", { literal: true }) !== 6) {
+        throw new Error(`findRegex 2-byte UTF-8 offset failed: expected 6, got ${findRegex("café_bar", "bar", { literal: true })}`);
+    }
+    // 3-byte: CJK '데이터' is 3 chars x 3 bytes = 9 bytes + 1 byte for '_' = 10 bytes offset for 'table'
+    if (findRegex("데이터_table", "table") !== 10) {
+        throw new Error(`findRegex 3-byte UTF-8 offset failed: expected 10, got ${findRegex("데이터_table", "table")}`);
+    }
+    // 4-byte: Emoji '🚀' is 4 bytes + 1 byte for '_' = 5 bytes offset for 'launch'
+    if (findRegex("🚀_launch", "launch") !== 5) {
+        throw new Error(`findRegex 4-byte UTF-8 offset failed: expected 5, got ${findRegex("🚀_launch", "launch")}`);
+    }
+
+    // 25f. findManyRegex nulls, empty arrays, and single pattern coercion
+    if (findManyRegex(null, [/abc/]) !== null) throw new Error("findManyRegex null str failed");
+    if (findManyRegex("abc", null as any) !== null) throw new Error("findManyRegex null patterns failed");
+    if (JSON.stringify(findManyRegex("abc", [])) !== JSON.stringify([])) {
+        throw new Error("findManyRegex empty patterns array failed");
+    }
+    const singlePatMany = findManyRegex("hello 123", "\\d+");
+    if (JSON.stringify(singlePatMany) !== JSON.stringify([6])) {
+        throw new Error(`findManyRegex single pattern string coercion failed: got ${JSON.stringify(singlePatMany)}`);
+    }
+
+    // 25g. findManyRegex basic regex vs literal
+    const findManyRes = findManyRegex("user_123_PROD", [/user_\d+/, /PROD/]);
+    if (JSON.stringify(findManyRes) !== JSON.stringify([0, 9])) {
+        throw new Error(`findManyRegex regex failed: expected [0, 9], got ${JSON.stringify(findManyRes)}`);
+    }
+    const findManyLitRes = findManyRegex("user_123_PROD", ["user_123", "PROD"], { literal: true });
+    if (JSON.stringify(findManyLitRes) !== JSON.stringify([0, 9])) {
+        throw new Error(`findManyRegex literal failed: expected [0, 9], got ${JSON.stringify(findManyLitRes)}`);
+    }
+
+    // 25h. findManyRegex overlapping vs leftmost & start-position tie resolution
+    const findManyOverlap = findManyRegex("abc123def", [/c\d+/, /123/], { overlapping: true });
+    if (JSON.stringify(findManyOverlap) !== JSON.stringify([2, 3])) {
+        throw new Error(`findManyRegex overlapping failed: expected [2, 3], got ${JSON.stringify(findManyOverlap)}`);
+    }
+    const findManyLeftmost = findManyRegex("abc123def", [/c\d+/, /123/]);
+    if (JSON.stringify(findManyLeftmost) !== JSON.stringify([2, null])) {
+        throw new Error(`findManyRegex default leftmost failed: expected [2, null], got ${JSON.stringify(findManyLeftmost)}`);
+    }
+
+    // Start-position tie: /test/ and /te/ both match at index 0. /test/ comes first, so /te/ is dropped.
+    const tieResFind = findManyRegex("test", [/test/, /te/]);
+    if (JSON.stringify(tieResFind) !== JSON.stringify([0, null])) {
+        throw new Error(`findManyRegex start-position tie resolution failed: ${JSON.stringify(tieResFind)}`);
+    }
+
+    // Duplicate patterns: first /el/ occupies index 1-3, second /el/ overlaps and is dropped.
+    const dupFindRes = findManyRegex("hello", [/el/, /el/]);
+    if (JSON.stringify(dupFindRes) !== JSON.stringify([1, null])) {
+        throw new Error(`findManyRegex duplicate patterns failed: ${JSON.stringify(dupFindRes)}`);
+    }
+
+    // Conflicting options error check
+    try {
+        findManyRegex("abc", [/a/], { overlapping: true, leftmost: true });
+        throw new Error("findManyRegex overlapping & leftmost conflict should have thrown error");
+    } catch (e: any) {
+        if (!e.message.includes("Cannot specify both")) throw e;
+    }
+
+    // 26. Exhaustive Regex & String Extraction Edge Cases Battery
+    // 26a. Prototype-less custom object as string pattern safely returning null without throwing TypeError
+    const nullProtoObj = Object.create(null);
+    if (extractRegex("test", nullProtoObj as any) !== null) {
+        throw new Error("extractRegex with null-prototype object pattern should return null");
+    }
+
+    // 26b. ES2024 /v flag string patterns (Unicode sets & RGI_Emoji properties)
+    const rgiEmojiStringRes = extractRegex("🚀", "\\p{RGI_Emoji}", { groupIndex: 0 });
+    if (rgiEmojiStringRes !== "🚀") {
+        throw new Error(`ES2024 \\p{RGI_Emoji} string pattern failed: expected "🚀", got ${JSON.stringify(rgiEmojiStringRes)}`);
+    }
+    const greekSetStringRes = extractRegex("αβγ", "[\\p{Script=Greek}&&[\\p{Letter}]]+", { groupIndex: 0 });
+    if (greekSetStringRes !== "αβγ") {
+        throw new Error(`ES2024 Unicode set string pattern failed: expected "αβγ", got ${JSON.stringify(greekSetStringRes)}`);
+    }
+
+    // 26c. Prototype pollution safety: verify returned group records use null prototype
+    const protoCheckGroup = extractRegexGroups("123-abc", "(?<constructor>\\d+)-(?<valueOf>[a-z]+)") as Record<string, any> | null;
+    if (protoCheckGroup?.["constructor"] !== "123" || protoCheckGroup?.["valueOf"] !== "abc") {
+        throw new Error(`prototype pollution safety check failed: got ${JSON.stringify(protoCheckGroup)}`);
+    }
+    if (Object.getPrototypeOf(protoCheckGroup!) !== null) {
+        throw new Error("extractRegexGroups record should have null prototype");
+    }
+
+    // 26d. Extreme negative group index resolution
+    const multiGroupStr = "one-two-three-four";
+    const multiGroupReg = "(\\w+)-(\\w+)-(\\w+)-(\\w+)";
+    if (extractRegex(multiGroupStr, multiGroupReg, { groupIndex: -1 }) !== "four") throw new Error("negative groupIndex -1 failed");
+    if (extractRegex(multiGroupStr, multiGroupReg, { groupIndex: -2 }) !== "three") throw new Error("negative groupIndex -2 failed");
+    if (extractRegex(multiGroupStr, multiGroupReg, { groupIndex: -3 }) !== "two") throw new Error("negative groupIndex -3 failed");
+    if (extractRegex(multiGroupStr, multiGroupReg, { groupIndex: -4 }) !== "one") throw new Error("negative groupIndex -4 failed");
+    if (extractRegex(multiGroupStr, multiGroupReg, { groupIndex: -5 }) !== null) throw new Error("negative groupIndex -5 should return null (capture groups only)");
+    if (extractRegex(multiGroupStr, multiGroupReg, { groupIndex: -6 }) !== null) throw new Error("negative out-of-bounds -6 should return null");
+
+    // 26e. Non-leftmost spatial ordering and overlap resolution
+    const spatialDistantStr = "alpha beta gamma delta";
+    const nonLeftmostDistant = extractRegexMany(spatialDistantStr, [/delta/, /alpha/], { leftmost: false, groupIndex: 0 });
+    if (JSON.stringify(nonLeftmostDistant) !== JSON.stringify(["delta", "alpha"])) {
+        throw new Error(`non-leftmost distant matches failed: expected ["delta", "alpha"], got ${JSON.stringify(nonLeftmostDistant)}`);
+    }
+
+    const overlapLeftmostTrue = extractRegexMany("abcdef", [/cde/, /bc/], { leftmost: true, groupIndex: 0 });
+    if (JSON.stringify(overlapLeftmostTrue) !== JSON.stringify([null, "bc"])) {
+        throw new Error(`overlap leftmost true failed: expected [null, "bc"], got ${JSON.stringify(overlapLeftmostTrue)}`);
+    }
+
+    const overlapLeftmostFalse = extractRegexMany("abcdef", [/cde/, /bc/], { leftmost: false, groupIndex: 0 });
+    if (JSON.stringify(overlapLeftmostFalse) !== JSON.stringify(["cde", null])) {
+        throw new Error(`overlap leftmost false failed: expected ["cde", null], got ${JSON.stringify(overlapLeftmostFalse)}`);
+    }
+
+    // 26f. Zero-width matches in findManyRegex
+    const zeroWidthFindMany = findManyRegex("hello", ["^", "$", "\\b"]);
+    if (JSON.stringify(zeroWidthFindMany) !== JSON.stringify([0, 5, 0])) {
+        throw new Error(`zero-width findManyRegex failed: expected [0, 5, 0], got ${JSON.stringify(zeroWidthFindMany)}`);
+    }
+
+    // 26g. Precision UTF-8 Byte Offset calculation for mixed multi-byte strings
+    // 'A' (1b) + '€' (3b) = 4b offset for '🚀'
+    const multiByteOffset = findRegex("A€🚀_end", "🚀");
+    if (multiByteOffset !== 4) {
+        throw new Error(`mixed multi-byte UTF-8 offset failed: expected 4, got ${multiByteOffset}`);
+    }
+
+    // 27a. Symmetric Zero-Width Overlap Detection (_matchManyCore)
+    // Zero-width match at position 6 (before "world") swallows position 6 so range [6, 11] is blocked
+    const zeroWidthSwallow = extractRegexMany("hello world", [/(?=world)/, /world/], { leftmost: false, groupIndex: 0 });
+    if (JSON.stringify(zeroWidthSwallow) !== JSON.stringify(["", null])) {
+        throw new Error(`zero-width overlap swallow test failed: expected ["", null], got ${JSON.stringify(zeroWidthSwallow)}`);
+    }
+    // Boundary zero-width anchor ($ at index 5) after range [0, 5] should NOT be blocked
+    const boundaryAnchorNoBlock = extractRegexMany("hello", [/hello/, /$/], { leftmost: false, groupIndex: 0 });
+    if (JSON.stringify(boundaryAnchorNoBlock) !== JSON.stringify(["hello", ""])) {
+        throw new Error(`boundary anchor no-block test failed: expected ["hello", ""], got ${JSON.stringify(boundaryAnchorNoBlock)}`);
+    }
+
+    // 27b. Side-effect-free handling of caller-owned RegExp instances in toCleanRegExp
+    const precompiledReg = /test_pattern/g;
+    precompiledReg.lastIndex = 5;
+    const cleanRes = toCleanRegExp("test_pattern string", precompiledReg, { global: true });
+    if (!cleanRes || cleanRes.reg === precompiledReg) {
+        throw new Error("toCleanRegExp should return a cloned RegExp to remain side-effect-free");
+    }
+    if (precompiledReg.lastIndex !== 5) {
+        throw new Error(`toCleanRegExp mutated caller RegExp lastIndex: expected 5, got ${precompiledReg.lastIndex}`);
+    }
+
+    // 27c. Non-ASCII Case-Insensitive Literal Matching in findRegex
+    // "Grüß Gott" -> 'G'(1) + 'r'(1) + 'ü'(2) + 'ß'(2) + ' '(1) = 7 bytes before "Gott"
+    const literalCaseOffset = findRegex("Grüß Gott 🚀", "gott", { literal: true, asciiCaseInsensitive: true });
+    if (literalCaseOffset !== 7) {
+        throw new Error(`literal non-ASCII case-insensitive byte offset failed: expected 7, got ${literalCaseOffset}`);
+    }
+    const literalCaseUpperOffset = findRegex("HÄLLÖ WORLD", "hällö", { literal: true, asciiCaseInsensitive: true });
+    if (literalCaseUpperOffset !== 0) {
+        throw new Error(`literal uppercase non-ASCII match failed: expected 0, got ${literalCaseUpperOffset}`);
+    }
+
+    // 28. Literal findRegex with RegExp instance inputs (pattern.source extraction)
+    const literalRegExpInput = findRegex("hello world", /world/, { literal: true });
+    if (literalRegExpInput !== 6) {
+        throw new Error(`literal RegExp instance input failed: expected 6, got ${literalRegExpInput}`);
+    }
+    const literalRegExpFlagsInput = findRegex("hello WORLD", /world/i, { literal: true });
+    if (literalRegExpFlagsInput !== 6) {
+        throw new Error(`literal RegExp instance with /i flag failed: expected 6, got ${literalRegExpFlagsInput}`);
+    }
+
+    // 29. Additional Advanced Edge Cases for Regex Utility Suite
+    // 29a. Key enumeration & JSON serialization non-enumerability check (_index / _length)
+    const matchGroupRec = extractRegexGroups("hello 123", "(?<word>\\w+)\\s+(?<num>\\d+)");
+    const recKeys = Object.keys(matchGroupRec || {});
+    if (recKeys.includes("_index") || recKeys.includes("_length")) {
+        throw new Error(`Object.keys() exposed internal non-enumerable properties: ${JSON.stringify(recKeys)}`);
+    }
+    const serializedRec = JSON.stringify(matchGroupRec);
+    if (serializedRec.includes("_index") || serializedRec.includes("_length")) {
+        throw new Error(`JSON.stringify exposed internal non-enumerable properties: ${serializedRec}`);
+    }
+
+    // 29b. Floating point negative group index truncation (-1.9 -> -1, -2.4 -> -2)
+    const floatNegGroup1 = extractRegex("one-two-three", "(\\w+)-(\\w+)-(\\w+)", { groupIndex: -1.9 });
+    if (floatNegGroup1 !== "three") {
+        throw new Error(`floating negative groupIndex -1.9 truncation failed: expected "three", got ${floatNegGroup1}`);
+    }
+    const floatNegGroup2 = extractRegex("one-two-three", "(\\w+)-(\\w+)-(\\w+)", { groupIndex: -2.4 });
+    if (floatNegGroup2 !== "two") {
+        throw new Error(`floating negative groupIndex -2.4 truncation failed: expected "two", got ${floatNegGroup2}`);
+    }
+
+    // 29c. findManyRegex with literal: true and regex metacharacters in pattern strings
+    const literalMetaMany = findManyRegex("a.b c*d e+f", ["a.b", "c*d", "x?y"], { literal: true });
+    if (JSON.stringify(literalMetaMany) !== JSON.stringify([0, 4, null])) {
+        throw new Error(`findManyRegex literal mode with metacharacters failed: expected [0, 4, null], got ${JSON.stringify(literalMetaMany)}`);
+    }
+
+    // 29d. findManyRegex with literal: true and asciiCaseInsensitive: true
+    const literalCiMany = findManyRegex("HELLO WORLD", ["hello", "world"], { literal: true, asciiCaseInsensitive: true });
+    if (JSON.stringify(literalCiMany) !== JSON.stringify([0, 6])) {
+        throw new Error(`findManyRegex literal case-insensitive failed: expected [0, 6], got ${JSON.stringify(literalCiMany)}`);
+    }
+
+    // 29e. Unicode property escape pattern with asciiCaseInsensitive: true flag combination
+    const unicodeCiRes = extractRegex("αβγ", "\\p{Script=Greek}+", { asciiCaseInsensitive: true, groupIndex: 0 });
+    if (unicodeCiRes !== "αβγ") {
+        throw new Error(`unicode property escape with asciiCaseInsensitive: true failed: expected "αβγ", got ${unicodeCiRes}`);
+    }
+
+    // 30. Robustness Fix Verification Tests (Negative Capture Indexing & Literal RegExp Flag Preservation)
+    // 30a. Negative groupIndex boundary: ensure -count returns null instead of group 0 (full match)
+    const twoGroupStr = "foo-bar";
+    const twoGroupReg = "(\\w+)-(\\w+)"; // count = 3 (match 0, group 1, group 2)
+    if (extractRegex(twoGroupStr, twoGroupReg, { groupIndex: -1 }) !== "bar") throw new Error("groupIndex -1 should return last capture group 'bar'");
+    if (extractRegex(twoGroupStr, twoGroupReg, { groupIndex: -2 }) !== "foo") throw new Error("groupIndex -2 should return first capture group 'foo'");
+    if (extractRegex(twoGroupStr, twoGroupReg, { groupIndex: -3 }) !== null) {
+        throw new Error("groupIndex -3 should return null (must not roll back into Group 0 full match)");
+    }
+
+    // 30b. Literal findRegex preserving structural flags (u, v, m, s) from RegExp instances
+    const multilineLiteralReg = new RegExp("^bar", "m");
+    const multilineLiteralOffset = findRegex("foo\nbar", multilineLiteralReg, { literal: true });
+    // In literal mode, "^bar" is escaped to "\^bar", which does not match literally because "^" is not literally in input
+    if (multilineLiteralOffset !== null) {
+        throw new Error("literal mode should escape ^ to \\^ and fail literal match");
+    }
+
+    const unicodeLiteralReg = new RegExp("🚀", "u");
+    const unicodeLiteralOffset = findRegex("hello 🚀 world", unicodeLiteralReg, { literal: true });
+    if (unicodeLiteralOffset !== 6) {
+        throw new Error(`literal RegExp with 'u' flag offset failed: expected 6, got ${unicodeLiteralOffset}`);
+    }
+
+    // 31. Comprehensive splitString edge case tests
+    // 31a. Null / Undefined inputs
+    if (splitString(null, ",") !== null) throw new Error("Expected splitString(null) to be null");
+    if (splitString(undefined, ",") !== null) throw new Error("Expected splitString(undefined) to be null");
+    if (splitString("abc", null as any) !== null) throw new Error("Expected splitString('abc', null) to be null");
+
+    // 31b. Empty string delimiter ("")
+    if (JSON.stringify(splitString("abc", "")) !== '["a","b","c"]') throw new Error("split empty string delimiter failed");
+    if (JSON.stringify(splitString("abc", "", { limit: 1 })) !== '["a","bc"]') throw new Error("split empty string delimiter with limit 1 failed");
+    if (JSON.stringify(splitString("abc", "", { limit: 2 })) !== '["a","b","c"]') throw new Error("split empty string delimiter with limit 2 failed");
+
+    // 31c. Zero-width regex delimiters (^, $, \b)
+    if (JSON.stringify(splitString("a b c", "\\b", { literal: false })) !== '["a"," ","b"," ","c"]') throw new Error("split word boundary \\b regex failed");
+
+    // 31d. Literal vs Regex mode
+    if (JSON.stringify(splitString("a.b.c", ".", { literal: true })) !== '["a","b","c"]') throw new Error("split literal . failed");
+    if (JSON.stringify(splitString("aXbYc", "[XY]", { literal: false })) !== '["a","b","c"]') throw new Error("split regex character class failed");
+
+    // 31e. Inclusive flag
+    if (JSON.stringify(splitString("a,b,c", ",", { inclusive: true })) !== '["a,","b,","c"]') throw new Error("split inclusive comma failed");
+    if (JSON.stringify(splitString("10a20b30", "[a-z]", { literal: false, inclusive: true })) !== '["10a","20b","30"]') throw new Error("split inclusive regex failed");
+
+    // 31f. Limits & Remainder preservation
+    if (JSON.stringify(splitString("a,b,c,d", ",", { limit: 0 })) !== '["a,b,c,d"]') throw new Error("split limit 0 failed");
+    if (JSON.stringify(splitString("a,b,c,d", ",", { limit: 1 })) !== '["a","b,c,d"]') throw new Error("split limit 1 failed");
+    if (JSON.stringify(splitString("a1b2c3d", "\\d+", { literal: false, limit: 1 })) !== '["a","b2c3d"]') throw new Error("split regex limit 1 remainder preservation failed");
+
+    // 31g. Exact padding
+    if (JSON.stringify(splitString("a,b", ",", { limit: 3, exact: true })) !== '["a","b",null,null]') throw new Error("split exact padding failed");
+    if (JSON.stringify(splitString("a,b,c,d", ",", { limit: 1, exact: true })) !== '["a","b,c,d"]') throw new Error("split exact with more items than limit failed");
+
+    // 31h. Strict mode errors
+    let strictCaught = false;
+    try {
+        splitString("a,b", ",", { limit: 3, strict: true });
+    } catch (e: any) {
+        strictCaught = e.name === "InvalidArgumentError";
+    }
+    if (!strictCaught) throw new Error("split strict mode failed to throw InvalidArgumentError when count < target");
+
+    // 31i. Unicode & Emoji handling
+    if (JSON.stringify(splitString("🚀,⭐,🔥", ",")) !== '["🚀","⭐","🔥"]') throw new Error("split emoji delimiter failed");
+
+    // 31j. Empty String Input Edge Cases
+    if (JSON.stringify(splitString("", ",")) !== '[""]') throw new Error("split empty string input with comma failed");
+    if (JSON.stringify(splitString("", "")) !== '[""]') throw new Error("split empty string input with empty delimiter failed");
+    if (JSON.stringify(splitString("", ",", { limit: 2, exact: true })) !== '["",null,null]') throw new Error("split empty string with exact padding failed");
+
+    // 31k. Consecutive Delimiters & Edge Delimiters
+    if (JSON.stringify(splitString("a,,b", ",")) !== '["a","","b"]') throw new Error("split consecutive delimiters failed");
+    if (JSON.stringify(splitString(",,,", ",")) !== '["","","",""]') throw new Error("split all delimiters failed");
+    if (JSON.stringify(splitString(",a,b,", ",")) !== '["","a","b",""]') throw new Error("split leading and trailing delimiters failed");
+    if (JSON.stringify(splitString("a  b", "\\s+", { literal: false })) !== '["a","b"]') throw new Error("split regex whitespace+ failed");
+    if (JSON.stringify(splitString("a  b", "\\s", { literal: false })) !== '["a","","b"]') throw new Error("split regex single whitespace failed");
+
+    // 31l. Zero-Width Regex Assertions & Lookahead
+    if (JSON.stringify(splitString("camelCaseWords", "(?=[A-Z])", { literal: false })) !== '["camel","Case","Words"]') throw new Error("split lookahead zero-width regex failed");
+    if (JSON.stringify(splitString("a1b2c", "(?<=\\d)", { literal: false })) !== '["a1","b2","c"]') throw new Error("split lookbehind zero-width regex failed");
+    if (JSON.stringify(splitString("hello", "^", { literal: false })) !== '["hello"]') throw new Error("split start anchor regex failed");
+    if (JSON.stringify(splitString("hello", "$", { literal: false })) !== '["hello"]') throw new Error("split end anchor regex failed");
+
+    // 31m. Emoji & Surrogate Pair Zero-Length & Delimiter Edge Cases
+    if (JSON.stringify(splitString("🚀⭐🔥", "")) !== '["🚀","⭐","🔥"]') throw new Error("split emoji zero-length delimiter failed");
+    if (JSON.stringify(splitString("a🚀b🚀c", "🚀")) !== '["a","b","c"]') throw new Error("split emoji delimiter string failed");
+    if (JSON.stringify(splitString("🚀⭐🔥", "", { limit: 1 })) !== '["🚀","⭐🔥"]') throw new Error("split emoji zero-length with limit 1 failed");
+    if (JSON.stringify(splitString("🚀⭐🔥", "", { limit: 5, exact: true })) !== '["🚀","⭐","🔥",null,null,null]') throw new Error("split emoji zero-length with exact padding failed");
+
+    // 31n. Special Characters, Escapes, & Newlines
+    if (JSON.stringify(splitString("a\\b\\c", "\\")) !== '["a","b","c"]') throw new Error("split backslash delimiter failed");
+    if (JSON.stringify(splitString("a\r\nb\r\nc", "\r\n")) !== '["a","b","c"]') throw new Error("split CRLF newline delimiter failed");
+    if (JSON.stringify(splitString("a(b)c", "(b)", { literal: true })) !== '["a","c"]') throw new Error("split literal parenthesis failed");
+    if (JSON.stringify(splitString("a(b)c", "(b)", { literal: false })) !== '["a(",")c"]') throw new Error("split regex capture group delimiter failed");
+    if (JSON.stringify(splitString("a[0]b[0]c", "[0]", { literal: true })) !== '["a","b","c"]') throw new Error("split literal bracket failed");
+
+    // 31o. Limit, Exact, & Strict Combinations
+    if (JSON.stringify(splitString("a,b,c", ",", { limit: 5, exact: true })) !== '["a","b","c",null,null,null]') throw new Error("split limit larger than count exact padding failed");
+    if (JSON.stringify(splitString("a,b,c", ",", { limit: 2, exact: true, strict: true })) !== '["a","b","c"]') throw new Error("split exact strict matching count failed");
+    if (JSON.stringify(splitString("a,b,c", ",", { limit: -5 })) !== '["a","b","c"]') throw new Error("split negative limit failed");
+
+    // 31p. Inclusive Flag Edge Cases
+    if (JSON.stringify(splitString("a,b,c,", ",", { inclusive: true })) !== '["a,","b,","c,",""]') throw new Error("split inclusive trailing delimiter failed");
+    if (JSON.stringify(splitString("a,b,c", ",", { inclusive: true, limit: 1 })) !== '["a,","b,c"]') throw new Error("split inclusive limit 1 failed");
+
+    // 31q. Additional Boundary & Edge Case Tests
+    if (JSON.stringify(splitString("a1b2c", "(?<=\\d)", { literal: false, inclusive: true })) !== '["a1","b2","c"]') {
+        throw new Error("split inclusive lookbehind failed");
+    }
+    if (JSON.stringify(splitString("𠮷野家", "", { limit: 1 })) !== '["𠮷","野家"]') {
+        throw new Error("split surrogate pair zero-width limit 1 failed");
+    }
+    if (JSON.stringify(splitString("line1\nline2\nline3", "\n", { limit: 1 })) !== '["line1","line2\\nline3"]') {
+        throw new Error("split newline with limit 1 failed");
+    }
+    try {
+        splitString("a,b", ",", { limit: 5, exact: true, strict: true });
+        throw new Error("split strict should have thrown");
+    } catch (e: any) {
+        if (!e.message.includes("split exact error: expected string to split into at least 6 parts")) {
+            throw e;
+        }
+    }
+    if (JSON.stringify(splitString("foo1bar2baz", /\d/ as any, { literal: false })) !== '["foo","bar","baz"]') {
+        throw new Error("split RegExp object delimiter failed");
+    }
+    if (JSON.stringify(splitString("a", "")) !== '["a"]') {
+        throw new Error("split single character with empty delimiter failed");
+    }
+    if (JSON.stringify(splitString("a", "", { limit: 1 })) !== '["a"]') {
+        throw new Error("split single character with limit 1 failed");
+    }
+    if (JSON.stringify(splitString("a", "", { limit: 1, exact: true })) !== '["a",null]') {
+        throw new Error("split single character exact limit 1 failed");
+    }
+    if (JSON.stringify(splitString("a1b", "(?<=\\d)", { literal: false, inclusive: true })) !== '["a1","b"]') {
+        throw new Error("split single char lookbehind inclusive failed");
+    }
+
+    // 31r. Advanced Edge Cases for splitString
+    // 31r-1. Zero-width match at index 0 (e.g. lookahead matching start of string)
+    if (JSON.stringify(splitString("abc", "(?=a)", { literal: false })) !== '["abc"]') {
+        throw new Error("splitString zero-width match at index 0 failed");
+    }
+
+    // 31r-2. Zero-width match with inclusive: true (should not duplicate or slice out extra chars)
+    if (JSON.stringify(splitString("ab", "(?=b)", { literal: false, inclusive: true })) !== '["a","b"]') {
+        throw new Error("splitString zero-width match with inclusive true failed");
+    }
+
+    // 31r-3. Empty string delimiter with inclusive: true
+    if (JSON.stringify(splitString("ab", "", { inclusive: true })) !== '["a","b"]') {
+        throw new Error("splitString empty delimiter with inclusive true failed");
+    }
+
+    // 31r-4. Zero-width matches across surrogate pairs (emoji sequence)
+    if (JSON.stringify(splitString("🚀🔥", "", { limit: 1 })) !== '["🚀","🔥"]') {
+        throw new Error("splitString surrogate pair zero-width split with limit 1 failed");
+    }
+
+    // 31r-5. Strict with exact=false throwing on insufficient parts
+    let strictOnlyCaught = false;
+    try {
+        splitString("a", ",", { limit: 3, strict: true, exact: false });
+    } catch (e: any) {
+        strictOnlyCaught = e.name === "InvalidArgumentError";
+    }
+    if (!strictOnlyCaught) throw new Error("splitString strict true with exact false failed to throw on insufficient parts");
+
+    // 31r-6. Zero-width lookahead match with inclusive: true (empty matched delimiter slice)
+    if (JSON.stringify(splitString("helloWorld", "(?=[A-Z])", { literal: false, inclusive: true })) !== '["hello","World"]') {
+        throw new Error("splitString zero-width lookahead inclusive failed");
+    }
+
+    // 31r-7. Multi-character grapheme / emoji with ZWJ sequence under empty delimiter
+    if (JSON.stringify(splitString("👨‍👩‍👧‍👦", "", { limit: 2 })) !== '["👨","\u200d","👩‍👧‍👦"]') {
+        throw new Error("splitString ZWJ sequence code point split failed");
     }
 
     console.log("🎉 ALL UTILS STRING TESTS PASSED SUCCESSFULLY!");

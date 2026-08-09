@@ -3,9 +3,9 @@ import { isPlainObj, isRegExp, isValidDateObj, isSet, isMap, unboxPrimitiveObj }
 import { isTypedArray, toValidArray } from "./array";
 import { createSafeJsonReplacer } from "./json";
 import { toValidBinary } from "./binary";
-import { KEY_SEPARATOR, KEY_PAIR_SEPARATOR } from "../constants";
+import { KEY_SEPARATOR, KEY_PAIR_SEPARATOR, TEXT_ENCODER } from "../constants";
 import { InvalidArgumentError } from "../exceptions";
-import type { StringEncoding, EscapeRegexOptions, ExtractManyOptions, ExtractRegexEngineOptions } from "../types";
+import type { StringEncoding, EscapeRegexOptions, ExtractManyOptions, ExtractRegexEngineOptions, FindOptions, FindManyOptions, SplitOptions } from "../types";
 
 
 export function isBlankString(v: unknown): v is string {
@@ -496,8 +496,6 @@ for (let i = 0; i < 256; i++) {
     HEX_TABLE[i] = i.toString(16).padStart(2, "0");
 }
 
-const TEXT_ENCODER = new TextEncoder();
-
 const B64_TO_B64URL_MAP: Record<string, string> = { "+": "-", "/": "_", "=": "" };
 const B64URL_TO_B64_MAP: Record<string, string> = { "-": "+", "_": "/" };
 const B64_URL_ENCODE_REGEX = /[+/=]/g;
@@ -764,9 +762,27 @@ export function toCleanRegExp(
 
     try {
         if (!isRegExp(pattern)) {
+            const patStr = typeof pattern === "string" ? pattern : String(pattern);
             let flags = isGlobal ? "g" : "";
             if (options?.asciiCaseInsensitive) flags += "i";
-            return { reg: new RegExp(String(pattern), flags), input };
+
+            if ((patStr.includes("\\p{") || patStr.includes("\\P{")) && !flags.includes("u") && !flags.includes("v")) {
+                try {
+                    return { reg: new RegExp(patStr, flags + "u"), input };
+                } catch {
+                    try {
+                        return { reg: new RegExp(patStr, flags + "v"), input };
+                    } catch {
+                        // Fall through to standard compilation
+                    }
+                }
+            }
+
+            try {
+                return { reg: new RegExp(patStr, flags), input };
+            } catch {
+                return null;
+            }
         }
 
         let flags = pattern.flags.replace(/y/g, "");
@@ -791,7 +807,21 @@ export function toCleanRegExp(
 }
 
 function _matchToRecord(match: RegExpMatchArray | RegExpExecArray): Record<string, string | null> {
-    const result: Record<string, string | null> = {};
+    const result: Record<string, string | null> = Object.create(null);
+    if (match.index !== undefined) {
+        Object.defineProperty(result, "_index", {
+            value: String(match.index),
+            writable: true,
+            enumerable: false,
+            configurable: true
+        });
+    }
+    Object.defineProperty(result, "_length", {
+        value: match.length,
+        writable: true,
+        enumerable: false,
+        configurable: true
+    });
     for (let i = 0; i < match.length; i++) {
         result[String(i)] = match[i] !== undefined ? match[i] : null;
     }
@@ -816,13 +846,10 @@ function _resolveGroupRecord(
     const index = Math.trunc(num);
     if (index >= 0) return record[String(index)] ?? null;
 
-    let count = 0;
-    while (String(count) in record) count++;
+    const count = (record as any)._length ?? 0;
     const targetIndex = count + index;
-    return targetIndex >= 0 ? (record[String(targetIndex)] ?? null) : null;
+    return targetIndex >= 1 ? (record[String(targetIndex)] ?? null) : null;
 }
-
-
 
 export function extractRegexEngine(
     str: string | null | undefined,
@@ -872,69 +899,249 @@ export function extractRegexAll(
     return result;
 }
 
-export function extractRegexMany(
-    str: string | null | undefined,
-    patterns: (string | RegExp)[] | (string | RegExp),
-    options?: ExtractManyOptions
-): (string | null)[] | null {
-    const { groupIndex = 0, overlapping = false, leftmost = false, ...engineOpts } = options ?? {};
-
-    if (overlapping && leftmost) {
-        throw new InvalidArgumentError("Cannot specify both 'overlapping' and 'leftmost' as true in extract_many.");
-    }
-    if (str == null || patterns == null) return null;
-    const list = toValidArray(patterns);
-    const len = list.length;
-    if (len === 0) return [];
-
-    const fullOpts = { groupIndex, ...engineOpts };
-
-    if (overlapping) {
-        const result = new Array<string | null>(len);
-        for (let i = 0; i < len; i++) {
-            result[i] = extractRegex(str, list[i], fullOpts);
-        }
-        return result;
-    }
-
-    type Candidate = { i: number; start: number; end: number; val: string | null };
-    const candidates: Candidate[] = [];
-
-    for (let i = 0; i < len; i++) {
-        const cleaned = toCleanRegExp(str, list[i], { ...engineOpts, global: false });
-        if (!cleaned) continue;
-        const match = cleaned.input.match(cleaned.reg);
-        if (match?.index !== undefined) {
-            candidates.push({
-                i,
-                start: match.index,
-                end: match.index + match[0].length,
-                val: _resolveGroupRecord(_matchToRecord(match), groupIndex)
-            });
-        }
-    }
-
-    const result = new Array<string | null>(len).fill(null);
-    if (candidates.length === 0) return result;
-
-    candidates.sort((a, b) => a.start !== b.start ? a.start - b.start : a.i - b.i);
-
-    let lastPos = 0;
-    for (let i = 0; i < candidates.length; i++) {
-        const c = candidates[i];
-        if (c.start >= lastPos) {
-            result[c.i] = c.val;
-            lastPos = c.end;
-        }
-    }
-
-    return result;
-}
-
 export function extractRegexGroups(
     str: string | null | undefined,
     pattern: string | RegExp,
     options?: ExtractManyOptions
 ): Record<string, string | null> | null {
     return extractRegexEngine(str, pattern, options)?.[0] ?? null;
+}
+
+function _matchManyCore<T>(
+    str: string | null | undefined,
+    patterns: (string | RegExp)[] | (string | RegExp),
+    options: ExtractManyOptions | undefined,
+    resolveSingle: (pat: string | RegExp) => T | null,
+    resolvePayload: (res: Record<string, string | null>, start: number) => T
+): (T | null)[] | null {
+    const { overlapping = false, leftmost, ...engineOpts } = options ?? {};
+    const isLeftmost = leftmost ?? true;
+
+    if (overlapping && leftmost) {
+        throw new InvalidArgumentError("Cannot specify both 'overlapping' and 'leftmost' as true.");
+    }
+    if (str == null || patterns == null) return null;
+    const list = toValidArray(patterns);
+    const len = list.length;
+    if (len === 0) return [];
+
+    if (overlapping) {
+        const result = new Array<T | null>(len);
+        for (let i = 0; i < len; i++) {
+            result[i] = resolveSingle(list[i]);
+        }
+        return result;
+    }
+
+    type Candidate = { i: number; start: number; end: number; payload: T };
+    const candidates: Candidate[] = [];
+
+    for (let i = 0; i < len; i++) {
+        const res = extractRegexEngine(str, list[i], { ...engineOpts, global: false });
+        if (res && res[0] && res[0]._index != null) {
+            const start = Number(res[0]._index);
+            const matchLen = res[0]["0"]?.length ?? 0;
+            candidates.push({
+                i,
+                start,
+                end: start + matchLen,
+                payload: resolvePayload(res[0], start)
+            });
+        }
+    }
+
+    const result = new Array<T | null>(len).fill(null);
+    if (candidates.length === 0) return result;
+
+    if (isLeftmost) {
+        candidates.sort((a, b) => a.start !== b.start ? a.start - b.start : a.i - b.i);
+        let lastPos = 0;
+        for (let i = 0; i < candidates.length; i++) {
+            const c = candidates[i];
+            if (c.start >= lastPos) {
+                result[c.i] = c.payload;
+                lastPos = c.end;
+            }
+        }
+    } else {
+        const accepted: Candidate[] = [];
+        candidates.sort((a, b) => a.i - b.i);
+        const candLen = candidates.length;
+        for (let i = 0; i < candLen; i++) {
+            const c = candidates[i];
+            let overlaps = false;
+            const accLen = accepted.length;
+            for (let j = 0; j < accLen; j++) {
+                const a = accepted[j];
+                let isOverlapping = false;
+                if (c.start === c.end && a.start === a.end) {
+                    isOverlapping = c.start === a.start;
+                } else if (a.start === a.end) {
+                    isOverlapping = a.start >= c.start && a.start < c.end;
+                } else if (c.start === c.end) {
+                    isOverlapping = c.start >= a.start && c.start < a.end;
+                } else {
+                    isOverlapping = c.start < a.end && c.end > a.start;
+                }
+                if (isOverlapping) {
+                    overlaps = true;
+                    break;
+                }
+            }
+            if (!overlaps) {
+                accepted.push(c);
+            }
+        }
+        const accLen = accepted.length;
+        for (let i = 0; i < accLen; i++) {
+            const c = accepted[i];
+            result[c.i] = c.payload;
+        }
+    }
+
+    return result;
+}
+
+export function extractRegexMany(
+    str: string | null | undefined,
+    patterns: (string | RegExp)[] | (string | RegExp),
+    options?: ExtractManyOptions
+): (string | null)[] | null {
+    const groupIndex = options?.groupIndex ?? 0;
+    return _matchManyCore(
+        str,
+        patterns,
+        options,
+        (pat) => extractRegex(str, pat, { ...options, groupIndex }),
+        (res) => _resolveGroupRecord(res, groupIndex)
+    );
+}
+
+export function findRegex(
+    str: string | null | undefined,
+    pattern: string | RegExp,
+    options?: FindOptions
+): number | null {
+    if (str == null || pattern == null) return null;
+    const { literal = false, asciiCaseInsensitive = false } = options ?? {};
+
+    if (literal) {
+        const isReg = isRegExp(pattern);
+        const rawStr = isReg ? pattern.source : String(pattern);
+        const patStr = escapeRegExp(rawStr);
+        let flags = asciiCaseInsensitive ? "i" : "";
+        if (isReg) {
+            for (const f of ["i", "u", "v", "m", "s"]) {
+                if (pattern.flags.includes(f) && !flags.includes(f)) {
+                    flags += f;
+                }
+            }
+        }
+        const reg = new RegExp(patStr, flags);
+        const match = str.match(reg);
+        if (!match || match.index == null) return null;
+        return TEXT_ENCODER.encode(str.slice(0, match.index)).length;
+    }
+
+    const res = extractRegexEngine(str, pattern, { ...options, global: false });
+    if (!res || !res[0] || res[0]._index == null) return null;
+    const charIdx = Number(res[0]._index);
+    return TEXT_ENCODER.encode(str.slice(0, charIdx)).length;
+}
+
+export function findManyRegex(
+    str: string | null | undefined,
+    patterns: (string | RegExp)[] | (string | RegExp),
+    options?: FindManyOptions
+): (number | null)[] | null {
+    if (options?.literal) {
+        if (str == null || patterns == null) return null;
+        const list = toValidArray(patterns);
+        const result = new Array<number | null>(list.length);
+        for (let i = 0; i < list.length; i++) result[i] = findRegex(str, list[i], options);
+        return result;
+    }
+
+    return _matchManyCore(
+        str,
+        patterns,
+        options,
+        (pat) => findRegex(str, pat, options),
+        (_, start) => TEXT_ENCODER.encode(str!.slice(0, start)).length
+    );
+}
+
+export function splitString(
+    str: string | null | undefined,
+    delimiter: string,
+    options?: SplitOptions
+): (string | null)[] | null {
+    if (str == null || delimiter == null) return null;
+
+    const {
+        literal = true,
+        inclusive = false,
+        limit,
+        exact = false,
+        strict = false
+    } = options ?? {};
+
+    const patStr = literal ? escapeRegExp(delimiter) : delimiter;
+    const cleanObj = toCleanRegExp(str, patStr, { global: true });
+    if (!cleanObj) return null;
+    const { reg: pattern } = cleanObj;
+
+    pattern.lastIndex = 0;
+
+    let parts: (string | null)[] = [];
+    let lastIndex = 0;
+    let matchCount = 0;
+    const maxSplits = limit != null && limit >= 0 ? limit : Infinity;
+    let match: RegExpExecArray | null;
+
+    while (matchCount < maxSplits && (match = pattern.exec(str)) !== null) {
+        const matchStart = match.index;
+        const matchEnd = pattern.lastIndex;
+
+        if (matchStart === matchEnd) {
+            if (matchStart === str.length) break;
+
+            const cp = str.codePointAt(matchStart);
+            const step = cp != null && cp > 0xffff ? 2 : 1;
+
+            if (matchStart > 0 && matchStart >= lastIndex) {
+                parts.push(str.slice(lastIndex, matchStart));
+                matchCount++;
+                lastIndex = matchStart;
+                if (matchCount >= maxSplits) break;
+            }
+
+            pattern.lastIndex = matchStart + step;
+            continue;
+        }
+
+        parts.push(str.slice(lastIndex, inclusive ? matchEnd : matchStart));
+        lastIndex = matchEnd;
+        matchCount++;
+    }
+
+    parts.push(str.slice(lastIndex));
+
+    if (limit == null || limit < 0) return parts;
+
+    const targetCount = limit + 1;
+
+    if (strict && parts.length < targetCount) {
+        throw new InvalidArgumentError(
+            `split exact error: expected string to split into at least ${targetCount} parts, but got ${parts.length}`
+        );
+    }
+
+    if (exact) {
+        while (parts.length < targetCount) {
+            parts.push(null);
+        }
+    }
+
+    return parts;
 }

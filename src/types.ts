@@ -143,7 +143,42 @@ export interface ExtractManyOptions extends ExtractRegexEngineOptions {
     leftmost?: boolean;
 }
 
+export interface FindOptions extends ExtractRegexEngineOptions {
+    /**
+     * Treat pattern as literal string instead of regex.
+     */
+    literal?: boolean;
+}
 
+export interface FindManyOptions extends ExtractManyOptions {
+    /**
+     * Treat patterns as literal strings instead of regex.
+     */
+    literal?: boolean;
+}
+
+export interface SplitOptions {
+    /**
+     * Treat delimiter as literal string (default: true). Set to false for regex matching.
+     */
+    literal?: boolean;
+    /**
+     * Include delimiter in the split results.
+     */
+    inclusive?: boolean;
+    /**
+     * Maximum number of splits to perform.
+     */
+    limit?: number;
+    /**
+     * If true, pads missing splits with null to guarantee exact limit + 1 parts.
+     */
+    exact?: boolean;
+    /**
+     * If true, throws an InvalidArgumentError if the split does not yield at least limit + 1 parts.
+     */
+    strict?: boolean;
+}
 
 export type BusinessDayRollType = "raise" | "forward" | "backward";
 
@@ -245,7 +280,3 @@ export interface EntropyOptions {
     base?: number;
     normalize?: boolean;
 }
-
-
-
-

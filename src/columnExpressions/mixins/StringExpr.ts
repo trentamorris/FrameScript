@@ -5,10 +5,14 @@ import type {
     StringEncodeOptions,
     EscapeRegexOptions,
     ExtractManyOptions,
-    ExtractRegexEngineOptions
+    ExtractRegexEngineOptions,
+    FindOptions,
+    FindManyOptions,
+    SplitOptions
 } from "../../types";
 import { ExprBase, derive } from "../ExprBase";
 import { kleeneUnary, kleeneBinary } from "../utils";
+import { TEXT_ENCODER } from "../../constants";
 import {
     toValidDate,
     toValidDecimal,
@@ -25,7 +29,13 @@ import {
     extractRegex,
     extractRegexAll,
     extractRegexMany,
-    extractRegexGroups
+    findRegex,
+    findManyRegex,
+    splitString,
+    extractRegexGroups,
+    toValidArray,
+    joinArray,
+    JoinArrayOptions
 } from "../../utils";
 
 /**
@@ -376,6 +386,49 @@ export class StringExprNamespace {
     }
 
     /**
+     * Return the byte offset of the first substring matching a pattern.
+     * Returns null if pattern is not found.
+     * @param value Search string or regular expression.
+     * @param options Configuration options ({ literal, asciiCaseInsensitive }).
+     * @returns ColumnExpression
+     * @example
+     * >>> const df = $df.data({ text: ["user_123_PROD"] })
+     * >>> df.with_columns($df.col("text").str.find(/\d+/).alias("pos"))
+     * shape: (1, 2)
+     * ┌───────────────┬─────┐
+     * │ text          │ pos │
+     * ├───────────────┼─────┤
+     * │ user_123_PROD │ 5   │
+     * └───────────────┴─────┘
+     */
+    find(value: string | RegExp, options: FindOptions = {}) {
+        return this._patternGuard(value, () =>
+            this._deriveString((str) => findRegex(str, value, options))
+        );
+    }
+
+    /**
+     * Return the starting byte offset of each match for multiple patterns.
+     * @param patterns Array of regular expressions or literal search strings.
+     * @param options Configuration options ({ literal, asciiCaseInsensitive, overlapping, leftmost }).
+     * @returns ColumnExpression
+     * @example
+     * >>> const df = $df.data({ text: ["user_123_PROD"] })
+     * >>> df.with_columns($df.col("text").str.find_many([/user_\d+/, /PROD/]).alias("positions"))
+     * shape: (1, 2)
+     * ┌───────────────┬───────────┐
+     * │ text          │ positions │
+     * ├───────────────┼───────────┤
+     * │ user_123_PROD │ [0, 9]    │
+     * └───────────────┴───────────┘
+     */
+    find_many(patterns: (string | RegExp)[], options: FindManyOptions = {}) {
+        return this._patternGuard(patterns, () =>
+            this._deriveString((str) => findManyRegex(str, patterns, options))
+        );
+    }
+
+    /**
      * Extracts the first n characters of each string element.
      * @param n Number of characters to extract from the start of the string (default 1).
      * @returns ColumnExpression
@@ -392,6 +445,31 @@ export class StringExprNamespace {
      */
     head(n: number = 1) {
         return this.slice(0, n);
+    }
+
+    /**
+     * Joins a list of string elements into a single string using a delimiter.
+     * Accepts `JoinArrayOptions` (`{ ignoreNulls, nullValue, prefix, suffix, limit, truncationMarker, valueFormatter }`).
+     * @param delimiter The string delimiter to join elements with.
+     * @param options Formatting configuration options (`JoinArrayOptions`).
+     * @returns ColumnExpression
+     * @example
+     * >>> const df = $df.data({ tags: [["a", "b", "c"], ["x", "y"]] })
+     * >>> df.with_columns($df.col("tags").str.join("-").alias("joined"))
+     * shape: (2, 2)
+     * ┌─────────────────┬──────────┐
+     * │ tags            │ joined   │
+     * ├─────────────────┼──────────┤
+     * │ ["a", "b", "c"] │ a-b-c    │
+     * │ ["x", "y"]      │ x-y      │
+     * └─────────────────┴──────────┘
+     */
+    join(delimiter: string = "", options: JoinArrayOptions = {}) {
+        return derive(this.expr, kleeneUnary((v) => {
+            const arr = toValidArray(v);
+            if (arr == null) return null;
+            return joinArray(arr, delimiter, options);
+        }));
     }
 
     /**
@@ -425,7 +503,7 @@ export class StringExprNamespace {
      * └───────┴───────┘
      */
     len_bytes() {
-        return this._deriveString((str) => new TextEncoder().encode(str).length);
+        return this._deriveString((str) => TEXT_ENCODER.encode(str).length);
     }
 
     /**
@@ -479,6 +557,25 @@ export class StringExprNamespace {
      */
     lpad(width: number, fill: string = " ") {
         return this._deriveString((str) => str.padStart(width, fill));
+    }
+
+    /**
+     * Normalizes Unicode strings using standard normalization forms (NFC, NFD, NFKC, NFKD).
+     * @param form The Unicode normalization form to apply ("NFC", "NFD", "NFKC", or "NFKD"). Default is "NFC".
+     * @returns ColumnExpression
+     * @throws InvalidArgumentError If an invalid normalization form is provided.
+     * @example
+     * >>> const df = $df.data({ str: ["e\u0301"] })
+     * >>> df.with_columns($df.col("str").str.normalize("NFC").alias("normalized"))
+     * shape: (1, 2)
+     * ┌───────┬────────────┐
+     * │ str   │ normalized │
+     * ├───────┼────────────┤
+     * │ é     │ é          │
+     * └───────┴────────────┘
+     */
+    normalize(form?: Parameters<typeof String.prototype.normalize>[0]) {
+        return this._deriveString((str) => str.normalize(form));
     }
 
     /**
@@ -627,21 +724,22 @@ export class StringExprNamespace {
     }
 
     /**
-     * Splits strings into lists by delimiter.
+     * Splits strings into lists by delimiter with optional limit and exact padding.
      * @param delimiter Substring delimiter.
+     * @param options Options for controlling limit and exact padding.
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ csv: ["a,b,c"] })
-     * >>> df.with_columns($df.col("csv").str.split(",").alias("items"))
+     * >>> df.with_columns($df.col("csv").str.split(",", { limit: 1 }).alias("items"))
      * shape: (1, 2)
      * ┌───────┬─────────────────┐
      * │ csv   │ items           │
      * ├───────┼─────────────────┤
-     * │ a,b,c │ ["a", "b", "c"] │
+     * │ a,b,c │ ["a", "b,c"]    │
      * └───────┴─────────────────┘
      */
-    split(delimiter: string) {
-        return this._deriveString((str) => str.split(delimiter));
+    split(delimiter: string, options?: SplitOptions) {
+        return this._deriveString((str) => splitString(str, delimiter, options));
     }
 
     /**

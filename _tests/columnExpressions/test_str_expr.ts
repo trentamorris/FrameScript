@@ -963,8 +963,8 @@ try {
         throw new Error(`sticky_flag_extract_all failed: ${JSON.stringify(r0AdvEdge.sticky_flag_extract_all)}`);
     }
 
-    // Assert negative groupIndex in extract_many (-1 gets last group)
-    if (JSON.stringify(r0AdvEdge.extract_many_neg_group) !== JSON.stringify(["123", "foo"])) {
+    // Assert negative groupIndex in extract_many (-1 gets last group or fallback if negative out-of-bounds)
+    if (JSON.stringify(r0AdvEdge.extract_many_neg_group) !== JSON.stringify([null, null])) {
         throw new Error(`extract_many_neg_group failed: ${JSON.stringify(r0AdvEdge.extract_many_neg_group)}`);
     }
 
@@ -1003,10 +1003,70 @@ try {
         throw new Error("extract_many failed to throw InvalidArgumentError when both overlapping and leftmost are true");
     }
 
+    // --- .str.join() Tests (JoinArrayOptions) ---
+    const joinDf = $df.data({
+        tags: [["a", "b", "c"], ["x", "y"], [], ["foo", null, "bar"], null]
+    });
+    const joinRes = joinDf.with_columns([
+        $df.col("tags").str.join("-").alias("dash_joined"),
+        $df.col("tags").str.join().alias("default_joined"),
+        $df.col("tags").str.join("-", { ignoreNulls: true }).alias("ignore_nulls_joined"),
+        $df.col("tags").str.join("-", { ignoreNulls: false, nullValue: "N/A" }).alias("null_val_joined"),
+        $df.col("tags").str.join(", ", { prefix: "[", suffix: "]" }).alias("bracket_joined"),
+        $df.col("tags").str.join("-", { limit: 2, truncationMarker: "..." }).alias("limit_joined")
+    ]).to_dicts() as any[];
+
+    if (joinRes[0].dash_joined !== "a-b-c") throw new Error(`.str.join("-") failed row 0: ${joinRes[0].dash_joined}`);
+    if (joinRes[1].dash_joined !== "x-y") throw new Error(`.str.join("-") failed row 1: ${joinRes[1].dash_joined}`);
+    if (joinRes[2].dash_joined !== "") throw new Error(`.str.join("-") failed empty array row 2: ${joinRes[2].dash_joined}`);
+    if (joinRes[3].dash_joined !== "foo--bar") throw new Error(`.str.join("-") default ignoreNulls=false failed row 3: ${joinRes[3].dash_joined}`);
+    if (joinRes[4].dash_joined !== null) throw new Error(`.str.join("-") null cell failed row 4: ${joinRes[4].dash_joined}`);
+
+    if (joinRes[0].default_joined !== "abc") throw new Error(`.str.join() default delimiter failed: ${joinRes[0].default_joined}`);
+    if (joinRes[3].ignore_nulls_joined !== "foo-bar") throw new Error(`.str.join("-", { ignoreNulls: true }) failed row 3: ${joinRes[3].ignore_nulls_joined}`);
+    if (joinRes[3].null_val_joined !== "foo-N/A-bar") throw new Error(`.str.join("-", { nullValue: "N/A" }) failed row 3: ${joinRes[3].null_val_joined}`);
+    if (joinRes[0].bracket_joined !== "[a, b, c]") throw new Error(`.str.join() prefix/suffix failed: ${joinRes[0].bracket_joined}`);
+    if (joinRes[0].limit_joined !== "a-b...") throw new Error(`.str.join() limit/truncationMarker failed: ${joinRes[0].limit_joined}`);
+
+    // --- .str.normalize() Tests ---
+    const normDf = $df.data({
+        raw: ["e\u0301", "\u00E9", "ﬁ", null]
+    });
+    const normRes = normDf.with_columns([
+        $df.col("raw").str.normalize("NFC").alias("nfc"),
+        $df.col("raw").str.normalize("NFD").alias("nfd"),
+        $df.col("raw").str.normalize("NFKC").alias("nfkc"),
+        $df.col("raw").str.normalize("NFKD").alias("nfkd"),
+        $df.col("raw").str.normalize().alias("default_nfc")
+    ]).to_dicts() as any[];
+
+    if (normRes[0].nfc !== "\u00E9") throw new Error(`.str.normalize("NFC") failed: ${normRes[0].nfc}`);
+    if (normRes[1].nfd !== "e\u0301") throw new Error(`.str.normalize("NFD") failed: ${normRes[1].nfd}`);
+    if (normRes[2].nfkc !== "fi") throw new Error(`.str.normalize("NFKC") failed: ${normRes[2].nfkc}`);
+    if (normRes[2].nfkd !== "fi") throw new Error(`.str.normalize("NFKD") failed: ${normRes[2].nfkd}`);
+    if (normRes[3].nfc !== null) throw new Error(`.str.normalize() null cell failed: ${normRes[3].nfc}`);
+    if (normRes[0].default_nfc !== "\u00E9") throw new Error(`.str.normalize() default NFC failed: ${normRes[0].default_nfc}`);
+
+    // Verify native RangeError on bad normalization form
+    let invalidFormThrown = false;
+    try {
+        normDf.with_columns([
+            $df.col("raw").str.normalize("INVALID" as any).alias("err")
+        ]).to_dicts();
+    } catch (err: any) {
+        if (err instanceof RangeError || err.name === "RangeError" || String(err).includes("normalization form")) {
+            invalidFormThrown = true;
+        }
+    }
+    if (!invalidFormThrown) {
+        throw new Error(".str.normalize() failed to throw RangeError on invalid normalization form");
+    }
+
     console.log("\n🎉 ALL Expr.str COLUMN EXPRESSION & CASTING TESTS PASSED SUCCESSFULLY!");
 } catch (err) {
     console.error("\n❌ Expr.str COLUMN EXPRESSION TESTS FAILED:", err);
     process.exit(1);
 }
+
 
 

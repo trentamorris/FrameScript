@@ -1,6 +1,7 @@
 /** @internalfile */
 import { isTypedArray } from "./array";
 import type { AnyTypedArray } from "../types";
+import { TEXT_ENCODER } from "../constants";
 
 export function isValidBinary(v: unknown): v is string | any[] | AnyTypedArray {
     if (v === null || v === undefined) return false;
@@ -15,7 +16,7 @@ export function toValidBinary(v: unknown): Uint8Array | null {
         return v as Uint8Array;
     }
     if (typeof v === "string") {
-        return new TextEncoder().encode(v);
+        return TEXT_ENCODER.encode(v);
     }
     if (isTypedArray(v)) {
         return new Uint8Array(v.buffer.slice(v.byteOffset, v.byteOffset + v.byteLength));

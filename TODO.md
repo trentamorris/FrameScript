@@ -116,12 +116,12 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
   * [x] **`decode` / `encode`**: Binary encoding/decoding (Hex, Base64, etc.).
   * [x] **`escape_regex`**: Escape literal characters for safe regex usage.
   * [x] **`extract_all` / `extract_groups` / `extract_many`**: Advanced multi-match and structured group extractions.
-  * [ ] **`find` / `find_many`**: Find pattern match indices within string elements.
-  * [ ] **`join`**: Join list of string elements using a delimiter.
+  * [x] **`find` / `find_many`**: Find pattern match indices within string elements.
+  * [x] **`join`**: Join list of string elements using a delimiter.
   * [ ] **`json_decode` / `json_path_match`**: Parse JSON strings and extract fields using JSONPath syntax.
-  * [ ] **`normalize`**: Unicode normalization (NFC, NFD, NFKC, NFKD).
+  * [x] **`normalize`**: Unicode normalization (NFC, NFD, NFKC, NFKD).
   * [ ] **`replace_many`**: Batch replace multiple string patterns simultaneously.
-  * [ ] **`split_exact` / `split_n`**: Split strings into fixed-width struct fields or n-sized arrays.
+  * [x] **`split` (unified `split_exact` & `split_n`)**: Consolidated split options (`limit`, `exact`, `strict`) into unified `.str.split()` method.
 
 ### 🔎 Inspection & Reporting Utilities
 - [ ] **Pretty Printing Tabular Layouts (`df.to_markdown()`, `df.to_html()`)**:
