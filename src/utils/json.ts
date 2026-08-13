@@ -439,7 +439,7 @@ const isSafeKey = (key?: string): key is string =>
  * of executable query tokens without polluting global regex state.
  * Returns null if path contains unparsed/invalid syntax fragments.
  */
-function tokenizeJsonPath(path: string): JsonToken[] | null {
+export function tokenizeJsonPath(path: string): JsonToken[] | null {
     const cleanPath = path.trim().replace(/^\$/, "");
     if (!cleanPath) return [];
 
@@ -470,13 +470,12 @@ function tokenizeJsonPath(path: string): JsonToken[] | null {
             tokens.push({ type: "wildcard" });
         } else if (numOrSlice !== undefined) {
             if (numOrSlice.includes(":")) {
-                const parts = numOrSlice.split(":");
-                if (parts.length > 3) return null;
+                const [s0, s1, s2] = numOrSlice.split(":");
                 tokens.push({
                     type: "slice",
-                    start: toValidInt(parts[0]) ?? undefined,
-                    end: toValidInt(parts[1]) ?? undefined,
-                    step: toValidInt(parts[2]) ?? 1
+                    start: toValidInt(s0) ?? undefined,
+                    end: toValidInt(s1) ?? undefined,
+                    step: toValidInt(s2) ?? 1
                 });
             } else {
                 const idx = toValidInt(numOrSlice);
@@ -508,7 +507,7 @@ function _collectJsonRecursive(val: any, tok: JsonToken, results: any[], visited
     }
 }
 
-function evaluateJsonToken(item: any, tok: JsonToken, next: any[]): void {
+export function evaluateJsonToken(item: any, tok: JsonToken, next: any[]): void {
     if (item == null) return;
 
     switch (tok.type) {
