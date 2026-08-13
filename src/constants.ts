@@ -49,3 +49,30 @@ export const INT8_MIN = -128;
 export const INT8_MAX = 127;
 export const UINT8_MIN = 0;
 export const UINT8_MAX = 255;
+
+/** Unicode Codepoint Boundaries for Control Characters & Surrogates */
+export const MAX_C0_CONTROL_CODE = 0x1f;
+export const ASCII_DEL_CODE = 0x7f;
+export const SURROGATE_MIN_CODE = 0xd800;
+export const SURROGATE_MAX_CODE = 0xdfff;
+
+/** Named escape mappings for common control characters */
+export const NAMED_CONTROL_ESCAPES: Readonly<Record<number, string>> = Object.freeze({
+    [0x09]: "\\t",
+    [0x0a]: "\\n",
+    [0x0b]: "\\v",
+    [0x0c]: "\\f",
+    [0x0d]: "\\r",
+});
+
+/** Inverse unescape mapping for control character escape sequences */
+export const CONTROL_UNESCAPE_MAP: Readonly<Record<string, string>> = Object.freeze({
+    b: "\b",
+    0: "\0",
+    ...Object.fromEntries(
+        Object.entries(NAMED_CONTROL_ESCAPES).map(([code, esc]) => [
+            esc.slice(1),
+            String.fromCharCode(Number(code))
+        ])
+    )
+});

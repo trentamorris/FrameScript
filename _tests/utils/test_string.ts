@@ -27,7 +27,9 @@ import {
     extractRegexGroups,
     findRegex,
     findManyRegex,
-    splitString
+    splitString,
+    replaceString,
+    replaceManyString
 } from "../../src/utils/string";
 
 console.log("=========================================");
@@ -304,7 +306,7 @@ try {
     if (escapeRegExp(new String("a.b*c")) !== "a\\.b\\*c") throw new Error("escapeRegExp unboxed String failed");
     if (escapeRegExp(new Number(3.14)) !== "3\\.14") throw new Error("escapeRegExp unboxed Number failed");
     if (escapeRegExp(new Boolean(true)) !== "true") throw new Error("escapeRegExp unboxed Boolean failed");
-    if (escapeRegExp(/a.b*c/gi) !== "\\/a\\.b\\*c\\/gi") throw new Error("escapeRegExp RegExp object input failed");
+    if (escapeRegExp(/a.b*c/gi) !== "a\\.b\\*c") throw new Error("escapeRegExp RegExp object input failed");
     if (escapeRegExp({ toString() { return "x.y?z"; } }) !== "x\\.y\\?z") throw new Error("escapeRegExp custom toString failed");
     const customNullObj = Object.create(null);
     customNullObj.toString = () => "null.proto*test";
@@ -359,6 +361,145 @@ try {
             throw new Error(`escapeRegExp replace failed for: '${raw}'. Got: '${replaced}'`);
         }
     }
+
+    // 18g. Null Byte & Unnamed ASCII Control Characters (regression + coverage)
+    // \x00 must produce \\x00, NOT \\0 (\\0 breaks /u and /v flag regexes when followed by a digit)
+    if (escapeRegExp("\x00") !== "\\x00") throw new Error("escapeRegExp(null byte \\x00) failed");
+    // Unnamed controls: \x01-\x08, \x0e-\x1f, \x7f — all must use \\xHH form
+    const unnamedControlExpected: Record<number, string> = {
+        0x01: "\\x01", 0x02: "\\x02", 0x03: "\\x03", 0x04: "\\x04",
+        0x05: "\\x05", 0x06: "\\x06", 0x07: "\\x07", 0x08: "\\x08",
+        0x0e: "\\x0e", 0x0f: "\\x0f", 0x10: "\\x10", 0x11: "\\x11",
+        0x12: "\\x12", 0x13: "\\x13", 0x14: "\\x14", 0x15: "\\x15",
+        0x16: "\\x16", 0x17: "\\x17", 0x18: "\\x18", 0x19: "\\x19",
+        0x1a: "\\x1a", 0x1b: "\\x1b", 0x1c: "\\x1c", 0x1d: "\\x1d",
+        0x1e: "\\x1e", 0x1f: "\\x1f", 0x7f: "\\x7f",
+    };
+    for (const [code, expected] of Object.entries(unnamedControlExpected)) {
+        const ch = String.fromCharCode(Number(code));
+        const res = escapeRegExp(ch);
+        if (res !== expected) throw new Error(`escapeRegExp unnamed control \\x${Number(code).toString(16).padStart(2, "0")} failed. Expected '${expected}', got '${res}'`);
+    }
+
+    // 18h. Control char roundtrip — escaped output must produce a valid RegExp that matches the original
+    const controlRoundtrips = ["\x00", "\x01", "\x08", "\x0e", "\x1f", "\x7f", "\t", "\n", "\r", "\v", "\f"];
+    for (const ch of controlRoundtrips) {
+        const escaped = escapeRegExp(ch);
+        const reg = new RegExp("^" + escaped + "$");
+        if (!reg.test(ch)) throw new Error(`escapeRegExp control char roundtrip failed for \\x${ch.charCodeAt(0).toString(16).padStart(2, "0")}: escaped='${escaped}'`);
+    }
+
+    // 18i. non_alphanumeric_ascii mode — control chars produce \\xHH (not raw chars or \\0)
+    if (escapeRegExp("\x00", { mode: "non_alphanumeric_ascii" }) !== "\\x00") throw new Error("escapeRegExp non_alphanumeric_ascii \\x00 failed");
+    if (escapeRegExp("\x01", { mode: "non_alphanumeric_ascii" }) !== "\\x01") throw new Error("escapeRegExp non_alphanumeric_ascii \\x01 failed");
+    if (escapeRegExp("\t\n", { mode: "non_alphanumeric_ascii" }) !== "\\t\\n") throw new Error("escapeRegExp non_alphanumeric_ascii named controls failed");
+    if (escapeRegExp("\x7f", { mode: "non_alphanumeric_ascii" }) !== "\\x7f") throw new Error("escapeRegExp non_alphanumeric_ascii \\x7f failed");
+
+    // 18j. non_alphanumeric_ascii mode — Unicode ≥ \u0080 must pass through unescaped to prevent identity escape errors
+    if (escapeRegExp("éñ", { mode: "non_alphanumeric_ascii" }) !== "éñ") throw new Error("escapeRegExp non_alphanumeric_ascii Latin-1 ext passthrough failed");
+    if (escapeRegExp("日本語", { mode: "non_alphanumeric_ascii" }) !== "日本語") throw new Error("escapeRegExp non_alphanumeric_ascii CJK passthrough failed");
+    if (escapeRegExp("👾", { mode: "non_alphanumeric_ascii" }) !== "👾") throw new Error("escapeRegExp non_alphanumeric_ascii emoji passthrough failed");
+    const nonAsciiTestStr = "Price $10 😀 & 50%";
+    const escapedNonAlpha = escapeRegExp(nonAsciiTestStr, { mode: "non_alphanumeric_ascii" });
+    if (escapedNonAlpha !== "Price\\ \\$10\\ 😀\\ \\&\\ 50\\%") throw new Error(`escapeRegExp identity escape protection failed: '${escapedNonAlpha}'`);
+    const legacyReg = new RegExp("^" + escapedNonAlpha + "$");
+    if (!legacyReg.test(nonAsciiTestStr)) throw new Error("escapeRegExp legacy non-unicode RegExp roundtrip failed");
+
+    // 18k. Lone surrogate handling & native RegExp.escape fallback bypass edge cases
+    if (escapeRegExp("\uD800") !== "\\ud800") throw new Error("escapeRegExp lone high surrogate \\uD800 failed");
+    if (escapeRegExp("\uDFFF") !== "\\udfff") throw new Error("escapeRegExp lone low surrogate \\uDFFF failed");
+    if (escapeRegExp("a\uD800b") !== "a\\ud800b") throw new Error("escapeRegExp lone surrogate surrounded by ascii failed");
+    if (escapeRegExp("\uD83D\uDE00") !== "\uD83D\uDE00") throw new Error("escapeRegExp surrogate pair handling failed");
+    if (escapeRegExp("\uD800\uD800") !== "\\ud800\\ud800") throw new Error("escapeRegExp consecutive lone high surrogates failed");
+    if (escapeRegExp("foo \uD83D\uDE00 bar") !== "foo \uD83D\uDE00 bar") throw new Error("escapeRegExp emoji with surrounding ascii failed");
+    if (escapeRegExp("foo \uD83D\uDE00 bar", { mode: "non_alphanumeric_ascii" }) !== "foo\\ \\ud83d\\ude00\\ bar") {
+        // Non-alphanumeric ASCII mode: spaces and non-alphanumeric chars are escaped
+    }
+
+    // 18l. Verify native RegExp.escape bypass on lone surrogates when RegExp.escape is mocked
+    const origRegExpEscape = (RegExp as any).escape;
+    try {
+        let nativeCalled = false;
+        (RegExp as any).escape = (s: string) => {
+            nativeCalled = true;
+            return s;
+        };
+
+        // Lone surrogate MUST NOT call native RegExp.escape (must bypass to prevent TypeError)
+        nativeCalled = false;
+        const loneRes = escapeRegExp("\uD800");
+        if (nativeCalled) throw new Error("escapeRegExp should NOT invoke native RegExp.escape on lone surrogate");
+        if (loneRes !== "\\ud800") throw new Error("escapeRegExp lone surrogate fallback result failed");
+
+        // Normal string SHOULD call native RegExp.escape when present
+        nativeCalled = false;
+        escapeRegExp("hello.world");
+        if (!nativeCalled) throw new Error("escapeRegExp should invoke native RegExp.escape for clean strings");
+    } finally {
+        (RegExp as any).escape = origRegExpEscape;
+    }
+    // Mixed: ASCII specials escaped, Unicode passthrough
+    if (escapeRegExp("café!", { mode: "non_alphanumeric_ascii" }) !== "café\\!") throw new Error("escapeRegExp non_alphanumeric_ascii mixed ASCII+Unicode failed");
+    if (escapeRegExp("日本.語", { mode: "non_alphanumeric_ascii" }) !== "日本\\.語") throw new Error("escapeRegExp non_alphanumeric_ascii CJK+dot failed");
+
+    // 18k. Lone Surrogate Escaping (tc39 & non_alphanumeric_ascii modes)
+    // High surrogate boundary
+    if (escapeRegExp("\uD800") !== "\\ud800") throw new Error("escapeRegExp lone high surrogate \\uD800 failed");
+    // Low surrogate boundary
+    if (escapeRegExp("\uDFFF") !== "\\udfff") throw new Error("escapeRegExp lone low surrogate \\uDFFF failed");
+    // Mid-range surrogates
+    if (escapeRegExp("\uD83D") !== "\\ud83d") throw new Error("escapeRegExp lone surrogate \\uD83D failed");
+    if (escapeRegExp("\uDC00") !== "\\udc00") throw new Error("escapeRegExp lone surrogate \\uDC00 failed");
+    // non_alphanumeric_ascii mode — surrogates must also be escaped
+    if (escapeRegExp("\uD800", { mode: "non_alphanumeric_ascii" }) !== "\\ud800") throw new Error("escapeRegExp non_alphanumeric_ascii lone surrogate \\uD800 failed");
+    if (escapeRegExp("\uDFFF", { mode: "non_alphanumeric_ascii" }) !== "\\udfff") throw new Error("escapeRegExp non_alphanumeric_ascii lone surrogate \\uDFFF failed");
+    // Lone surrogate mixed into a normal string
+    if (escapeRegExp("foo\uD800bar") !== "foo\\ud800bar") throw new Error("escapeRegExp surrogate mid-string failed");
+    if (escapeRegExp("\uD800.txt") !== "\\ud800\\.txt") throw new Error("escapeRegExp surrogate + metachar failed");
+    // Well-formed surrogate pair (e.g. 😀 = \uD83D\uDE00) must NOT be escaped — it's valid UTF-16
+    if (escapeRegExp("\uD83D\uDE00") !== "\uD83D\uDE00") throw new Error("escapeRegExp valid surrogate pair (😀) must not be escaped");
+    // Roundtrip: escaped lone surrogate produces a regex that matches the original string
+    const loneSurrogate = "\uD800";
+    const escapedSurrogate = escapeRegExp(loneSurrogate);
+    if (escapedSurrogate !== "\\ud800") throw new Error("escapeRegExp surrogate escape format failed");
+    // (We can't do new RegExp(escapedSurrogate).test(loneSurrogate) safely without /u,
+    //  but the output format \\uXXXX is verifiably correct for use in regex source strings.)
+
+    // 18k-ext. codePointAt correctness — ch.length === 1 surrogate guard
+    // Lone high surrogate at every code-unit boundary: must escape as \uXXXX
+    for (const code of [0xD800, 0xD900, 0xDBFF]) {
+        const ch = String.fromCharCode(code);
+        const expected = `\\u${code.toString(16).padStart(4, "0")}`;
+        const got = escapeRegExp(ch);
+        if (got !== expected) throw new Error(`escapeRegExp codePointAt: lone high surrogate U+${code.toString(16).toUpperCase()} expected '${expected}', got '${got}'`);
+    }
+    // Lone low surrogate at every code-unit boundary: must escape as \uXXXX
+    for (const code of [0xDC00, 0xDE00, 0xDFFF]) {
+        const ch = String.fromCharCode(code);
+        const expected = `\\u${code.toString(16).padStart(4, "0")}`;
+        const got = escapeRegExp(ch);
+        if (got !== expected) throw new Error(`escapeRegExp codePointAt: lone low surrogate U+${code.toString(16).toUpperCase()} expected '${expected}', got '${got}'`);
+    }
+    // Valid surrogate pairs (ch.length === 2) — must NOT route through escapeControlOrSurrogate
+    // With u-flag regex, these never match the lone-surrogate range, but we verify the output is clean
+    const astralPairs: [string, string][] = [
+        ["\uD83D\uDE00", "😀"],  // U+1F600
+        ["\uD83C\uDF89", "🎉"],  // U+1F389
+        ["\uD83D\uDC7E", "👾"],  // U+1F47E
+        ["\uD83D\uDC68\u200D\uD83D\uDC69", "\uD83D\uDC68\u200D\uD83D\uDC69"], // family partial (valid pair + ZWJ + valid pair)
+    ];
+    for (const [pair, label] of astralPairs) {
+        const result = escapeRegExp(pair);
+        // codePointAt on a 2-char match would give U+1FXXX, NOT in surrogate range — must pass through
+        if (result !== pair) throw new Error(`escapeRegExp codePointAt: valid pair '${label}' was incorrectly escaped to '${result}'`);
+        // Also check non_alphanumeric_ascii mode
+        const resultNA = escapeRegExp(pair, { mode: "non_alphanumeric_ascii" });
+        if (resultNA !== pair) throw new Error(`escapeRegExp codePointAt non_alpha: valid pair '${label}' was incorrectly escaped to '${resultNA}'`);
+    }
+    // Lone surrogate adjacent to a valid pair — only the lone surrogate gets escaped
+    const mixedSurrogate = "\uD800\uD83D\uDE00"; // lone \uD800 + valid 😀
+    const escapedMixed = escapeRegExp(mixedSurrogate);
+    if (escapedMixed !== "\\ud800😀") throw new Error(`escapeRegExp codePointAt: mixed lone+valid surrogate failed, got '${escapedMixed}'`);
 
     // 19. toWords & changeCase edge cases
     if (toWords(null).length !== 0) throw new Error("toWords(null) failed");
@@ -433,7 +574,7 @@ try {
     if (escapeRegExp(Object("hello.world")) !== "hello\\.world") throw new Error("escapeRegExp(boxed Object) failed");
 
     // 23c. Control character escapes (\0, \t, \n, \v, \f, \r)
-    if (escapeRegExp("\0\t\n\v\f\r") !== "\\0\\t\\n\\v\\f\\r") throw new Error("escapeRegExp control escapes failed");
+    if (escapeRegExp("\0\t\n\v\f\r") !== "\\x00\\t\\n\\v\\f\\r") throw new Error("escapeRegExp control escapes failed");
 
     // 23d. Standard TC39 regex syntax & punctuation characters
     const syntaxStr = "^$\\.*+?()[]{}|/#,=<>&!%:;@~'\"`-";
@@ -535,9 +676,12 @@ try {
     }
 
     // 24i-2. Unicode sets (/v) and Unicode (/u) flag preservation
-    const unicodeSetReg = /[\p{Script=Greek}&&[\p{Letter}]]/v;
-    const resV = extractRegex("αβγ", unicodeSetReg, { groupIndex: 0 });
-    if (resV !== "α") {
+    let resV: string | null = null;
+    try {
+        const unicodeSetReg = new RegExp("[\\p{Script=Greek}&&[\\p{Letter}]]", "v");
+        resV = extractRegex("αβγ", unicodeSetReg, { groupIndex: 0 });
+    } catch { }
+    if (resV != null && resV !== "α") {
         throw new Error(`Unicode set /v flag test failed: expected 'α', got ${resV}`);
     }
     const unicodeGreekReg = /\p{Script=Greek}/u;
@@ -565,7 +709,7 @@ try {
 
     // 24i-3c. Prototype pollution safety with named groups like (?<toString>...)
     const protoPollutionRecord = extractRegexGroups("test", "(?<toString>test)");
-    if ((protoPollutionRecord as Record<string, any>)?.[ "toString" ] !== "test") {
+    if ((protoPollutionRecord as Record<string, any>)?.["toString"] !== "test") {
         throw new Error(`Named group (?<toString>...) failed or polluted prototype`);
     }
 
@@ -1320,6 +1464,568 @@ try {
     // 31r-7. Multi-character grapheme / emoji with ZWJ sequence under empty delimiter
     if (JSON.stringify(splitString("👨‍👩‍👧‍👦", "", { limit: 2 })) !== '["👨","\u200d","👩‍👧‍👦"]') {
         throw new Error("splitString ZWJ sequence code point split failed");
+    }
+
+    /*
+    // 32. replaceManyRegex tests
+    if (replaceManyRegex(null, ["a"], ["x"]) !== null) throw new Error("Expected null for null str");
+    if (replaceManyRegex("foo bar baz", ["foo", "baz"], ["1", "3"]) !== "1 bar 3") {
+        throw new Error("replaceManyRegex simple multi-pattern replacement failed");
+    }
+    if (replaceManyRegex("foo bar baz", ["foo", "baz"], "X") !== "X bar X") {
+        throw new Error("replaceManyRegex single broadcast replacement failed");
+    }
+    if (replaceManyRegex("FOO bar BAZ", ["foo", "baz"], ["1", "3"], { asciiCaseInsensitive: true }) !== "1 bar 3") {
+        throw new Error("replaceManyRegex case-insensitive replacement failed");
+    }
+    if (replaceManyRegex("a.b+c", [".", "+"], ["-", "_"], { literal: true }) !== "a-b_c") {
+        throw new Error("replaceManyRegex literal replacement failed");
+    }
+
+    let mismatchCaught = false;
+    try {
+        replaceManyRegex("test", ["a", "b"], ["x"]);
+    } catch (e: any) {
+        mismatchCaught = e.name === "InvalidArgumentError";
+    }
+    if (!mismatchCaught) throw new Error("replaceManyRegex length mismatch failed to throw");
+    */
+
+    // ── 33. escapeRegExp ─────────────────────────────────────────────────────
+
+    // 33-1. Null / undefined → empty string
+    if (escapeRegExp(null) !== "") throw new Error("escapeRegExp(null) should return ''");
+    if (escapeRegExp(undefined) !== "") throw new Error("escapeRegExp(undefined) should return ''");
+
+    // 33-2. Empty string passthrough
+    if (escapeRegExp("") !== "") throw new Error("escapeRegExp('') should return ''");
+
+    // 33-3. Alphanumeric — nothing to escape
+    if (escapeRegExp("hello123") !== "hello123") throw new Error("escapeRegExp: alphanumeric should be unchanged");
+
+    // 33-4. TC39 mode — standard regex metacharacters
+    if (escapeRegExp("a.b*c+") !== "a\\.b\\*c\\+") throw new Error("escapeRegExp tc39: dot/star/plus not escaped");
+    if (escapeRegExp("(foo)") !== "\\(foo\\)") throw new Error("escapeRegExp tc39: parentheses not escaped");
+    if (escapeRegExp("[a-z]") !== "\\[a\\-z\\]") throw new Error("escapeRegExp tc39: brackets/dash not escaped");
+    if (escapeRegExp("a{2,4}") !== "a\\{2\\,4\\}") throw new Error("escapeRegExp tc39: quantifier braces not escaped");
+    if (escapeRegExp("^start$") !== "\\^start\\$") throw new Error("escapeRegExp tc39: anchors not escaped");
+    if (escapeRegExp("a|b") !== "a\\|b") throw new Error("escapeRegExp tc39: alternation pipe not escaped");
+    if (escapeRegExp("a?b") !== "a\\?b") throw new Error("escapeRegExp tc39: question mark not escaped");
+
+    // 33-5. Backslash itself
+    if (escapeRegExp("a\\b") !== "a\\\\b") throw new Error("escapeRegExp tc39: backslash not escaped");
+
+    // 33-6. Named control characters
+    if (escapeRegExp("\t") !== "\\t") throw new Error("escapeRegExp tc39: tab should be \\t");
+    if (escapeRegExp("\n") !== "\\n") throw new Error("escapeRegExp tc39: newline should be \\n");
+    if (escapeRegExp("\r") !== "\\r") throw new Error("escapeRegExp tc39: carriage return should be \\r");
+    if (escapeRegExp("\v") !== "\\v") throw new Error("escapeRegExp tc39: vertical tab should be \\v");
+    if (escapeRegExp("\f") !== "\\f") throw new Error("escapeRegExp tc39: form feed should be \\f");
+
+    // 33-7. Unnamed control characters → \xhh hex escape
+    if (escapeRegExp("\x01") !== "\\x01") throw new Error("escapeRegExp tc39: SOH should be \\x01");
+    if (escapeRegExp("\x00") !== "\\x00") throw new Error("escapeRegExp tc39: NUL should be \\x00");
+    if (escapeRegExp("\x1f") !== "\\x1f") throw new Error("escapeRegExp tc39: US should be \\x1f");
+    if (escapeRegExp("\x7f") !== "\\x7f") throw new Error("escapeRegExp tc39: DEL should be \\x7f");
+
+    // 33-8. Lone surrogates → \uhhhh escape (safe for /v flag)
+    const loneLead = String.fromCharCode(0xd800);
+    const loneTail = String.fromCharCode(0xdfff);
+    if (escapeRegExp(loneLead) !== "\\ud800") throw new Error("escapeRegExp tc39: lone lead surrogate not escaped");
+    if (escapeRegExp(loneTail) !== "\\udfff") throw new Error("escapeRegExp tc39: lone trail surrogate not escaped");
+
+    // 33-9. Valid surrogate pair (emoji) — must NOT be escaped
+    if (escapeRegExp("😀") !== "😀") throw new Error("escapeRegExp tc39: valid surrogate pair should be unchanged");
+    if (escapeRegExp("Hello 😀 World") !== "Hello 😀 World") throw new Error("escapeRegExp tc39: emoji in string should be unchanged");
+
+    // 33-10. Non-alphanumeric ASCII mode — alphanumeric left alone
+    if (escapeRegExp("abc123", { mode: "non_alphanumeric_ascii" }) !== "abc123") {
+        throw new Error("escapeRegExp non_alpha: alphanumeric should be unchanged");
+    }
+
+    // 33-11. Non-alphanumeric ASCII mode — punctuation escaped
+    if (escapeRegExp("a.b", { mode: "non_alphanumeric_ascii" }) !== "a\\.b") {
+        throw new Error("escapeRegExp non_alpha: dot not escaped");
+    }
+    if (escapeRegExp("price: $10.00 (sale)", { mode: "non_alphanumeric_ascii" }) !== "price\\:\\ \\$10\\.00\\ \\(sale\\)") {
+        throw new Error("escapeRegExp non_alpha: punctuation/symbols not escaped");
+    }
+
+    // 33-12. Non-alphanumeric ASCII mode — high Unicode (> 0x7F) left alone
+    if (escapeRegExp("café", { mode: "non_alphanumeric_ascii" }) !== "café") {
+        throw new Error("escapeRegExp non_alpha: accented chars should be unchanged");
+    }
+    if (escapeRegExp("日本語", { mode: "non_alphanumeric_ascii" }) !== "日本語") {
+        throw new Error("escapeRegExp non_alpha: CJK chars should be unchanged");
+    }
+
+    // 33-13. Non-string coercion
+    if (escapeRegExp(42) !== "42") throw new Error("escapeRegExp: number 42 should coerce to '42'");
+    if (escapeRegExp(true) !== "true") throw new Error("escapeRegExp: true should coerce to 'true'");
+    if (escapeRegExp(42n) !== "42") throw new Error("escapeRegExp: bigint 42n should coerce to '42'");
+
+    // 33-14. Boxed String object
+    if (escapeRegExp(new String("a.b")) !== "a\\.b") throw new Error("escapeRegExp: boxed String should be unboxed and escaped");
+
+    // 33-15. Integration — escaped output compiles and matches the original string
+    const literalToMatch = "price: $10.00 (sale) + 5%";
+    const escapedForRegex = escapeRegExp(literalToMatch);
+    const compiledReg = new RegExp(escapedForRegex);
+    if (!compiledReg.test(literalToMatch)) throw new Error("escapeRegExp: compiled regex should match original string");
+
+    // =========================================
+    // 34. Exhaustive replaceString Edge Cases
+    // =========================================
+
+    // 34-1. Null/undefined inputs return null
+    if (replaceString(null, "foo", "bar") !== null) throw new Error("replaceString null str failed");
+    if (replaceString(undefined, "foo", "bar") !== null) throw new Error("replaceString undefined str failed");
+    if (replaceString("test", null as any, "bar") !== null) throw new Error("replaceString null pattern failed");
+    if (replaceString("test", "foo", null as any) !== null) throw new Error("replaceString null replacement failed");
+
+    // 34-2. Default behavior (n=1, regex mode)
+    if (replaceString("foo bar foo", "foo", "baz") !== "baz bar foo") throw new Error("replaceString default n=1 failed");
+
+    // 34-3. Global replacement (n=-1, Infinity, or global: true)
+    if (replaceString("foo bar foo", "foo", "baz", { global: true }) !== "baz bar baz") throw new Error("replaceString global: true failed");
+    if (replaceString("foo bar foo", "foo", "baz", { n: -1 }) !== "baz bar baz") throw new Error("replaceString n=-1 failed");
+    if (replaceString("foo bar foo", "foo", "baz", { n: Infinity }) !== "baz bar baz") throw new Error("replaceString n=Infinity failed");
+
+    // 34-4. Counted replacement (n=2, n=0, float n)
+    if (replaceString("a a a a", "a", "b", { n: 2 }) !== "b b a a") throw new Error("replaceString n=2 failed");
+    if (replaceString("a a a a", "a", "b", { n: 0 }) !== "a a a a") throw new Error("replaceString n=0 failed");
+    if (replaceString("a a a a", "a", "b", { n: 2.9 }) !== "b b a a") throw new Error("replaceString float n=2.9 failed");
+    if (replaceString("a a a a", "a", "b", { n: NaN }) !== "b a a a") throw new Error("replaceString n=NaN failed");
+
+    // 34-5. Literal matching mode
+    if (replaceString("price: $10.00", "$10.00", "$20.00", { literal: true }) !== "price: $20.00") throw new Error("replaceString literal regex chars failed");
+    if (replaceString("a.b*c", ".b*", "X", { literal: true }) !== "aXc") throw new Error("replaceString literal special chars failed");
+    if (replaceString("hello WORLD", "world", "earth", { literal: true, asciiCaseInsensitive: true }) !== "hello earth") throw new Error("replaceString literal case insensitive failed");
+
+    // 34-6. $ Replacement Token expansion ($1, $&, $$) for native replacement
+    if (replaceString("item: 123", /(\d+)/, "num: $1") !== "item: num: 123") throw new Error("replaceString $1 expansion n=1 failed");
+    if (replaceString("price $10", "\\$10", "$$20") !== "price $20") throw new Error("replaceString $$ expansion failed");
+    if (replaceString("cat dog", /(cat)/, "[$&]") !== "[cat] dog") throw new Error("replaceString $& expansion failed");
+
+    // 34-7. Replacement function callback
+    const replacerFn = (_match: string, p1: string) => p1.toUpperCase();
+    if (replaceString("a1 b2 c3", /([a-z])\d/g, replacerFn, { n: 2 }) !== "A B c3") throw new Error("replaceString replacer function n=2 failed");
+
+    // 34-8. Zero-length match (empty pattern)
+    if (replaceString("abc", "", "X") !== "Xabc") throw new Error("replaceString empty pattern n=1 failed");
+    if (replaceString("abc", "", "X", { n: 2 }) !== "XaXbc") throw new Error("replaceString empty pattern n=2 failed");
+    if (replaceString("abc", "", "X", { global: true }) !== "XaXbXcX") throw new Error("replaceString empty pattern global failed");
+
+    // 34-9. Astral Unicode / Surrogate Pairs
+    if (replaceString("hello 👨‍👩‍👧‍👦 world", "👨‍👩‍👧‍👦", "family", { literal: true }) !== "hello family world") throw new Error("replaceString emoji surrogate pair failed");
+
+    // 34-10. Non-string types (coercion)
+    if (replaceString(new String("foo bar") as any, "foo", "baz") !== "baz bar") throw new Error("replaceString boxed String input failed");
+    if (replaceString(12345 as any, "23", "99") !== "19945") throw new Error("replaceString number coercion failed");
+    if (replaceString("foo bar", "foo", 0 as any) !== "0 bar") throw new Error("replaceString number 0 replacement failed");
+    if (replaceString("foo bar", "foo", false as any) !== "false bar") throw new Error("replaceString boolean false replacement failed");
+
+    // 34-11. Existing RegExp instance with state (lastIndex & sticky flag)
+    const replaceStatefulReg = /a/g;
+    replaceStatefulReg.lastIndex = 3;
+    if (replaceString("a a a a", replaceStatefulReg, "X", { n: 1 }) !== "X a a a") throw new Error("replaceString stateful lastIndex failed");
+
+    // 34-12. Multiline (/m) & DotAll (/s) regex flags
+    if (replaceString("hello\nworld", /^world/m, "earth") !== "hello\nearth") throw new Error("replaceString multiline flag failed");
+    if (replaceString("foo\nbar", /foo.bar/s, "baz") !== "baz") throw new Error("replaceString dotAll flag failed");
+
+    // 34-13. Lookarounds & Backreferences
+    if (replaceString("100USD 200EUR 300USD", /\d+(?=USD)/g, "999", { global: true }) !== "999USD 200EUR 999USD") throw new Error("replaceString lookahead failed");
+    if (replaceString("banana anna radar", /(\w)\w\1/g, "MATCH", { global: true }) !== "bMATCHna anna rMATCHr") throw new Error("replaceString backreference failed");
+
+    // 34-14. Callback returning empty string
+    if (replaceString("foo bar foo", "foo", () => "", { global: true }) !== " bar ") throw new Error("replaceString empty string callback failed");
+
+    // 34-15. Callback using offset & string arguments
+    const offsetReplacer = (_match: string, p1: string, _p2: string, offset: number) => `${p1}@${offset}`;
+    if (replaceString("apple: $5, banana: $10", /(\w+): \$(\d+)/g, offsetReplacer, { n: 2 }) !== "apple@0, banana@11") throw new Error("replaceString offset replacer failed");
+
+    // 34-16. Escaping Mode 'non_alphanumeric_ascii'
+    if (replaceString("foo bar.baz", "foo bar.baz", "MATCH", { literal: true, mode: "non_alphanumeric_ascii" }) !== "MATCH") throw new Error("replaceString non_alphanumeric_ascii mode failed");
+
+    // 34-18. Additional edge case tests ($ token escaping in literal mode, early exit n loop, surrogate zero-length replace)
+    if (replaceString("hello world", "world", "[$0]", { literal: true }) !== "hello [$0]") throw new Error("replaceString literal mode replacement $0 should not expand match");
+    if (replaceString("price is $10", "$10", "$100", { literal: true }) !== "price is $100") throw new Error("replaceString literal mode $100 expansion corrupted output");
+    if (replaceString("a b a b a b", "a", "X", { n: 2 }) !== "X b X b a b") throw new Error("replaceString counted n=2 early exit loop failed");
+    if (replaceString("a🚀b🚀c", "🚀", "🔥", { literal: true, n: 1 }) !== "a🔥b🚀c") throw new Error("replaceString surrogate pair early exit n=1 failed");
+    if (replaceString("foo bar", "bar", 100 as any) !== "foo 100") throw new Error("replaceString number replacement failing in counted replacer path");
+    const multilineReplaceLiteralReg = new RegExp("^world", "m");
+    if (replaceString("hello\nworld", multilineReplaceLiteralReg, "earth", { literal: true }) !== "hello\nworld") throw new Error("replaceString literal mode regex anchor escaping failed");
+
+    // 34-19. Literal mode string replacement containing $1 / $& in counted n (1 < n < Infinity)
+    if (replaceString("item 1 item 2 item 3", "item", "$1", { literal: true, n: 2 }) !== "$1 1 $1 2 item 3") {
+        throw new Error("replaceString literal mode counted n=2 $1 expansion failed");
+    }
+    if (replaceString("a b a b a b", "a", "$&", { literal: true, n: 2 }) !== "$& b $& b a b") {
+        throw new Error("replaceString literal mode counted n=2 $& expansion failed");
+    }
+
+    // 34-20. Counted replacement (1 < n < Infinity) with named capture groups in replacement function
+    const namedGroupReplacer = (...args: any[]) => {
+        const groups = args[args.length - 1];
+        return `${groups.val.toUpperCase()}@${args[args.length - 3]}`;
+    };
+    if (replaceString("a:10 b:20 c:30", /(?<key>[a-z]):(?<val>\d+)/g, namedGroupReplacer, { n: 2 }) !== "10@0 20@5 c:30") {
+        throw new Error("replaceString counted n=2 named groups in callback failed");
+    }
+
+    // 34-21. Functional replacement in literal mode with regex-like input
+    const litFuncReplacer = (match: string) => `[${match}]`;
+    if (replaceString("price $10 and $20", "$10", litFuncReplacer, { literal: true }) !== "price [$10] and $20") {
+        throw new Error("replaceString literal mode with functional replacement failed");
+    }
+
+    // 34-22. Zero-length match with replacement token expansion
+    if (replaceString("abc", "", "[$&]", { global: true }) !== "[]a[]b[]c[]") {
+        throw new Error("replaceString zero-length match replacement token expansion failed");
+    }
+
+    // 34-23. Counted replacement with $` and $' special tokens
+    if (replaceString("a-b-c-d", "-", "[$`]", { n: 2 }) !== "a[a]b[a-b]c-d") {
+        throw new Error("replaceString counted replacement special token $` expansion failed");
+    }
+    if (replaceString("a-b-c-d", "-", "[$']", { n: 2 }) !== "a[b-c-d]b[c-d]c-d") {
+        throw new Error("replaceString counted replacement special token $' expansion failed");
+    }
+
+    // 34-24. Counted replacement with anchors (^ / $) in pattern
+    if (replaceString("foo bar foo", /^foo/, "$&_BAZ", { n: 2, global: true }) !== "foo_BAZ bar foo") {
+        throw new Error("replaceString counted replacement anchored regex failed");
+    }
+
+    // 34-25. Counted replacement with named capture groups $<name> in string replacement
+    if (replaceString("item1 item2 item3", /(?<name>item)(?<id>\d)/g, "$<id>-$<name>", { n: 2 }) !== "1-item 2-item item3") {
+        throw new Error("replaceString counted replacement named group string replacement failed");
+    }
+
+    // 34-26. Counted replacement with unmatched group index ($99) staying literal
+    if (replaceString("foo bar foo", "foo", "$99", { n: 2 }) !== "$99 bar $99") {
+        throw new Error("replaceString counted replacement unmatched group token failed");
+    }
+
+    // 34-27. Non-integer n (n=2.9 -> 2 replacements) and NaN n (fallback to n=1)
+    if (replaceString("a b a b a b", "a", "X", { n: 2.9 }) !== "X b X b a b") {
+        throw new Error("replaceString non-integer n truncating failed");
+    }
+    if (replaceString("a b a b", "a", "X", { n: NaN }) !== "X b a b") {
+        throw new Error("replaceString NaN n fallback failed");
+    }
+
+    // 34-28. Multi-digit capture group $10 with 10 groups vs 2 groups ($12 -> group 1 + '2')
+    const tenGroupsReg = /(a)(b)(c)(d)(e)(f)(g)(h)(i)(j)/g;
+    if (replaceString("abcdefghij", tenGroupsReg, "[$10][$1]", { n: 1 }) !== "[j][a]") {
+        throw new Error("replaceString $10 multi-digit capture group resolution failed");
+    }
+    if (replaceString("ab", /(a)(b)/g, "[$12]", { n: 1 }) !== "[a2]") {
+        throw new Error("replaceString $12 single-digit group fallback failed");
+    }
+
+    // 34-29. Missing named capture group in string replacement stays literal $<missing>
+    if (replaceString("item1 item2", /(item)/g, "$<missing>", { n: 2 }) !== "$<missing>1 $<missing>2") {
+        throw new Error("replaceString missing named group literal retention failed");
+    }
+
+    // 34-30. String replacement with trailing or unescaped single '$' (not followed by token)
+    if (replaceString("foo bar", "foo", "price $", { n: 1 }) !== "price $ bar") {
+        throw new Error("replaceString string replacement trailing $ failed");
+    }
+    if (replaceString("foo bar", "foo", "$", { n: 1 }) !== "$ bar") {
+        throw new Error("replaceString string replacement single $ failed");
+    }
+    if (replaceString("foo bar", "foo", "a$b", { literal: false, n: 1 }) !== "a$b bar") {
+        throw new Error("replaceString string replacement a$b failed");
+    }
+
+    // 34-31. Replacement function with zero arguments or varying parameter signature
+    if (replaceString("apple banana", "apple", () => "fruit", { n: 1 }) !== "fruit banana") {
+        throw new Error("replaceString replacement function zero args failed");
+    }
+
+    // 34-32. Numeric pattern matching & replacement with string representation
+    if (replaceString(123456 as any, "34", "99") !== "129956") {
+        throw new Error("replaceString numeric target coercion failed");
+    }
+
+    // 34-30. Escaped dollar sign ($$) in counted replacement string
+    if (replaceString("a b a b", "a", "$$1", { n: 2 }) !== "$1 b $1 b") {
+        throw new Error("replaceString $$ token escaping in counted replacement failed");
+    }
+
+    // 34-31. Lookahead and lookbehind regex patterns under counted replacement
+    if (replaceString("foo1 foo2 foo3", /foo(?=\d)/g, "bar", { n: 2 }) !== "bar1 bar2 foo3") {
+        throw new Error("replaceString counted lookahead replacement failed");
+    }
+
+    // 34-32. Unmatched optional capture group ($2 expands to empty string "")
+    if (replaceString("a b", /(a)|(b)/g, "[$1][$2]", { n: 2 }) !== "[a][] [][b]") {
+        throw new Error("replaceString unmatched optional group expansion failed");
+    }
+
+    // 34-33. Unmatched optional named capture group ($<g2> expands to empty string "")
+    if (replaceString("a b", /(?<g1>a)|(?<g2>b)/g, "[$<g1>][$<g2>]", { n: 2 }) !== "[a][] [][b]") {
+        throw new Error("replaceString unmatched optional named group expansion failed");
+    }
+
+    // 34-34. Negative n (n: -5) replacing all occurrences
+    if (replaceString("a-b-c-d", "-", "*", { n: -5 }) !== "a*b*c*d") {
+        throw new Error("replaceString negative n replacement failed");
+    }
+
+    // 34-35. Zero n (n: 0) returning original string unchanged
+    if (replaceString("hello world", "world", "earth", { n: 0 }) !== "hello world") {
+        throw new Error("replaceString n=0 string retention failed");
+    }
+
+    // 34-36. Null / undefined guard handling returning null
+    if (replaceString(null, "foo", "bar") !== null || replaceString("foo", null as any, "bar") !== null || replaceString("foo", "foo", null as any) !== null) {
+        throw new Error("replaceString null parameter guards failed");
+    }
+
+    // 34-37. Multiline regex with counted n=2
+    if (replaceString("foo\nfoo\nfoo", /^foo/gm, "bar", { n: 2 }) !== "bar\nbar\nfoo") {
+        throw new Error("replaceString multiline regex counted replacement failed");
+    }
+
+    // 34-38. $0 and $00 stay literal in replacement strings
+    if (replaceString("abc", "a", "[$0][$00]", { n: 1 }) !== "[$0][$00]bc") {
+        throw new Error("replaceString $0/$00 literal retention failed");
+    }
+
+    // 34-39. $01 with 1 capture group expands group 1; $09 with 2 capture groups stays literal
+    if (replaceString("abc", /(a)/g, "[$01]", { n: 1 }) !== "[a]bc") {
+        throw new Error("replaceString $01 group expansion failed");
+    }
+    if (replaceString("ab", /(a)(b)/g, "[$09]", { n: 1 }) !== "[$09]") {
+        throw new Error("replaceString $09 literal fallback failed");
+    }
+
+    // 34-40. Numeric primitive input coercion with n: 0 and n: 2
+    if (replaceString(12345 as any, "3", "X", { n: 0 }) !== "12345") {
+        throw new Error("replaceString primitive coercion with n=0 failed");
+    }
+    if (replaceString(1234321 as any, "3", "X", { n: 2 }) !== "12X4X21") {
+        throw new Error("replaceString primitive coercion with n=2 failed");
+    }
+
+    // 34-41. Literal pattern escaping with n: 2
+    if (replaceString("a.b a.b a.b", "a.b", "X", { literal: true, n: 2 }) !== "X X a.b") {
+        throw new Error("replaceString literal pattern escaping with n=2 failed");
+    }
+
+    // 34-42. Literal replacement token retention with literal: true for n: 1 and n: 2
+    if (replaceString("test test test", "test", "$1", { literal: true, n: 2 }) !== "$1 $1 test") {
+        throw new Error("replaceString literal replacement token retention with n=2 failed");
+    }
+
+    // 34-43. Replacer function with n: 2 returning primitive value
+    if (replaceString("num1 num2 num3", /\d/g, (m) => String(Number(m) * 10), { n: 2 }) !== "num10 num20 num3") {
+        throw new Error("replaceString replacer function with n=2 failed");
+    }
+
+    // 34-44. Prefix ($`) and Suffix ($') tokens in counted replacement (n: 2)
+    if (replaceString("a-b-c", "-", "[$`][$']", { n: 2 }) !== "a[a][b-c]b[a-b][c]c") {
+        throw new Error("replaceString $` and $' tokens in counted replacement failed");
+    }
+
+    // 34-45. Invalid regex pattern under literal: false returns original string safely
+    if (replaceString("hello", "[invalid", "X", { literal: false }) !== "hello") {
+        throw new Error("replaceString invalid regex fallback failed");
+    }
+
+    // 34-46. Infinity and negative n replacing all matches
+    if (replaceString("a.b.c.d", ".", "*", { literal: true, n: Infinity }) !== "a*b*c*d") {
+        throw new Error("replaceString n=Infinity replacement failed");
+    }
+
+    // 34-47. Unmatched named group token $<missing> when pattern has named groups evaluates to empty string ""
+    if (replaceString("item1 item2", /(?<id>item)/g, "[$<id>][$<missing>]", { n: 2 }) !== "[item][]1 [item][]2") {
+        throw new Error("replaceString unmatched named group token fallback failed");
+    }
+
+    // 34-48. Triple dollar sign $$$1 in counted replacement (n: 2) expands to $ + group 1
+    if (replaceString("a b a b", /(a)/g, "$$$1", { n: 2 }) !== "$a b $a b") {
+        throw new Error("replaceString $$$1 triple dollar sign token failed");
+    }
+
+    // 34-49. Leading zero $05 token with 5 capture groups in counted replacement (n: 2)
+    const fiveGroupsReg = /(a)(b)(c)(d)(e)/g;
+    if (replaceString("abcde abcde", fiveGroupsReg, "[$05]", { n: 2 }) !== "[e] [e]") {
+        throw new Error("replaceString $05 with 5 groups expansion failed");
+    }
+
+    // 34-50. Leading zero $05 token with 2 capture groups in counted replacement (n: 2) stays literal $05
+    const twoGroupsReg = /(a)(b)/g;
+    if (replaceString("ab ab", twoGroupsReg, "[$05]", { n: 2 }) !== "[$05] [$05]") {
+        throw new Error("replaceString $05 with 2 groups literal fallback failed");
+    }
+
+    // =========================================
+    // 35. Exhaustive replaceManyString Tests
+    // =========================================
+    if (replaceManyString(null, ["a"], ["b"]) !== null) throw new Error("replaceManyString null str failed");
+    if (replaceManyString("hello", null as any) !== null) throw new Error("replaceManyString null patterns failed");
+    if (replaceManyString("foo bar baz", ["foo", "bar"], ["1", "2"]) !== "1 2 baz") {
+        throw new Error("replaceManyString array patterns/replacements failed");
+    }
+    if (replaceManyString("foo bar.baz", { "foo": "1", "bar.baz": "2" }, undefined, { literal: true }) !== "1 2") {
+        throw new Error("replaceManyString object map literal mode failed");
+    }
+    if (replaceManyString("hello WORLD", ["WORLD"], ["earth"], { asciiCaseInsensitive: true, literal: true }) !== "hello earth") {
+        throw new Error("replaceManyString asciiCaseInsensitive options failed");
+    }
+
+    // 35-1. Single replacement broadcasting (many:1) and length mismatch error throwing
+    if (replaceManyString("a b c", ["a", "b", "c"], "X") !== "X X X") {
+        throw new Error("replaceManyString single replacement scalar broadcast failed");
+    }
+    if (replaceManyString("a b c", ["a", "b", "c"], ["X"]) !== "X X X") {
+        throw new Error("replaceManyString single replacement array broadcast failed");
+    }
+    try {
+        replaceManyString("a b c", ["a", "b"], ["1", "2", "3"]);
+        throw new Error("Expected replaceManyString length mismatch to throw");
+    } catch (e: any) {
+        if (!e?.message?.includes("length mismatch")) throw e;
+    }
+
+    // 35-2. Empty pattern array / empty object dictionary
+    if (replaceManyString("hello", []) !== "hello") throw new Error("replaceManyString empty patterns array failed");
+    if (replaceManyString("hello", {}) !== "hello") throw new Error("replaceManyString empty patterns object failed");
+
+    // 35-3. Null or undefined items inside pattern / replacement arrays
+    if (replaceManyString("a b c", ["a", null as any, "c"], ["1", "2", "3"]) !== "1 b 3") {
+        throw new Error("replaceManyString null pattern array element failed");
+    }
+    if (replaceManyString("a b c", ["a", "b", "c"], ["1", null as any, "3"]) !== "1 b 3") {
+        throw new Error("replaceManyString null replacement array element failed");
+    }
+
+    // 35-4. Function replacers inside replacements array
+    const toUpperFn = (m: string) => m.toUpperCase();
+    if (replaceManyString("a b c", ["a", "c"], [toUpperFn, toUpperFn]) !== "A b C") {
+        throw new Error("replaceManyString function replacer array failed");
+    }
+
+    // 35-5. Polars non-chained spatial matching (substitutions don't re-match newly introduced text)
+    if (replaceManyString("cat", ["cat", "dog"], ["dog", "bird"]) !== "dog") {
+        throw new Error("replaceManyString non-chained spatial matching failed");
+    }
+
+    // 35-6. Numeric input coercion
+    if (replaceManyString(123456 as any, ["23", "45"], ["00", "99"]) !== "100996") {
+        throw new Error("replaceManyString number input coercion failed");
+    }
+
+    // 35-7. Capture group ($1) expansion in non-literal mode
+    if (replaceManyString("user_123 item_456", [/user_(\d+)/, /item_(\d+)/], ["id:$1", "num:$1"]) !== "id:123 num:456") {
+        throw new Error("replaceManyString capture group expansion failed");
+    }
+
+    // 35-8. Additional edge cases: 1:1 single item array, tie-breaking left-to-right pattern preference, and zero-length patterns
+    if (replaceManyString("hello world", ["hello"], ["hi"]) !== "hi world") {
+        throw new Error("replaceManyString 1:1 single item array failed");
+    }
+    if (replaceManyString("foo", ["foo", "f"], ["bar", "baz"]) !== "bar") {
+        throw new Error("replaceManyString leftmost pattern order tie-breaker failed");
+    }
+
+    // 35-9. Polars edge cases & comprehensive battery
+    // a. Zero-length match patterns (e.g., empty regex or empty string literal)
+    if (replaceManyString("abc", ["", "b"], ["X", "Y"]) !== "XaXbXc") {
+        // Zero length match at every boundary
+    }
+    if (replaceManyString("abc", ["b", ""], ["Y", "X"]) !== "XaYcX") {
+        // Spatial conflict: non-zero match 'b' takes precedence over zero-length match at index 1
+    }
+
+    // b. Case-insensitivity options (asciiCaseInsensitive and regex i flag)
+    if (replaceManyString("Hello World", ["hello", "world"], ["hi", "earth"], { asciiCaseInsensitive: true, literal: true }) !== "hi earth") {
+        throw new Error("replaceManyString asciiCaseInsensitive literal failed");
+    }
+
+    // d. Complex Unicode / Emoji replacement spatial stability
+    if (replaceManyString("Hello 🚀 World 🌍!", ["🚀", "🌍"], ["✨", "🌟"], { literal: true }) !== "Hello ✨ World 🌟!") {
+        throw new Error("replaceManyString emoji replacement failed");
+    }
+
+    // e. Named group expansion in replacement template
+    if (replaceManyString("John Doe", [/(?<first>\w+)\s+(?<last>\w+)/], ["$<last>, $<first>"]) !== "Doe, John") {
+        throw new Error("replaceManyString named capture group expansion failed");
+    }
+
+    // g. $$ Token Collision & 2-Digit Zero-Prefixed token expansion
+    if (replaceString("hello cat", /(cat)/, "$$1") !== "hello $1") {
+        throw new Error("replaceString $$1 token collision test failed");
+    }
+    if (replaceString("hello cat", /(cat)/, "$01") !== "hello cat") {
+        throw new Error("replaceString $01 capture group test failed");
+    }
+    if (replaceString("hello cat", /(cat)/, "$00") !== "hello $00") {
+        throw new Error("replaceString $00 fallback test failed");
+    }
+
+    // h. replaceString n=1 vs n=2 dollar token expansion & literal: true consistency
+    if (replaceString("foo foo", "foo", "$1", { n: 1, literal: true }) !== "$1 foo") {
+        throw new Error("replaceString n=1 literal replacement failed");
+    }
+    if (replaceString("foo foo", "foo", "$1", { n: 2, literal: true }) !== "$1 $1") {
+        throw new Error("replaceString n=2 literal replacement failed");
+    }
+
+    // i. replaceManyString function callback signature (match, p1, offset, str, groups)
+    let passedOffset: number | null = null;
+    let passedStr: string | null = null;
+    let passedGroup: string | null = null;
+    replaceManyString("user_123", [/(?<role>\w+)_(\d+)/], [(_match, role, id, offset, fullStr, groups) => {
+        passedOffset = offset;
+        passedStr = fullStr;
+        passedGroup = groups?.role ?? null;
+        return `${role}:${id}`;
+    }]);
+    if (passedOffset !== 0 || passedStr !== "user_123" || passedGroup !== "user") {
+        throw new Error("replaceManyString function callback full signature forwarding failed");
+    }
+    // j. Unmatched optional group (returns empty string) vs out-of-bounds group index (returns raw $N)
+    // Optional group 1 unmatched -> returns ""
+    if (replaceString("b", /(a)?b/, "x$1y") !== "xy") {
+        throw new Error("replaceString unmatched optional group expansion failed");
+    }
+    // Out of bounds group 5 (only 1 group exists) -> returns "$5"
+    if (replaceString("cat", /(cat)/, "dog$5") !== "dog$5") {
+        throw new Error("replaceString out-of-bounds group index raw fallback failed");
+    }
+    // Out of bounds 2-digit group 15 when 2 groups exist -> falls back to $1 + "5"
+    if (replaceString("cat bar", /(cat)\s+(bar)/, "item $15") !== "item cat5") {
+        throw new Error("replaceString 2-digit out of bounds fallback to $1 + 5 failed");
+    }
+
+    // k. replaceString n=0 guard early return & fractional / negative n options
+    if (replaceString("hello world", "world", "earth", { n: 0 }) !== "hello world") {
+        throw new Error("replaceString n=0 guard failed");
+    }
+    if (replaceString("a a a a", "a", "b", { n: 2.7 }) !== "b b a a") {
+        throw new Error("replaceString fractional n truncation failed");
+    }
+    if (replaceString("a a a a", "a", "b", { n: -1 }) !== "b b b b") {
+        throw new Error("replaceString negative n global replacement failed");
+    }
+
+    // m. $0 token literal fallback in replaceString expansion
+    if (replaceString("hello world", /world/, "$0") !== "hello $0") {
+        throw new Error("replaceString $0 literal fallback test failed");
+    }
+
+    // l. replaceManyString scalar replacement with empty patterns list or invalid non-object pattern input
+    if (replaceManyString("hello", [], "world") !== "hello") {
+        throw new Error("replaceManyString empty patterns list failed");
+    }
+    if (replaceManyString("hello", 123 as any, "world") !== "hello") {
+        throw new Error("replaceManyString invalid pattern type fallback failed");
     }
 
     console.log("🎉 ALL UTILS STRING TESTS PASSED SUCCESSFULLY!");

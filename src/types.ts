@@ -130,6 +130,8 @@ export interface ExtractRegexEngineOptions {
     global?: boolean;
 }
 
+export type RegexEngineOptions = Omit<ExtractRegexEngineOptions, "groupIndex">;
+
 export interface ExtractManyOptions extends ExtractRegexEngineOptions {
     /**
      * Whether overlapping matches are allowed.
@@ -143,21 +145,34 @@ export interface ExtractManyOptions extends ExtractRegexEngineOptions {
     leftmost?: boolean;
 }
 
-export interface FindOptions extends ExtractRegexEngineOptions {
+export interface FindOptions extends ExtractRegexEngineOptions, EscapeRegexOptions {
     /**
      * Treat pattern as literal string instead of regex.
      */
     literal?: boolean;
 }
 
-export interface FindManyOptions extends ExtractManyOptions {
+export interface FindManyOptions extends ExtractManyOptions, EscapeRegexOptions {
     /**
      * Treat patterns as literal strings instead of regex.
      */
     literal?: boolean;
 }
 
-export interface SplitOptions {
+export interface ReplaceOptions extends RegexEngineOptions, EscapeRegexOptions {
+    /**
+     * Treat pattern as a literal string instead of regex.
+     */
+    literal?: boolean;
+    /**
+     * Number of occurrences to replace. Use -1 or Infinity to replace all. Defaults to 1.
+     */
+    n?: number;
+}
+
+export interface ReplaceManyOptions extends FindManyOptions { }
+
+export interface SplitOptions extends RegexEngineOptions, EscapeRegexOptions {
     /**
      * Treat delimiter as literal string (default: true). Set to false for regex matching.
      */

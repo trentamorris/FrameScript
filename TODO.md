@@ -118,9 +118,10 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
   * [x] **`extract_all` / `extract_groups` / `extract_many`**: Advanced multi-match and structured group extractions.
   * [x] **`find` / `find_many`**: Find pattern match indices within string elements.
   * [x] **`join`**: Join list of string elements using a delimiter.
-  * [ ] **`json_decode` / `json_path_match`**: Parse JSON strings and extract fields using JSONPath syntax.
+  * [x] **`json_decode`**: Parse JSON strings into objects or arrays using `safeJsonParse`.
+  * [x] **`json_path_match`**: Extract fields using JSONPath syntax.
   * [x] **`normalize`**: Unicode normalization (NFC, NFD, NFKC, NFKD).
-  * [ ] **`replace_many`**: Batch replace multiple string patterns simultaneously.
+  * [x] **`replace_many`**: Batch replace multiple string patterns simultaneously.
   * [x] **`split` (unified `split_exact` & `split_n`)**: Consolidated split options (`limit`, `exact`, `strict`) into unified `.str.split()` method.
 
 ### 🔎 Inspection & Reporting Utilities

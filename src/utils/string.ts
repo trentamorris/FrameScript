@@ -3,9 +3,19 @@ import { isPlainObj, isRegExp, isValidDateObj, isSet, isMap, unboxPrimitiveObj }
 import { isTypedArray, toValidArray } from "./array";
 import { createSafeJsonReplacer } from "./json";
 import { toValidBinary } from "./binary";
-import { KEY_SEPARATOR, KEY_PAIR_SEPARATOR, TEXT_ENCODER } from "../constants";
+import { isValidNumber } from "./number";
+import {
+    KEY_SEPARATOR,
+    KEY_PAIR_SEPARATOR,
+    TEXT_ENCODER,
+    MAX_C0_CONTROL_CODE,
+    ASCII_DEL_CODE,
+    SURROGATE_MIN_CODE,
+    SURROGATE_MAX_CODE,
+    NAMED_CONTROL_ESCAPES,
+} from "../constants";
 import { InvalidArgumentError } from "../exceptions";
-import type { StringEncoding, EscapeRegexOptions, ExtractManyOptions, ExtractRegexEngineOptions, FindOptions, FindManyOptions, SplitOptions } from "../types";
+import type { StringEncoding, EscapeRegexOptions, ExtractManyOptions, ExtractRegexEngineOptions, RegexEngineOptions, FindOptions, FindManyOptions, SplitOptions, ReplaceOptions, ReplaceManyOptions } from "../types";
 
 
 export function isBlankString(v: unknown): v is string {
@@ -14,41 +24,6 @@ export function isBlankString(v: unknown): v is string {
         return unwrapped.trim().length === 0;
     }
     return false;
-}
-
-const CONTROL_ESCAPES: Record<string, string> = {
-    "\0": "\\0",
-    "\t": "\\t",
-    "\n": "\\n",
-    "\v": "\\v",
-    "\f": "\\f",
-    "\r": "\\r",
-};
-
-// Escapes all TC39 syntax characters & ASCII control characters cleanly
-const TC39_ESCAPE_CHARS_REGEX = /[\\^$*+?.()|[\]{}/#,=<>&!%:;@~'"\`\0\t\n\v\f\r\-]/g;
-
-// Escapes non-alphanumeric ASCII characters without breaking Unicode ('u' / 'v' flag) strings
-const NON_ALPHANUMERIC_ASCII_REGEX = /[^A-Za-z0-9\u0080-\uFFFF]/g;
-
-export function escapeRegExp(
-    val: unknown,
-    options?: EscapeRegexOptions
-): string {
-    const cleanVal = unboxPrimitiveObj(val);
-    if (cleanVal == null) return "";
-
-    const str = typeof cleanVal === "string" ? cleanVal : String(cleanVal);
-    const mode = options?.mode ?? "tc39";
-
-    if (mode === "tc39") {
-        if (typeof (RegExp as any).escape === "function") {
-            return (RegExp as any).escape(str);
-        }
-        return str.replace(TC39_ESCAPE_CHARS_REGEX, (ch) => CONTROL_ESCAPES[ch] ?? ("\\" + ch));
-    }
-
-    return str.replace(NON_ALPHANUMERIC_ASCII_REGEX, "\\$&");
 }
 
 export type StripMode = "both" | "start" | "end";
@@ -750,10 +725,58 @@ export function decodeString(
 // REGEX UTILITIES & EXTRACTION HELPERS
 // ============================================================================
 
+
+
+// Lone surrogate check to prevent native RegExp.escape from throwing a TypeError on unpaired surrogates.
+const LONE_SURROGATE_REGEX = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/;
+
+// Shared control & lone-surrogate pattern fragment (C0 controls, DEL, lone surrogates)
+const BASE_CONTROL_PATTERN = "\\x00-\\x1F\\x7F\\u{D800}-\\u{DFFF}";
+
+// TC39 mode: Syntax characters + C0 controls + DEL + lone/unpaired surrogates
+const TC39_REGEX = new RegExp(`[${BASE_CONTROL_PATTERN}\\\\^$*+?.()|[\\]{}/#,=<>&!%:;@~'"\`-]`, "gu");
+
+// nonAlphanumeric mode: C0 controls/surrogates + ASCII non-alphanumerics (< 0x80)
+const NON_ALPHANUMERIC_ASCII_REGEX = new RegExp(`[${BASE_CONTROL_PATTERN}]|[\\x20-\\x2F\\x3A-\\x40\\x5B-\\x5E\\x5F\\x60\\x7B-\\x7E]`, "gu");
+
+const _replaceRegexChar = (ch: string): string => {
+    const code = ch.codePointAt(0)!;
+    const isControl = code <= MAX_C0_CONTROL_CODE || code === ASCII_DEL_CODE;
+    const isSurrogate = ch.length === 1 && code >= SURROGATE_MIN_CODE && code <= SURROGATE_MAX_CODE;
+
+    if (isControl || isSurrogate) {
+        const named = NAMED_CONTROL_ESCAPES[code];
+        if (named) return named;
+        const hex = code.toString(16);
+        return isControl ? `\\x${hex.padStart(2, "0")}` : `\\u${hex.padStart(4, "0")}`;
+    }
+    return "\\" + ch;
+};
+
+export function escapeRegExp(
+    val: unknown,
+    options?: EscapeRegexOptions
+): string {
+    const cleanVal = unboxPrimitiveObj(val);
+    if (cleanVal == null) return "";
+
+    const str = isRegExp(cleanVal) ? cleanVal.source : (typeof cleanVal === "string" ? cleanVal : String(cleanVal));
+    const mode = options?.mode ?? "tc39";
+
+    if (mode === "tc39") {
+        if (typeof (RegExp as any).escape === "function" && !LONE_SURROGATE_REGEX.test(str)) {
+            return (RegExp as any).escape(str);
+        }
+        return str.replace(TC39_REGEX, _replaceRegexChar);
+    }
+
+    return str.replace(NON_ALPHANUMERIC_ASCII_REGEX, _replaceRegexChar);
+}
+
 export function toCleanRegExp(
     str: string | null | undefined,
     pattern: string | RegExp,
-    options?: Omit<ExtractRegexEngineOptions, "groupIndex">
+    options?: RegexEngineOptions
 ): { reg: RegExp; input: string } | null {
     if (str == null || pattern == null) return null;
 
@@ -851,60 +874,59 @@ function _resolveGroupRecord(
     return targetIndex >= 1 ? (record[String(targetIndex)] ?? null) : null;
 }
 
-export function extractRegexEngine(
-    str: string | null | undefined,
+function _collectPatternCandidates<T>(
+    input: string,
     pattern: string | RegExp,
-    options?: ExtractRegexEngineOptions
-): Record<string, string | null>[] | null {
-    const cleaned = toCleanRegExp(str, pattern, options);
-    if (!cleaned) return null;
+    patternIndex: number,
+    options: { literal?: boolean; mode?: EscapeRegexOptions["mode"]; asciiCaseInsensitive?: boolean } | undefined,
+    createPayload: (match: RegExpExecArray, start: number, end: number) => T
+): { start: number; end: number; patternIndex: number; payload: T }[] {
+    const { literal = false, mode, asciiCaseInsensitive = false } = options ?? {};
+    const escapedPat = literal ? escapeRegExp(pattern, { mode }) : pattern;
+    const cleanObj = toCleanRegExp(input, escapedPat, { global: true, asciiCaseInsensitive });
+    const reg = cleanObj?.reg ?? null;
+    if (!reg) return [];
 
-    if (!options?.global) {
-        const match = cleaned.input.match(cleaned.reg);
-        if (!match) return null;
-        return [_matchToRecord(match)];
+    const candidates: { start: number; end: number; patternIndex: number; payload: T }[] = [];
+    reg.lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = reg.exec(input)) !== null) {
+        const start = match.index;
+        const end = reg.lastIndex;
+        const payload = createPayload(match, start, end);
+
+        candidates.push({ start, end, patternIndex, payload });
+
+        if (start === end) {
+            if (start === input.length) break;
+            const cp = input.codePointAt(start);
+            const step = cp != null && cp > 0xffff ? 2 : 1;
+            reg.lastIndex = start + step;
+        }
     }
+    return candidates;
+}
 
-    const matches = Array.from(cleaned.input.matchAll(cleaned.reg));
-    if (matches.length === 0) return null;
-
-    const result = new Array<Record<string, string | null>>(matches.length);
-    for (let i = 0; i < matches.length; i++) {
-        result[i] = _matchToRecord(matches[i]);
+function _selectLeftmostCandidates<T extends { start: number; end: number; patternIndex?: number; i?: number }>(candidates: T[]): T[] {
+    if (candidates.length <= 1) return candidates;
+    candidates.sort((a, b) => {
+        if (a.start !== b.start) return a.start - b.start;
+        const idxA = a.patternIndex ?? a.i ?? 0;
+        const idxB = b.patternIndex ?? b.i ?? 0;
+        return idxA - idxB;
+    });
+    const selected: T[] = [];
+    let lastPos = 0;
+    const len = candidates.length;
+    for (let i = 0; i < len; i++) {
+        const c = candidates[i];
+        if (c.start >= lastPos) {
+            selected.push(c);
+            lastPos = c.end;
+        }
     }
-    return result;
-}
-
-export function extractRegex(
-    str: string | null | undefined,
-    pattern: string | RegExp,
-    options?: ExtractRegexEngineOptions
-): string | null {
-    const groupIndex = options?.groupIndex ?? 1;
-    const res = extractRegexEngine(str, pattern, options);
-    return res ? _resolveGroupRecord(res[0], groupIndex) : null;
-}
-
-export function extractRegexAll(
-    str: string | null | undefined,
-    pattern: string | RegExp,
-    options?: ExtractRegexEngineOptions
-): (string | null)[] | null {
-    const res = extractRegexEngine(str, pattern, { ...options, global: true });
-    if (!res) return null;
-
-    const groupIndex = options?.groupIndex ?? 0;
-    const result = new Array<string | null>(res.length);
-    for (let i = 0; i < res.length; i++) result[i] = _resolveGroupRecord(res[i], groupIndex);
-    return result;
-}
-
-export function extractRegexGroups(
-    str: string | null | undefined,
-    pattern: string | RegExp,
-    options?: ExtractManyOptions
-): Record<string, string | null> | null {
-    return extractRegexEngine(str, pattern, options)?.[0] ?? null;
+    return selected;
 }
 
 function _matchManyCore<T>(
@@ -954,14 +976,10 @@ function _matchManyCore<T>(
     if (candidates.length === 0) return result;
 
     if (isLeftmost) {
-        candidates.sort((a, b) => a.start !== b.start ? a.start - b.start : a.i - b.i);
-        let lastPos = 0;
-        for (let i = 0; i < candidates.length; i++) {
-            const c = candidates[i];
-            if (c.start >= lastPos) {
-                result[c.i] = c.payload;
-                lastPos = c.end;
-            }
+        const selected = _selectLeftmostCandidates(candidates);
+        for (let i = 0; i < selected.length; i++) {
+            const c = selected[i];
+            result[c.i] = c.payload;
         }
     } else {
         const accepted: Candidate[] = [];
@@ -1002,6 +1020,63 @@ function _matchManyCore<T>(
     return result;
 }
 
+export function extractRegexEngine(
+    str: string | null | undefined,
+    pattern: string | RegExp,
+    options?: ExtractRegexEngineOptions
+): Record<string, string | null>[] | null {
+    const cleaned = toCleanRegExp(str, pattern, options);
+    if (!cleaned) return null;
+
+    if (!options?.global) {
+        const match = cleaned.input.match(cleaned.reg);
+        if (!match) return null;
+        return [_matchToRecord(match)];
+    }
+
+    const matches = Array.from(cleaned.input.matchAll(cleaned.reg));
+    if (matches.length === 0) return null;
+
+    const result = new Array<Record<string, string | null>>(matches.length);
+    for (let i = 0; i < matches.length; i++) {
+        result[i] = _matchToRecord(matches[i]);
+    }
+    return result;
+}
+
+export function extractRegex(
+    str: string | null | undefined,
+    pattern: string | RegExp,
+    options?: ExtractRegexEngineOptions
+): string | null {
+    const res = extractRegexEngine(str, pattern, options);
+    return res ? _resolveGroupRecord(res[0], options?.groupIndex ?? 1) : null;
+}
+
+export function extractRegexAll(
+    str: string | null | undefined,
+    pattern: string | RegExp,
+    options?: ExtractRegexEngineOptions
+): (string | null)[] | null {
+    const res = extractRegexEngine(str, pattern, { ...options, global: true });
+    if (!res) return null;
+
+    const groupIndex = options?.groupIndex ?? 0;
+    const result = new Array<string | null>(res.length);
+    for (let i = 0; i < res.length; i++) result[i] = _resolveGroupRecord(res[i], groupIndex);
+    return result;
+}
+
+export function extractRegexGroups(
+    str: string | null | undefined,
+    pattern: string | RegExp,
+    options?: ExtractManyOptions
+): Record<string, string | null> | null {
+    return extractRegexEngine(str, pattern, options)?.[0] ?? null;
+}
+
+
+
 export function extractRegexMany(
     str: string | null | undefined,
     patterns: (string | RegExp)[] | (string | RegExp),
@@ -1023,12 +1098,11 @@ export function findRegex(
     options?: FindOptions
 ): number | null {
     if (str == null || pattern == null) return null;
-    const { literal = false, asciiCaseInsensitive = false } = options ?? {};
+    const { literal = false, asciiCaseInsensitive = false, mode } = options ?? {};
 
     if (literal) {
         const isReg = isRegExp(pattern);
-        const rawStr = isReg ? pattern.source : String(pattern);
-        const patStr = escapeRegExp(rawStr);
+        const patStr = escapeRegExp(pattern, { mode });
         let flags = asciiCaseInsensitive ? "i" : "";
         if (isReg) {
             for (const f of ["i", "u", "v", "m", "s"]) {
@@ -1083,11 +1157,13 @@ export function splitString(
         inclusive = false,
         limit,
         exact = false,
-        strict = false
+        strict = false,
+        mode,
+        ...engineOpts
     } = options ?? {};
 
-    const patStr = literal ? escapeRegExp(delimiter) : delimiter;
-    const cleanObj = toCleanRegExp(str, patStr, { global: true });
+    const patStr = literal ? escapeRegExp(delimiter, { mode }) : delimiter;
+    const cleanObj = toCleanRegExp(str, patStr, { ...engineOpts, global: true });
     if (!cleanObj) return null;
     const { reg: pattern } = cleanObj;
 
@@ -1144,4 +1220,167 @@ export function splitString(
     }
 
     return parts;
+}
+
+function _expandReplacementString(
+    template: string,
+    match: string,
+    offset: number,
+    fullStr: string,
+    captures: (string | undefined)[],
+    groups?: Record<string, string>
+): string {
+    return template.replace(/\$\$|\$([$'`&]|\d{1,2}|<[^>]+>)/g, (m, token?: string) => {
+        if (m === "$$") return "$";
+        if (!token) return m;
+        if (token === "$") return "$";
+        if (token === "&") return match;
+        if (token === "`") return fullStr.slice(0, offset);
+        if (token === "'") return fullStr.slice(offset + match.length);
+        if (token.startsWith("<")) {
+            if (groups === undefined) return m;
+            const name = token.slice(1, -1);
+            return groups[name] ?? "";
+        }
+        const groupIndex = Number(token);
+        if (groupIndex > 0 && groupIndex <= captures.length) {
+            return captures[groupIndex - 1] ?? "";
+        }
+
+        if (token.length === 2) {
+            const firstDigit = Number(token[0]);
+            if (firstDigit > 0 && firstDigit <= captures.length) {
+                return (captures[firstDigit - 1] ?? "") + token[1];
+            }
+        }
+        return m;
+    });
+}
+
+export function replaceString(
+    str: string | null | undefined,
+    pattern: string | RegExp,
+    replacement: string | ((match: string, ...args: any[]) => string),
+    options?: ReplaceOptions
+): string | null {
+    if (str == null || pattern == null || replacement == null) return null;
+    const input = typeof str === "string" ? str : String(str);
+
+    const { literal = false, n, mode, ...engineOpts } = options ?? {};
+    const rawN = n ?? (engineOpts?.global ? Infinity : 1);
+    const effectiveN = isValidNumber(rawN, { allowNonFiniteNumbers: true, allowNaN: false }) ? Math.trunc(rawN) : 1;
+
+    if (effectiveN === 0) return input;
+
+    const pat = literal ? escapeRegExp(pattern, { mode }) : pattern;
+    const cleanObj = toCleanRegExp(input, pat, { ...engineOpts, global: engineOpts?.global ?? (effectiveN !== 1) });
+    if (!cleanObj) return input;
+    const { reg } = cleanObj;
+
+    const isFn = typeof replacement === "function";
+
+    if (effectiveN === 1 || effectiveN < 0 || effectiveN === Infinity) {
+        if (literal && !isFn) {
+            const literalRepStr = String(replacement);
+            return input.replace(reg, () => literalRepStr);
+        }
+        return input.replace(reg, replacement as any);
+    }
+
+    let count = 0;
+    const repStr = isFn ? "" : String(replacement);
+
+    return input.replace(reg, (...args: any[]) => {
+        if (count++ >= effectiveN) return args[0];
+        if (isFn) return String((replacement as Function)(...args));
+        if (literal) return repStr;
+
+        const len = args.length;
+        const hasGroups = typeof args[len - 1] === "object" && args[len - 1] !== null;
+        const groups = hasGroups ? args[len - 1] : undefined;
+        const offset = (hasGroups ? args[len - 3] : args[len - 2]) as number;
+        const captures = args.slice(1, hasGroups ? len - 3 : len - 2);
+
+        return _expandReplacementString(repStr, args[0], offset, input, captures, groups);
+    });
+}
+
+export function replaceManyString(
+    str: string | null | undefined,
+    patterns: (string | RegExp)[] | Record<string, string>,
+    replaceWith?: (string | ((match: string, ...args: any[]) => string))[] | string | ((match: string, ...args: any[]) => string),
+    options?: ReplaceManyOptions
+): string | null {
+    if (str == null || patterns == null) return null;
+    const input = typeof str === "string" ? str : String(str);
+
+    let patList: (string | RegExp)[];
+    let repList: (string | ((match: string, ...args: any[]) => string))[] | null = null;
+    let scalarRep: string | ((match: string, ...args: any[]) => string) | null = null;
+
+    if (!Array.isArray(patterns) && typeof patterns === "object") {
+        patList = Object.keys(patterns);
+        repList = Object.values(patterns);
+    } else if (Array.isArray(patterns)) {
+        patList = patterns;
+        if (Array.isArray(replaceWith)) {
+            if (replaceWith.length === 1 && patList.length > 1) {
+                scalarRep = replaceWith[0];
+            } else if (replaceWith.length !== patList.length) {
+                throw new InvalidArgumentError(
+                    `replace_many length mismatch: expected ${patList.length} replacement strings, got ${replaceWith.length}`
+                );
+            } else {
+                repList = replaceWith;
+            }
+        } else if (replaceWith != null) {
+            scalarRep = replaceWith;
+        } else {
+            return input;
+        }
+    } else {
+        return input;
+    }
+
+    const len = patList.length;
+    if (len === 0) return input;
+
+    type Candidate = { start: number; end: number; patternIndex: number; payload: string };
+    const candidates: Candidate[] = [];
+
+    for (let i = 0; i < len; i++) {
+        const pat = patList[i];
+        const rawRep = repList ? repList[i] : scalarRep;
+        if (pat == null || rawRep == null) continue;
+
+        const items = _collectPatternCandidates(input, pat, i, options, (match, start) => {
+            const captures: (string | undefined)[] = Array.prototype.slice.call(match, 1);
+            if (typeof rawRep === "function") {
+                const fnArgs: any[] = [match[0], ...captures, start, input];
+                if (match.groups !== undefined) fnArgs.push(match.groups);
+                return String((rawRep as Function)(...fnArgs));
+            }
+            return options?.literal
+                ? String(rawRep)
+                : _expandReplacementString(String(rawRep), match[0], start, input, captures, match.groups);
+        });
+
+        for (let j = 0; j < items.length; j++) candidates.push(items[j]);
+    }
+
+    if (candidates.length === 0) return input;
+
+    const selected = _selectLeftmostCandidates(candidates);
+    let result = "";
+    let lastIndex = 0;
+    const selLen = selected.length;
+
+    for (let i = 0; i < selLen; i++) {
+        const c = selected[i];
+        result += input.slice(lastIndex, c.start) + c.payload;
+        lastIndex = c.end;
+    }
+
+    result += input.slice(lastIndex);
+    return result;
 }

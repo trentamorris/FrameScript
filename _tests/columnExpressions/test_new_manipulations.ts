@@ -1,3 +1,4 @@
+declare const process: any;
 import { $df, ShapeError, DataFrame } from "../../src/index";
 
 console.log("=========================================");
@@ -59,7 +60,7 @@ try {
         $df.col("str_val").str.count_matches("apple").alias("str_matches_str"),
         $df.col("str_val").str.count_matches(/apple/g).alias("str_matches_regex"),
         $df.col("str_val").str.extract(/(\w+)/).alias("str_extract_default"),
-        $df.col("str_val").str.extract(/(\w+)\s+(\w+)/, 2).alias("str_extract_group"),
+        $df.col("str_val").str.extract(/(\w+)\s+(\w+)/, { groupIndex: 2 }).alias("str_extract_group"),
         $df.col("regex_str").str.encode_uri_component().alias("str_uri_encoded"),
         $df.col("regex_str").str.encode_uri_component().str.decode_uri_component().alias("str_uri_decoded"),
         $df.lit("constant_string").alias("lit_str"),

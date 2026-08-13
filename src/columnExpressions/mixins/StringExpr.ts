@@ -8,7 +8,9 @@ import type {
     ExtractRegexEngineOptions,
     FindOptions,
     FindManyOptions,
-    SplitOptions
+    SplitOptions,
+    ReplaceOptions,
+    ReplaceManyOptions
 } from "../../types";
 import { ExprBase, derive } from "../ExprBase";
 import { kleeneUnary, kleeneBinary } from "../utils";
@@ -32,10 +34,16 @@ import {
     findRegex,
     findManyRegex,
     splitString,
+    replaceString,
+    replaceManyString,
+    toCleanRegExp,
     extractRegexGroups,
     toValidArray,
     joinArray,
-    JoinArrayOptions
+    JoinArrayOptions,
+    safeJsonParse,
+    SafeJsonParseOptions,
+    jsonPathMatch
 } from "../../utils";
 
 /**
@@ -152,16 +160,13 @@ export class StringExprNamespace {
         const literal = typeof options === "boolean" ? options : (options?.literal ?? false);
         return this._patternGuard(pattern, () =>
             this._deriveString((str) => {
-                if (!literal && isRegExp(pattern)) {
-                    try { pattern.lastIndex = 0; } catch { }
-                    const regex = pattern.global
-                        ? pattern
-                        : new RegExp(pattern.source, pattern.flags + "g");
-                    return str.match(regex)?.length ?? 0;
-                }
+                const patStr = literal ? escapeRegExp(pattern) : pattern;
 
-                const patStr = String(pattern);
-                return patStr.length === 0 ? str.length + 1 : str.split(patStr).length - 1;
+                const cleanObj = toCleanRegExp(str, patStr, { global: true });
+                if (!cleanObj) return 0;
+
+                const matches = cleanObj.input.match(cleanObj.reg);
+                return matches ? matches.length : 0;
             })
         );
     }
@@ -473,6 +478,45 @@ export class StringExprNamespace {
     }
 
     /**
+     * Decodes JSON string elements into parsed objects or arrays.
+     * Reuses safeJsonParse utility.
+     * @param options Configuration options for parsing (`SafeJsonParseOptions`).
+     * @returns ColumnExpression
+     * @example
+     * >>> const df = $df.data({ json_str: ['{"a": 1}', '{"b": 2}'] })
+     * >>> df.with_columns($df.col("json_str").str.json_decode().alias("parsed"))
+     * shape: (2, 2)
+     * ┌────────────┬───────────┐
+     * │ json_str   │ parsed    │
+     * ├────────────┼───────────┤
+     * │ {"a": 1}   │ { a: 1 }  │
+     * │ {"b": 2}   │ { b: 2 }  │
+     * └────────────┴───────────┘
+     */
+    json_decode(options: SafeJsonParseOptions = {}) {
+        return this._deriveString((str) => safeJsonParse(str, options));
+    }
+
+    /**
+     * Extracts fields or array elements from JSON strings using JSONPath syntax.
+     * @param jsonPath The JSONPath expression (e.g. `"$.store.book[0].title"` or `"$.a.b"`).
+     * @returns ColumnExpression
+     * @example
+     * >>> const df = $df.data({ json_str: ['{"a": {"b": 10}}', '{"a": {"b": 20}}'] })
+     * >>> df.with_columns($df.col("json_str").str.json_path_match("$.a.b").alias("val"))
+     * shape: (2, 2)
+     * ┌────────────────────┬─────┐
+     * │ json_str           │ val │
+     * ├────────────────────┼─────┤
+     * │ {"a": {"b": 10}}   │ 10  │
+     * │ {"a": {"b": 20}}   │ 20  │
+     * └────────────────────┴─────┘
+     */
+    json_path_match(jsonPath: string) {
+        return this._deriveString((str) => jsonPathMatch(str, jsonPath));
+    }
+
+    /**
      * Returns string length in UTF-16 code units. Alias for len_chars.
      * @returns ColumnExpression
      * @example
@@ -620,6 +664,7 @@ export class StringExprNamespace {
      * Replaces the first occurrence matching a string pattern.
      * @param pattern The search pattern string or regular expression.
      * @param replacement The string value or match replacement function.
+     * @param options Optional replace options (literal, asciiCaseInsensitive, n).
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ email: ["old.com"] })
@@ -633,10 +678,11 @@ export class StringExprNamespace {
      */
     replace(
         pattern: string | RegExp,
-        replacement: string | ((match: string, ...args: any[]) => string)
+        replacement: string | ((match: string, ...args: any[]) => string),
+        options?: ReplaceOptions
     ) {
         return this._patternGuard(pattern, () =>
-            this._deriveString((str) => str.replace(pattern, replacement as any))
+            this._deriveString((str) => replaceString(str, pattern, replacement, { n: 1, ...options }) ?? str)
         );
     }
 
@@ -644,6 +690,7 @@ export class StringExprNamespace {
      * Replaces all occurrences matching a string pattern or global regular expression.
      * @param pattern The search pattern string or regular expression.
      * @param replacement The replacement value.
+     * @param options Optional replace options (literal, asciiCaseInsensitive).
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ text: ["foo bar foo"] })
@@ -657,10 +704,38 @@ export class StringExprNamespace {
      */
     replace_all(
         pattern: string | RegExp,
-        replacement: string | ((match: string, ...args: any[]) => string)
+        replacement: string | ((match: string, ...args: any[]) => string),
+        options?: Omit<ReplaceOptions, "n">
     ) {
         return this._patternGuard(pattern, () =>
-            this._deriveString((str) => str.replaceAll(pattern, replacement as any))
+            this._deriveString((str) => replaceString(str, pattern, replacement, { ...options, n: -1 }) ?? str)
+        );
+    }
+
+    /**
+     * Replaces multiple string patterns simultaneously or sequentially with their respective replacements.
+     * Matches Polars `.str.replace_many()` behavior, accepting pattern/replacement arrays or a pattern-to-replacement map dictionary.
+     * @param patterns Array of patterns or an object mapping target patterns to replacements.
+     * @param replacements Array of replacement strings/callbacks (when patterns is an array).
+     * @param options Configuration options ({ literal, asciiCaseInsensitive, mode }).
+     * @returns ColumnExpression
+     * @example
+     * >>> const df = $df.data({ text: ["foo bar baz"] })
+     * >>> df.with_columns($df.col("text").str.replace_many(["foo", "bar"], ["1", "2"]).alias("res"))
+     * shape: (1, 2)
+     * ┌─────────────┬─────────┐
+     * │ text        │ res     │
+     * ├─────────────┼─────────┤
+     * │ foo bar baz │ 1 2 baz │
+     * └─────────────┴─────────┘
+     */
+    replace_many(
+        patterns: (string | RegExp)[] | Record<string, string>,
+        replacements?: (string | ((match: string, ...args: any[]) => string))[],
+        options?: ReplaceManyOptions
+    ) {
+        return this._patternGuard(patterns, () =>
+            this._deriveString((str) => replaceManyString(str, patterns, replacements, options) ?? str)
         );
     }
 
