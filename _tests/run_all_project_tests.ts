@@ -17,6 +17,7 @@ import "./columnExpressions/test_new_manipulations";
 import "./columnExpressions/test_when_then";
 import "./columnExpressions/test_seq_range";
 import "./columnExpressions/test_type_selector";
+import "./columnExpressions/test_type_inference";
 import "./columnExpressions/test_new_aggregations";
 import "./dataframe/run_all";
 import "./dataframe/read_csv.test";
@@ -27,6 +28,7 @@ import "./utils/test_array_robustness";
 import "./utils/test_types";
 import "./utils/test_string";
 import "./utils/test_io";
+import "./utils/test_binary";
 import "./utils/test_csv";
 import "./utils/test_csv_parse";
 

@@ -262,10 +262,12 @@ Chained mathematical functions execute cleanly with built-in null-safety (Kleene
 - `.is_in(arrayOrExpr)`, `.not_in(arrayOrExpr)`
 
 ### ⚡ Aggregations
-- `.sum()`, `.avg()` / `.mean()`, `.median()`, `.mode()`, `.std()`, `.min()`, `.max()`, `.nan_min()`, `.nan_max()`, `.min_by(by)`, `.max_by(by)`
+- `.sum()`, `.product()`, `.avg()` / `.mean()`, `.median()`, `.mode()`, `.variance()`, `.std()`, `.skew()`, `.kurtosis()`, `.entropy(base?, normalize?)`
+- `.min()`, `.max()`, `.nan_min()`, `.nan_max()`, `.min_by(by)`, `.max_by(by)`, `.arg_min()`, `.arg_max()`
 - `.count(options?)` — Option `{ includeNulls: boolean }`.
 - `.first()`, `.last()`
-- `.any()`, `.all()`, `.any_null()`, `.all_null()`, `.n_unique()`, `.null_count()`, `.arg_min()`, `.arg_max()`
+- `.any()`, `.all()`, `.any_null()`, `.all_null()`, `.n_unique()`, `.null_count()`
+- `.bitwise_and()`, `.bitwise_or()`, `.bitwise_xor()`
 
 
 ### 🔀 Control Flow & Conditionals
@@ -284,6 +286,7 @@ df.select(
 - `$df.when(predicate).then(value)`: Starts a conditional evaluation.
 - `.when(predicate).then(value)`: Chains additional conditions.
 - `.otherwise(value)`: Specifies the fallback value when no conditions match (returns a complete `ColumnExpr`).
+- `$df.coalesce(...exprs)`: Returns the first non-null value among the provided expressions or literals.
 
 ---
 
@@ -298,7 +301,7 @@ $df.col("name").str.lower()
 $df.col("code").str.starts_with("A")
 $df.col("description").str.replace(/foo/i, "bar")
 ```
-- **Methods**: `lower()`, `upper()`, `len()`, `len_bytes()`, `len_chars()`, `trim()`, `trim_start()`, `trim_end()`, `starts_with(prefix)`, `ends_with(suffix)`, `contains(pattern)`, `replace(pattern, repl)`, `replace_all(pattern, repl)`, `slice(offset, length?)`, `split(delimiter)`, `explode()`, `reverse()`, `lpad(w, f)`, `rpad(w, f)`, `zfill(w)`, `strip_chars(chars?)`, `strip_chars_start(chars?)`, `strip_chars_end(chars?)`, `strip_prefix(pfx)`, `strip_suffix(sfx)`, `to_titlecase()`, `strptime(format, strict?)`, `to_integer()`, `to_decimal(p, s)`, `to_date()`, `to_datetime()`, `to_time()`.
+- **Methods**: `lower()`, `upper()`, `to_titlecase()`, `len()`, `len_bytes()`, `len_chars()`, `trim()`, `trim_start()`, `trim_end()`, `starts_with(prefix)`, `ends_with(suffix)`, `contains(pattern)`, `contains_any(patterns)`, `count_matches(pattern)`, `find(pattern)`, `find_many(patterns)`, `replace(pattern, repl)`, `replace_all(pattern, repl)`, `replace_many(patterns, replacements)`, `slice(offset, length?)`, `split(delimiter, options?)`, `explode()`, `reverse()`, `lpad(w, f)`, `rpad(w, f)`, `zfill(w)`, `strip_chars(chars?)`, `strip_chars_start(chars?)`, `strip_chars_end(chars?)`, `strip_prefix(pfx)`, `strip_suffix(sfx)`, `escape_regex()`, `extract(pattern, groupIndex?)`, `extract_all(pattern)`, `extract_groups(pattern)`, `extract_many(patterns)`, `encode(encoding)`, `decode(encoding, strict?)`, `json_decode(options?)`, `json_path_match(jsonPath)`, `normalize(form?)`, `join(separator)`, `strptime(format, strict?)`, `to_integer()`, `to_decimal(p, s)`, `to_date()`, `to_datetime()`, `to_time()`.
 
 ### 📅 Temporal Operations (`.dt`)
 Available on datetime or duration values via `.dt`:
@@ -320,7 +323,7 @@ $df.col("matrix").arr.get(2)
 $df.col("numbers").arr.eval(element().mul(2)).alias("numbers_doubled")
 $df.col("tags").arr.eval(element().str.to_uppercase()).alias("upper_tags")
 ```
-- **Methods**: `lengths()`, `len()`, `get(idx, null_on_oob?)`, `first(null_on_oob?)`, `last(null_on_oob?)`, `gather(indices, null_on_oob?)`, `gather_every(n, offset?)`, `slice(offset, length?)`, `contains(item)`, `count_matches(item)`, `join(separator)`, `sort(descending?)`, `reverse()`, `unique()`, `sum()`, `mean()`, `median()`, `mode()`, `min()`, `max()`, `eval(expr)`.
+- **Methods**: `lengths()`, `len()`, `get(idx, null_on_oob?)`, `first(null_on_oob?)`, `last(null_on_oob?)`, `gather(indices, null_on_oob?)`, `gather_every(n, offset?)`, `slice(offset, length?)`, `contains(item)`, `count_matches(item)`, `join(separator)`, `sort(descending?)`, `reverse()`, `unique()`, `sum()`, `mean()`, `median()`, `mode()`, `min()`, `max()`, `arg_min()`, `arg_max()`, `agg(expr)`, `eval(expr)`.
 
 ### 🗃️ Struct/Object Operations (`.struct`)
 Available on any struct or nested object column expression via `.struct`. You can access fields dynamically via properties or explicit methods:
@@ -421,6 +424,27 @@ const df = $df.data(rawData, schema);
 // Full IDE autocomplete, type validation, and compiler safety!
 const activeUsers = df.filter($df.col("is_active").eq(true));
 ```
+
+### ⚡ Post-Operation Schema Type Deduction
+
+DFScript features an intelligent post-operation schema inference engine that automatically determines the correct resulting `DataType` across complex expression trees without requiring manual `.cast()` calls:
+
+- **Temporal & Duration Arithmetic**:
+  - `Datetime - Datetime => Duration`
+  - `Datetime ± Duration => Datetime`
+  - `Time - Time => Duration`
+  - `Time ± Duration => Time`
+  - `Duration * / Numeric => Duration`
+- **Integer Promotion & Signedness Hierarchy**: Automatically preserves or promotes integer widths:
+  - Preserves exact unsigned/signed types (`UInt8 + UInt8 => UInt8`, `Int16 + Int16 => Int16`).
+  - Correctly promotes across sizes and signedness (`UInt16 + Int8 => Int16`, `UInt32 + Int32 => Int32`, `Int32 + Int64 => Int64`).
+- **Floating-Point & Decimal Resolution**:
+  - `Int + Float => Float64`
+  - `Float32 + Float32 => Float32`
+  - `Decimal + Int => Decimal`
+  - Evaluates non-integer operation results (e.g. division `10 / 3`) and promotes to `Float64`.
+- **Conditional Branch Widening**: Multi-branch expressions (`when().then().otherwise()`) progressively widen branch types to their common denominator.
+- **Statistical Aggregations**: `.mean()` and `.std()` promote integer columns to `Float64`, while non-numeric `.count()` operations resolve to `Int32`.
 
 ### Supported Data Types
 - **Integers**: `Int8`, `Int16`, `Int32`, `Int64`, `UInt8`, `UInt16`, `UInt32`, `UInt64`

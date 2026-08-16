@@ -48,11 +48,16 @@ export interface IExpr {
     _literalValue?: any;
     _aggFn?: AggFn<any> | null;
     _castType?: RegisteredDataType;
+    _binaryMeta?: { left: any; right: any };
     _groupingOpsIndex?: number;
     _partitionOpsIndex?: number;
     _partitionBy?: (string | IExpr)[] | null;
     _windowOp?: { type: string;[key: string]: any } | null;
     _isWindow?: boolean;
+    _baseExpr?: IExpr;
+    _fieldName?: string;
+    _isUnnest?: boolean;
+    _branchOperands?: any[];
     alias(name: string): this;
     cast(dataType: RegisteredDataType): this;
     _resolve(val: any, columns: ColumnDict, height: number): ColumnData | any;

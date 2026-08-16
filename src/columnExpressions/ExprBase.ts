@@ -12,6 +12,9 @@ export const derive = <T extends IExpr>(
     const newInst = new Constructor(colNameVal);
     Object.assign(newInst, instance);
     newInst._ops = nextOp ? [...instance._ops, nextOp] : [...instance._ops];
+    if (nextOp && (nextOp as any)._binaryMeta) {
+        newInst._binaryMeta = (nextOp as any)._binaryMeta;
+    }
     return newInst;
 };
 
@@ -27,10 +30,14 @@ export class ExprBase implements IExpr {
     _literalValue?: any;
     _aggFn?: AggFn<any> | null = null;
     _castType?: RegisteredDataType;
+    _binaryMeta?: { left: any; right: any };
     _groupingOpsIndex?: number;
     _partitionOpsIndex?: number;
     _partitionBy: (string | IExpr)[] | null = null;
     _evaluateWindow?: (groupPreValues: any[], partitionIndices: number[], currentIndex: number) => any;
+    _baseExpr?: IExpr;
+    _fieldName?: string;
+    _isUnnest?: boolean;
 
     _evaluatePost(opsIndex: number | undefined, aggregatedArray: any[], columns: ColumnDict): ColumnData {
         const ops = this._ops;

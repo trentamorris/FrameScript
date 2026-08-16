@@ -4,3 +4,4 @@ export const COALESCE_MARKER = "*coalesce*";
 export const ELEMENT_MARKER = "*element*";
 export const STRUCT_MARKER = "*struct*";
 export const DURATION_MARKER = "*duration*";
+export const WHEN_MARKER = "*when*";

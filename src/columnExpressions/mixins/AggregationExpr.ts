@@ -17,11 +17,8 @@ import {
     computeSkewness,
     computeKurtosis,
     computeEntropy,
-    computeBitwiseAnd,
-    computeBitwiseOr,
-    computeBitwiseXor,
-    computeMaxBy,
-    computeMinBy
+    reduceBitwise,
+    computeBy
 } from "../../utils"
 
 
@@ -179,7 +176,7 @@ export class AggregationExpr extends ExprBase {
      * └─────┘
      */
     bitwise_and() {
-        return this._deriveAgg(v => computeBitwiseAnd(v));
+        return this._deriveAgg(v => reduceBitwise(v, (a, b) => a & b));
     }
 
     /**
@@ -196,7 +193,7 @@ export class AggregationExpr extends ExprBase {
      * └─────┘
      */
     bitwise_or() {
-        return this._deriveAgg(v => computeBitwiseOr(v));
+        return this._deriveAgg(v => reduceBitwise(v, (a, b) => a | b));
     }
 
     /**
@@ -213,7 +210,7 @@ export class AggregationExpr extends ExprBase {
      * └─────┘
      */
     bitwise_xor() {
-        return this._deriveAgg(v => computeBitwiseXor(v));
+        return this._deriveAgg(v => reduceBitwise(v, (a, b) => a ^ b));
     }
 
     /**
@@ -408,7 +405,7 @@ export class AggregationExpr extends ExprBase {
      * └────────────┘
      */
     max_by(by: any) {
-        return this._deriveAggBinary(by, computeMaxBy);
+        return this._deriveAggBinary(by, p => computeBy(p, "maxIdx"));
     }
 
     /**
@@ -477,7 +474,7 @@ export class AggregationExpr extends ExprBase {
      * └──────────────┘
      */
     min_by(by: any) {
-        return this._deriveAggBinary(by, computeMinBy);
+        return this._deriveAggBinary(by, p => computeBy(p, "minIdx"));
     }
 
     /**

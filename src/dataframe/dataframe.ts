@@ -1,4 +1,4 @@
-import { ColumnExpr, resolveColumnSelectors, ALL_COLUMNS_MARKER, seq_range, all, evaluateExpression } from "../columnExpressions"
+import { ColumnExpr, resolveColumnSelectors, ALL_COLUMNS_MARKER, seq_range, all, evaluateExpression, resolveExprOutputType } from "../columnExpressions"
 import { GroupedData } from "./grouped/grouped"
 import { NEWLINE } from "../constants"
 import { createSafeJsonReplacer } from "../utils/json"
@@ -1502,10 +1502,7 @@ export class DataFrame<T extends RowRecord = any> {
             const expr = expandedExprs[i];
             const targetKey = targetKeys[i];
             const col = evaluatedCols[i];
-            const originalKey = expr._colName || targetKey;
-            const isPureCol = expr instanceof ColumnExpr && expr._ops.length === 0 && !expr._isWindow && !expr._aggFn;
-            const castType = expr._castType;
-            const type = castType || (isPureCol && this._schema[originalKey]) || inferColumnType(col);
+            const type = resolveExprOutputType(expr, this._schema, col) || inferColumnType(col);
 
             outSchema[targetKey] = type;
             newColumns[targetKey] = coerceColumn(col, type, targetHeight);

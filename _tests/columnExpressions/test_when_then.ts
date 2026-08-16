@@ -109,8 +109,92 @@ try {
     if (res5[0].basic_expr !== "A") throw new Error(`res5[0].basic_expr failed, got ${res5[0].basic_expr}`);
     if (res5[1].basic_expr !== "200") throw new Error(`res5[1].basic_expr failed, got ${res5[1].basic_expr}`);
 
+    // 6. String column name predicates and string column outputs
+    const dfStringCol = $df.data({
+        is_promo: [true, false, true, false],
+        code_a: ["P1", "P2", "P3", "P4"],
+        code_b: ["STD1", "STD2", "STD3", "STD4"]
+    });
+    const res6 = dfStringCol.with_columns(
+        $df.when("is_promo").then("code_a").otherwise("code_b").alias("active_code"),
+        $df.when("is_promo").then("PREMIUM").otherwise("STANDARD").alias("tier")
+    ).to_dicts() as any[];
+
+    if (res6[0].active_code !== "P1" || res6[0].tier !== "PREMIUM") throw new Error("res6[0] failed");
+    if (res6[1].active_code !== "STD2" || res6[1].tier !== "STANDARD") throw new Error("res6[1] failed");
+
+    // 7. Non-boolean predicate values (truthiness vs strict boolean true check)
+    const dfTruthy = $df.data({
+        num_flag: [1, 0, null, 2],
+        str_flag: ["true", "", "yes", null]
+    });
+    const res7 = dfTruthy.with_columns(
+        $df.when($df.col("num_flag").eq(1)).then("is_one").otherwise("not_one").alias("one_check"),
+        $df.when($df.col("str_flag").is_not_null()).then("has_str").otherwise("no_str").alias("null_check")
+    ).to_dicts() as any[];
+
+    if (res7[0].one_check !== "is_one") throw new Error("res7[0].one_check failed");
+    if (res7[1].one_check !== "not_one") throw new Error("res7[1].one_check failed");
+    if (res7[2].one_check !== "not_one") throw new Error("res7[2].one_check failed");
+    if (res7[0].null_check !== "has_str") throw new Error("res7[0].null_check failed");
+    if (res7[3].null_check !== "no_str") throw new Error("res7[3].null_check failed");
+
+    // 8. Nested when/then/otherwise expressions
+    const res8 = df.with_columns(
+        $df.when($df.col("category").eq("A"))
+            .then($df.when($df.col("val").gt(10)).then("A_HIGH").otherwise("A_LOW"))
+            .otherwise(
+                $df.when($df.col("category").eq("B")).then("B_VAL").otherwise("OTHER")
+            )
+            .alias("nested_grade")
+    ).to_dicts() as any[];
+
+    if (res8[0].nested_grade !== "A_HIGH") throw new Error(`res8[0].nested_grade failed, got ${res8[0].nested_grade}`);
+    if (res8[1].nested_grade !== "B_VAL") throw new Error(`res8[1].nested_grade failed, got ${res8[1].nested_grade}`);
+    if (res8[2].nested_grade !== "A_LOW") throw new Error(`res8[2].nested_grade failed, got ${res8[2].nested_grade}`);
+    if (res8[3].nested_grade !== "OTHER") throw new Error(`res8[3].nested_grade failed, got ${res8[3].nested_grade}`);
+
+    // 9. Empty DataFrame edge case
+    const emptyDf = $df.data({ val: [] as number[], cat: [] as string[] });
+    const res9 = emptyDf.with_columns(
+        $df.when($df.col("val").gt(0)).then("POS").otherwise("NON_POS").alias("status")
+    );
+    if (res9.height !== 0 || !("status" in res9.schema)) {
+        throw new Error("res9 empty DataFrame failed");
+    }
+
+    // 10. Multi-branch chaining with 5 branches (first match precedence)
+    const res10 = $df.data({ val: [10, 20, 30, 40, 50, 60] }).with_columns(
+        $df.when($df.col("val").eq(10)).then("T10")
+            .when($df.col("val").eq(20)).then("T20")
+            .when($df.col("val").eq(30)).then("T30")
+            .when($df.col("val").eq(40)).then("T40")
+            .when($df.col("val").eq(50)).then("T50")
+            .otherwise("T_OTHER")
+            .alias("bracket")
+    ).to_dicts() as any[];
+
+    if (res10[0].bracket !== "T10") throw new Error("res10[0] failed");
+    if (res10[1].bracket !== "T20") throw new Error("res10[1] failed");
+    if (res10[2].bracket !== "T30") throw new Error("res10[2] failed");
+    if (res10[3].bracket !== "T40") throw new Error("res10[3] failed");
+    if (res10[4].bracket !== "T50") throw new Error("res10[4] failed");
+    if (res10[5].bracket !== "T_OTHER") throw new Error("res10[5] failed");
+
+    // 11. TypedArray and Array outputs in then/otherwise
+    const res11 = $df.data({ flag: [true, false] }).with_columns(
+        $df.when($df.col("flag")).then(new Uint8Array([1, 2])).otherwise(new Uint8Array([3, 4])).alias("bin_data"),
+        $df.when($df.col("flag")).then([10, 20]).otherwise([30, 40]).alias("list_data")
+    ).to_dicts() as any[];
+
+    if (!(res11[0].bin_data instanceof Uint8Array) || res11[0].bin_data[0] !== 1) throw new Error("res11[0].bin_data failed");
+    if (!(res11[1].bin_data instanceof Uint8Array) || res11[1].bin_data[0] !== 3) throw new Error("res11[1].bin_data failed");
+    if (!Array.isArray(res11[0].list_data) || res11[0].list_data[0] !== 10) throw new Error("res11[0].list_data failed");
+    if (!Array.isArray(res11[1].list_data) || res11[1].list_data[0] !== 30) throw new Error("res11[1].list_data failed");
+
     console.log("\n🎉 ALL WHEN-THEN-OTHERWISE TESTS PASSED SUCCESSFULLY!");
 } catch (err) {
     console.error("\n❌ WHEN-THEN-OTHERWISE TESTS FAILED:", err);
     process.exit(1);
 }
+

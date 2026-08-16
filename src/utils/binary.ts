@@ -1,25 +1,79 @@
 /** @internalfile */
-import { isTypedArray } from "./array";
+import {
+    isObj,
+    isDetachedBuffer,
+    isArrayBuffer,
+    isSharedArrayBuffer,
+    isDataView,
+    isUint8Array,
+    isUint8ClampedArray,
+} from "./object";
+import { isValidInt, type IntOptions } from "./number";
 import type { AnyTypedArray } from "../types";
 import { TEXT_ENCODER } from "../constants";
 
-export function isValidBinary(v: unknown): v is string | any[] | AnyTypedArray {
-    if (v === null || v === undefined) return false;
-    if (typeof v === "string") return true;
-    if (isTypedArray(v)) return true;
-    return Array.isArray(v);
+export interface BinaryValidationOptions {
+    strict?: boolean;
 }
 
-export function toValidBinary(v: unknown): Uint8Array | null {
-    if (!isValidBinary(v)) return null;
-    if (Object.prototype.toString.call(v) === "[object Uint8Array]") {
-        return v as Uint8Array;
+export function isBinaryObj(
+    v: unknown
+): v is Uint8Array | Uint8ClampedArray | ArrayBuffer | SharedArrayBuffer | DataView {
+    if (!isObj(v) || isDetachedBuffer(v)) return false;
+    if (ArrayBuffer.isView(v)) {
+        return isUint8Array(v) || isUint8ClampedArray(v) || isDataView(v);
     }
-    if (typeof v === "string") {
-        return TEXT_ENCODER.encode(v);
-    }
-    if (isTypedArray(v)) {
-        return new Uint8Array(v.buffer.slice(v.byteOffset, v.byteOffset + v.byteLength));
-    }
-    return new Uint8Array(v as any);
+    return isArrayBuffer(v) || isSharedArrayBuffer(v);
 }
+
+const UINT8_INT_OPTS: IntOptions = { range: "UInt8" };
+
+export function isValidBinary(
+    v: unknown,
+    options?: BinaryValidationOptions
+): v is Uint8Array | Uint8ClampedArray | ArrayBuffer | SharedArrayBuffer | DataView | string | number[] | AnyTypedArray {
+    if (v == null) return false;
+    try {
+        if (isBinaryObj(v)) return true;
+        if (options?.strict) return false;
+        if (typeof v === "string") return true;
+        if (ArrayBuffer.isView(v)) return !isDetachedBuffer(v);
+        if (Array.isArray(v)) {
+            const len = v.length;
+            for (let i = 0; i < len; i++) {
+                if (!isValidInt(v[i], UINT8_INT_OPTS)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    } catch {
+        return false;
+    }
+    return false;
+}
+
+export function toValidBinary(v: unknown, options?: BinaryValidationOptions): Uint8Array | null {
+    try {
+        if (!isValidBinary(v, options)) return null;
+        if (isUint8Array(v)) {
+            return v;
+        }
+        if (ArrayBuffer.isView(v)) {
+            return new Uint8Array(v.buffer, v.byteOffset, v.byteLength);
+        }
+        if (isArrayBuffer(v) || isSharedArrayBuffer(v)) {
+            return new Uint8Array(v);
+        }
+        if (typeof v === "string") {
+            return TEXT_ENCODER.encode(v);
+        }
+        if (Array.isArray(v)) {
+            return Uint8Array.from(v);
+        }
+    } catch {
+        return null;
+    }
+    return null;
+}
+

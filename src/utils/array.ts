@@ -1,5 +1,5 @@
 /** @internalfile */
-import { isClass, isObj, isPlainObj, isValidDateObj } from "./object";
+import { isClass, isObj, isPlainObj, isValidDateObj, typedArrayTagGetter } from "./object";
 import { toValidNumber, isValidNumber, isValidInt, toValidBigInt, isValidBigInt } from "./number";
 import { toValidDate } from "./date";
 import { toCanonicalString } from "./string";
@@ -8,19 +8,6 @@ import type { AnyTypedArray, ColumnData, SkewOptions, KurtosisOptions, EntropyOp
 import { ComputeError, InvalidArgumentError } from "../exceptions";
 
 /** Array Guards **/
-const typedArrayTagGetter = (() => {
-    try {
-        const sample = new Uint8Array(0);
-        const proto = Object.getPrototypeOf(sample);
-        const superProto = Object.getPrototypeOf(proto);
-        const getter = Object.getOwnPropertyDescriptor(superProto, Symbol.toStringTag)?.get;
-        if (getter && getter.call(sample) === "Uint8Array") return getter;
-        return undefined;
-    } catch {
-        return undefined;
-    }
-})();
-
 export function isTypedArray(v: unknown): v is AnyTypedArray {
     if (!ArrayBuffer.isView(v)) return false;
     if (typedArrayTagGetter) return typedArrayTagGetter.call(v) !== undefined;
@@ -1345,7 +1332,8 @@ export function computeEntropy(
     }
 }
 
-function reduceBitwise(
+/** Reduces elements in an array using a bitwise binary operation across valid BigInts/numbers. */
+export function reduceBitwise(
     arr: ArrayLike<any>,
     op: (acc: bigint, val: bigint) => bigint
 ): number | bigint | null {
@@ -1365,16 +1353,11 @@ function reduceBitwise(
         : res;
 }
 
-/** Computes bitwise AND across all valid numeric elements in an array. */
-export const computeBitwiseAnd = (arr: ArrayLike<any>) => reduceBitwise(arr, (a, b) => a & b);
-
-/** Computes bitwise OR across all valid numeric elements in an array. */
-export const computeBitwiseOr = (arr: ArrayLike<any>) => reduceBitwise(arr, (a, b) => a | b);
-
-/** Computes bitwise XOR across all valid numeric elements in an array. */
-export const computeBitwiseXor = (arr: ArrayLike<any>) => reduceBitwise(arr, (a, b) => a ^ b);
-
-function computeByHelper(pairs: Array<[any, any]> | null | undefined, statKey: "minIdx" | "maxIdx"): any {
+/** Finds the value in target column corresponding to the minimum or maximum value in `by` column. */
+export function computeBy(
+    pairs: Array<[any, any]> | null | undefined,
+    statKey: "minIdx" | "maxIdx"
+): any {
     if (!pairs || pairs.length === 0) return null;
     const len = pairs.length;
     const targets = new Array(len);
@@ -1386,14 +1369,4 @@ function computeByHelper(pairs: Array<[any, any]> | null | undefined, statKey: "
     }
     const idx = getArrayStats(bys)[statKey];
     return idx !== null ? targets[idx] : null;
-}
-
-/** Finds the value in target column corresponding to the maximum value in `by` column. */
-export function computeMaxBy(pairs: Array<[any, any]> | null | undefined): any {
-    return computeByHelper(pairs, "maxIdx");
-}
-
-/** Finds the value in target column corresponding to the minimum value in `by` column. */
-export function computeMinBy(pairs: Array<[any, any]> | null | undefined): any {
-    return computeByHelper(pairs, "minIdx");
 }

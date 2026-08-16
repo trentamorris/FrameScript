@@ -1,8 +1,9 @@
 import { ColumnExpr } from "../ColumnExpr";
 import type { IExpr, ValidScalarTypes } from "../../types";
-import { isArrayOrTypedArray } from "../../utils";
+import { evaluateArg, isEvaluatedColumn } from "../utils";
+import { WHEN_MARKER } from "../constants";
 
-type WhenArg = IExpr | ValidScalarTypes;
+type WhenArg = IExpr | ValidScalarTypes | any[];
 
 export class WhenThenChain {
     private _predicates: WhenArg[];
@@ -31,63 +32,76 @@ export class When {
 }
 
 export class WhenThen extends ColumnExpr<any> {
-    private _predicates: WhenArg[];
-    private _values: WhenArg[];
-    private _otherwiseValue: WhenArg;
+    public _predicates: WhenArg[];
+    public _values: WhenArg[];
+    public _otherwise: WhenArg;
 
-    constructor(predicates: WhenArg[] | string, values?: WhenArg[], otherwiseValue: WhenArg = null) {
-        super(typeof predicates === "string" ? predicates : "*when*");
+    get _otherwiseValue(): WhenArg {
+        return this._otherwise;
+    }
+
+    get _branchOperands(): WhenArg[] {
+        return this._otherwise != null ? [...this._values, this._otherwise] : this._values;
+    }
+
+    constructor(predicates: WhenArg[] = [], values: WhenArg[] = [], otherwise: WhenArg = null) {
+        super(WHEN_MARKER);
         this._predicates = Array.isArray(predicates) ? predicates : [];
         this._values = values || [];
-        this._otherwiseValue = otherwiseValue;
+        this._otherwise = otherwise;
 
-        this._ops.push((_, columns) => {
+        this._ops = [(_, columns) => {
             const height = _.length;
+            const preds = this._predicates;
+            const vals = this._values;
+            const numConditions = preds.length;
 
-            const evaluateArg = (arg: any): any => {
-                if (ColumnExpr.isColExpr(arg)) {
-                    return arg.evaluate(columns, height);
-                }
-                if (typeof arg === "string" && (arg in columns)) {
-                    return columns[arg];
-                }
-                return arg;
-            };
-
-            const numConditions = this._predicates.length;
             const evaluatedPreds = new Array(numConditions);
             const evaluatedVals = new Array(numConditions);
+            const isPredCol = new Array(numConditions);
+            const isValCol = new Array(numConditions);
+
             for (let j = 0; j < numConditions; j++) {
-                evaluatedPreds[j] = evaluateArg(this._predicates[j]);
-                evaluatedVals[j] = evaluateArg(this._values[j]);
+                const pj = preds[j];
+                const vj = vals[j];
+                const ep = evaluateArg(pj, columns, height);
+                const ev = evaluateArg(vj, columns, height);
+
+                evaluatedPreds[j] = ep;
+                evaluatedVals[j] = ev;
+                isPredCol[j] = isEvaluatedColumn(pj, ep, columns, height);
+                isValCol[j] = isEvaluatedColumn(vj, ev, columns, height);
             }
-            const evaluatedOtherwise = evaluateArg(this._otherwiseValue);
+
+            const currentOtherwise = this._otherwise;
+            const evaluatedOtherwise = evaluateArg(currentOtherwise, columns, height);
+            const isOtherwiseCol = isEvaluatedColumn(currentOtherwise, evaluatedOtherwise, columns, height);
 
             const result = new Array(height);
 
             for (let i = 0; i < height; i++) {
                 let matched = false;
                 for (let j = 0; j < numConditions; j++) {
-                    const predVal = isArrayOrTypedArray(evaluatedPreds[j]) ? evaluatedPreds[j][i] : evaluatedPreds[j];
+                    const predVal = isPredCol[j] ? evaluatedPreds[j][i] : evaluatedPreds[j];
                     if (predVal === true) {
-                        result[i] = isArrayOrTypedArray(evaluatedVals[j]) ? evaluatedVals[j][i] : evaluatedVals[j];
+                        result[i] = isValCol[j] ? evaluatedVals[j][i] : evaluatedVals[j];
                         matched = true;
                         break;
                     }
                 }
                 if (!matched) {
-                    result[i] = isArrayOrTypedArray(evaluatedOtherwise) ? evaluatedOtherwise[i] : evaluatedOtherwise;
+                    result[i] = isOtherwiseCol ? evaluatedOtherwise[i] : evaluatedOtherwise;
                 }
             }
             return result;
-        });
+        }];
     }
 
     when(predicate: WhenArg): WhenThenChain {
         return new WhenThenChain(this._predicates.concat(predicate), this._values);
     }
 
-    otherwise(value: WhenArg): ColumnExpr<any> {
+    otherwise(value: WhenArg): WhenThen {
         return new WhenThen(this._predicates, this._values, value);
     }
 }

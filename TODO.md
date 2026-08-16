@@ -92,8 +92,8 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
 ## ⌛ V1.9.0 Release Scope
 
 ### ⚙️ Schema Engine & Expression Type Inference
-- [ ] **Post-Operation Schema Type Deduction**:
-  * Implement central post-operation type inference to automatically deduce target schema DataTypes for chained binary operations (`Datetime - Datetime => Duration`, `Datetime + Duration => Datetime`) without requiring explicit `.cast()` calls.
+- [x] **Post-Operation Schema Type Deduction**:
+  * [x] Implement central post-operation type inference to automatically deduce target schema DataTypes for chained binary operations (`Datetime - Datetime => Duration`, `Datetime + Duration => Datetime`) without requiring explicit `.cast()` calls.
 
 ### 📊 Statistical Aggregations
 - [x] **Mathematical & Distribution Statistics**:
@@ -110,7 +110,7 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
   * [x] Implement **Bitwise Aggregations** (`.bitwise_and()`, `.bitwise_or()`, `.bitwise_xor()`) across group elements.
 
 ### 🔤 String Column Expressions (`.str`)
-- [ ] **Unimplemented String Expressions**:
+- [x] **Unimplemented String Expressions**:
   * [x] **`contains_any`**: Check if string contains any pattern from a collection.
   * [x] **`count_matches`**: Count total occurrences of regex or sub-string pattern matches.
   * [x] **`decode` / `encode`**: Binary encoding/decoding (Hex, Base64, etc.).
@@ -123,10 +123,6 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
   * [x] **`normalize`**: Unicode normalization (NFC, NFD, NFKC, NFKD).
   * [x] **`replace_many`**: Batch replace multiple string patterns simultaneously.
   * [x] **`split` (unified `split_exact` & `split_n`)**: Consolidated split options (`limit`, `exact`, `strict`) into unified `.str.split()` method.
-
-### 🔎 Inspection & Reporting Utilities
-- [ ] **Pretty Printing Tabular Layouts (`df.to_markdown()`, `df.to_html()`)**:
-  * Implement custom table stringifying writers to output beautiful Markdown or HTML tables for logs, terminal outputs, and reports.
 
 ---
 
@@ -180,6 +176,13 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
   * Implement `.rank(method, descending)` supporting dense, ordinal, min, max, and average rank methods.
 - [ ] **Datatype & Pattern Selectors (`cs.numeric()`, `cs.string()`, `cs.matches()`)**:
   * Add column selector helpers to allow selecting columns dynamically by data type or regex matching in `select()` and `with_columns()`.
+
+### ⚙️ Schema & Type Inference Engine
+- [ ] **Pure Static Operator-Driven Type Inference (Zero Data Scanning)**:
+  * **Objective**: Transition type deduction in `src/columnExpressions/typeInference.ts` to be 100% static/compile-time driven without scanning runtime row values (`colSample`).
+  * **True Division (`/`, `.div()`)**: Tag true division binary operations with `op: "div"` (or `_targetType = DataTypeRegistry.Float64`) so integer division (`Int32 / Int32`) automatically infers `Float64` statically ahead of evaluation (matching Polars behavior).
+  * **Floor Division (`//`, `.floordiv()`)**: Preserve integer types (`Int32`, `Int64`, etc.) during integer floor division.
+  * **Eliminate `colSample` Sampling Loop**: Remove the runtime non-integer scan in `deduceBinaryType`, enabling zero-cost O(1) schema deduction directly from expression ASTs before data evaluation.
 
 
 

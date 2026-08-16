@@ -198,7 +198,8 @@ export function resolveColumnSelectors(
         }
 
         // Handle struct unnesting expansion
-        if (isObj(expr) && (expr as any).isUnnest) {
+        if (isObj(expr) && expr._isUnnest && expr._baseExpr) {
+            const baseExpr = expr._baseExpr as IExpr;
             let fields: string[] = [];
             const colName = expr._colName;
             if (typeof colName === "string" && schema && schema[colName] && schema[colName].name === "Struct") {
@@ -208,7 +209,7 @@ export function resolveColumnSelectors(
                 const columnsKeys = Object.keys(columns);
                 const firstKey = columnsKeys[0];
                 const height = firstKey ? columns[firstKey].length : 0;
-                const evaluated = (expr as any).baseExpr.evaluate(columns, height);
+                const evaluated = baseExpr.evaluate(columns, height);
                 const evalLen = evaluated.length;
                 for (let idx = 0; idx < evalLen; idx++) {
                     const item = evaluated[idx];
@@ -222,7 +223,7 @@ export function resolveColumnSelectors(
             if (fieldsLen > 0) {
                 for (let fIdx = 0; fIdx < fieldsLen; fIdx++) {
                     const fieldName = fields[fIdx];
-                    const fieldExpr = (expr as any).baseExpr.struct.field(fieldName);
+                    const fieldExpr = (baseExpr as any).struct.field(fieldName);
                     expanded.push(fieldExpr);
                 }
                 continue;

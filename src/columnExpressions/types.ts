@@ -9,6 +9,6 @@ export interface RandomOptions {
     integer?: boolean;
 }
 
-export type NumericArg = number | IExpr | null;
+export type NumericArg = number | bigint | IExpr | null;
 
 

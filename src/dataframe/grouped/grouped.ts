@@ -1,7 +1,7 @@
 import { DataFrame } from "../dataframe"
-import { inferColumnType } from "../utils"
+import { inferColumnType, coerceColumn } from "../utils"
 import type { GroupMap } from "../types"
-import { resolveColumnSelectors, ALL_COLUMNS_MARKER } from "../../columnExpressions"
+import { resolveColumnSelectors, ALL_COLUMNS_MARKER, resolveExprOutputType } from "../../columnExpressions"
 import type { IExpr, ColumnDict, RowRecord, DataFrameSchema } from "../../types"
 
 /**
@@ -158,7 +158,9 @@ export class GroupedData<T, K extends keyof T> {
         }
         for (const e of expandedExprs) {
             const targetKey = e._outputName || e._colName || ALL_COLUMNS_MARKER;
-            outSchema[targetKey] = inferColumnType(newColumns[targetKey]);
+            const type = resolveExprOutputType(e, this._parentSchema, newColumns[targetKey]) || inferColumnType(newColumns[targetKey]);
+            outSchema[targetKey] = type;
+            newColumns[targetKey] = coerceColumn(newColumns[targetKey], type, groupIdx);
         }
 
         return DataFrame._createDirect<U>(newColumns as any, outSchema, groupIdx);

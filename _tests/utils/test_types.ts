@@ -603,7 +603,7 @@ try {
     if (isValidBigInt(Object("10"))) throw new Error("isValidBigInt: String object wrapper should return false");
     if (isValidBigInt(Object(true))) throw new Error("isValidBigInt: Boolean object wrapper should return false");
     if (isValidBigInt({ [Symbol.toPrimitive]: () => 10n })) throw new Error("isValidBigInt: object with toPrimitive returning bigint should return false");
-    if (!isValidBigInt({ valueOf: () => 10n })) throw new Error("isValidBigInt: object with valueOf returning bigint failed to unbox to bigint");
+    if (isValidBigInt({ valueOf: () => 10n })) throw new Error("isValidBigInt: custom object with valueOf returning bigint should return false");
     if (isValidBigInt(new Proxy(Object(10n), {}))) throw new Error("isValidBigInt: Proxy wrapped BigInt object fails native slot check and should return false");
     if (isValidBigInt(poisonObject)) throw new Error("isValidBigInt: poisoned object throwing in valueOf should return false");
 
@@ -693,7 +693,7 @@ try {
     if (toValidBigInt(Object(100n)) !== 100n) throw new Error("toValidBigInt: BigInt object wrapper failed");
     if (toValidBigInt(Object("100")) !== 100n) throw new Error("toValidBigInt: String object wrapper failed");
     if (toValidBigInt(Object(42.5), { truncate: true }) !== 42n) throw new Error("toValidBigInt: Number object wrapper float truncation failed");
-    if (toValidBigInt({ valueOf: () => "999" }) !== 999n) throw new Error("toValidBigInt: custom object valueOf string unboxing failed");
+    if (toValidBigInt({ valueOf: () => "999" }) !== null) throw new Error("toValidBigInt: custom object without native slot should return null");
     if (toValidBigInt(poisonObject) !== null) throw new Error("toValidBigInt: poisoned object throwing in valueOf should return null");
 
     // Int64, UInt64 & Custom Ranges
@@ -844,15 +844,17 @@ try {
     if (!oIsSet(foreignSet)) throw new Error("isSet should return true for cross-realm Set");
     if (!oIsMap(foreignMap)) throw new Error("isMap should return true for cross-realm Map");
     if (!oIsRegExp(foreignRegExp)) throw new Error("isRegExp should return true for cross-realm RegExp");
-    // Custom valueOf unboxing tests
+    // Custom valueOf objects should be preserved as objects (not unboxed into primitives)
     const testUnbox = unboxPrimitiveObj;
     class CustomVal {
         private val: number | string;
         constructor(val: number | string) { this.val = val; }
         valueOf() { return this.val; }
     }
-    if (testUnbox(new CustomVal(123)) !== 123) throw new Error("unboxPrimitiveObj custom number valueOf failed");
-    if (testUnbox(new CustomVal("hello")) !== "hello") throw new Error("unboxPrimitiveObj custom string valueOf failed");
+    const customNum = new CustomVal(123);
+    const customStr = new CustomVal("hello");
+    if (testUnbox(customNum) !== customNum) throw new Error("unboxPrimitiveObj custom number valueOf should preserve object identity");
+    if (testUnbox(customStr) !== customStr) throw new Error("unboxPrimitiveObj custom string valueOf should preserve object identity");
 
     // Check that we don't unbox objects returning objects from valueOf
     class BadCustom {

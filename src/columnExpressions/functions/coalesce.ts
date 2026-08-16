@@ -1,8 +1,7 @@
 import { ColumnExpr } from "../ColumnExpr";
 import type { IExpr, ValidScalarTypes } from "../../types";
-import { isArrayOrTypedArray } from "../../utils";
+import { evaluateArg, isEvaluatedColumn } from "../utils";
 import { COALESCE_MARKER } from "../constants";
-
 
 /**
  * Returns the first non-null value among the specified expressions.
@@ -41,28 +40,24 @@ export function coalesce(...exprs: (IExpr | ValidScalarTypes | (IExpr | ValidSca
     const expr = new ColumnExpr(COALESCE_MARKER);
     expr._ops.push((_, columns) => {
         const height = _.length;
-        const evaluateArg = (arg: any): any => {
-            if (ColumnExpr.isColExpr(arg)) {
-                return arg.evaluate(columns, height);
-            }
-            if (typeof arg === "string") {
-                return columns[arg] || new Array(height).fill(null);
-            }
-            return arg;
-        };
-
         const exprCount = rawArgs.length;
         const evaluatedArrays = new Array(exprCount);
+        const isCol = new Array(exprCount);
+
         for (let j = 0; j < exprCount; j++) {
-            evaluatedArrays[j] = evaluateArg(rawArgs[j]);
+            const raw = rawArgs[j];
+            const evaluated = evaluateArg(raw, columns, height);
+            evaluatedArrays[j] = evaluated;
+            isCol[j] = isEvaluatedColumn(raw, evaluated, columns, height);
         }
+
         const result = new Array(height);
 
         for (let i = 0; i < height; i++) {
             let foundVal = null;
             for (let j = 0; j < exprCount; j++) {
                 const arr = evaluatedArrays[j];
-                const val = isArrayOrTypedArray(arr) ? arr[i] : arr;
+                const val = isCol[j] ? arr[i] : arr;
                 if (val != null) {
                     foundVal = val;
                     break;

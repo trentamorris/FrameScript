@@ -9,7 +9,7 @@ import { resolveWindowExpr } from "../dataframe/utils";
  */
 export function evalUnaryOp(v: any, fn: (a: any) => any): any {
     if (v == null) return null;
-    const normV = (typeof v === "object" && isValidDateObj(v)) ? v.getTime() : v;
+    const normV = isValidDateObj(v) ? v.getTime() : v;
     return fn(normV);
 }
 
@@ -19,8 +19,8 @@ export function evalUnaryOp(v: any, fn: (a: any) => any): any {
  */
 export function evalBinaryOp(v: any, r: any, fn: (a: any, b: any) => any): any {
     if (v == null || r == null) return null;
-    const normV = (typeof v === "object" && isValidDateObj(v)) ? v.getTime() : v;
-    const normR = (typeof r === "object" && isValidDateObj(r)) ? r.getTime() : r;
+    const normV = isValidDateObj(v) ? v.getTime() : v;
+    const normR = isValidDateObj(r) ? r.getTime() : r;
     return fn(normV, normR);
 }
 
@@ -36,7 +36,7 @@ export const kleeneUnary = (fn: (v: any) => any) => {
 };
 
 export const kleeneBinary = (expr: IExpr, other: any, fn: (v: any, r: any) => any) => {
-    return (vArray: ColumnData, columns: ColumnDict) => {
+    const op = (vArray: ColumnData, columns: ColumnDict) => {
         const height = vArray.length;
         const rResolved = expr._resolve(other, columns, height);
         const result = new Array(height);
@@ -51,6 +51,8 @@ export const kleeneBinary = (expr: IExpr, other: any, fn: (v: any, r: any) => an
         }
         return result;
     };
+    (op as any)._binaryMeta = { left: expr, right: other };
+    return op;
 };
 
 export function evaluateExpression(expr: IExpr, columns: ColumnDict, height: number): ColumnData {
@@ -58,3 +60,44 @@ export function evaluateExpression(expr: IExpr, columns: ColumnDict, height: num
         ? resolveWindowExpr(expr, columns, height)
         : expr.evaluate(columns, height);
 }
+
+/**
+ * Evaluates a column expression, column string lookup, or returns a scalar literal value.
+ */
+export function evaluateArg(
+    arg: unknown,
+    columns: ColumnDict | null | undefined,
+    height: number
+): any {
+    if (typeof arg === "object" && arg !== null && "_ops" in arg) {
+        return evaluateExpression(arg as IExpr, columns || {}, height);
+    }
+    if (typeof arg === "string" && columns != null && (arg in columns)) {
+        return columns[arg];
+    }
+    return arg;
+}
+
+/**
+ * Determines whether an evaluated argument is an actual DataFrame column array
+ * rather than a scalar or literal array/buffer cell value.
+ */
+export function isEvaluatedColumn(
+    arg: unknown,
+    evaluatedVal: unknown,
+    columns: ColumnDict | null | undefined,
+    height: number
+): boolean {
+    if (!isArrayOrTypedArray(evaluatedVal) || evaluatedVal.length !== height) {
+        return false;
+    }
+    if (typeof arg === "object" && arg !== null && "_ops" in arg) {
+        return true;
+    }
+    if (typeof arg === "string" && columns != null && (arg in columns)) {
+        return true;
+    }
+    return false;
+}
+
+

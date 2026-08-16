@@ -1,5 +1,5 @@
 import { ExprBase, derive } from "../ExprBase";
-import type { IntoExpr, IExpr } from "../../types";
+import type { IntoExpr } from "../../types";
 import { assertNotNull, InvalidArgumentError } from "../../exceptions";
 
 let ColumnExprClass: any = null;
@@ -17,7 +17,7 @@ function toColExpr(col: any): any {
  * @syntax $df.col(<column_name>).struct.{symbol}(...)
  */
 export class StructExprNamespace {
-    constructor(public expr: IExpr) {
+    constructor(public expr: any) {
         return new Proxy(this, {
             get(target, prop, receiver) {
                 if (prop in target) {
@@ -46,7 +46,7 @@ export class StructExprNamespace {
      * └─────────────────────────┴───────────┘
      */
     field(name: string) {
-        return derive(this.expr, (vArray) => {
+        const derived = derive(this.expr, (vArray) => {
             const height = vArray.length;
             const result = new Array(height);
             for (let i = 0; i < height; i++) {
@@ -54,7 +54,10 @@ export class StructExprNamespace {
                 result[i] = (v != null && typeof v === "object") ? (v as any)[name] : null;
             }
             return result;
-        }).alias(name);
+        });
+        derived._baseExpr = this.expr;
+        derived._fieldName = name;
+        return derived.alias(name);
     }
 
     /**
@@ -194,8 +197,8 @@ export class StructExprNamespace {
      */
     unnest() {
         const newInst = derive(this.expr);
-        (newInst as any).isUnnest = true;
-        (newInst as any).baseExpr = this.expr;
+        newInst._isUnnest = true;
+        newInst._baseExpr = this.expr;
         return newInst;
     }
 }
