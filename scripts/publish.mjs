@@ -64,10 +64,17 @@ async function main() {
   }
   console.log("-----------------------------------------\n");
 
-  // Step 4: User Confirmation
-  const confirm = await prompt(`Ready to publish ${pkgName}@${version} to npm registry? (yes/no): `);
-  if (confirm.toLowerCase() !== "yes" && confirm.toLowerCase() !== "y") {
+  // Step 4: First User Confirmation
+  const confirm1 = await prompt(`Ready to publish ${pkgName}@${version} to npm registry? (yes/no): `);
+  if (confirm1.toLowerCase() !== "yes" && confirm1.toLowerCase() !== "y") {
     console.log("🚫 Release cancelled by user. Nothing was published.");
+    process.exit(0);
+  }
+
+  // Step 4b: Second Final Confirmation
+  const confirm2 = await prompt(`⚠️ FINAL CONFIRMATION: Are you sure you want to proceed and publish v${version} live to npm? (yes/no): `);
+  if (confirm2.toLowerCase() !== "yes" && confirm2.toLowerCase() !== "y") {
+    console.log("🚫 Release cancelled on final confirmation. Nothing was published.");
     process.exit(0);
   }
 
