@@ -11,8 +11,7 @@ import {
     getQuarter,
     isLeapYear,
     getMonthOffset,
-    getCentury,
-    getMillennium,
+    getEraUnit,
     offsetDay,
     getTimeZoneOffset,
     isBusinessDay,
@@ -104,7 +103,7 @@ export class DateTimeExprNamespace {
      * └────────────┴─────────┘
      */
     century() {
-        return this._deriveDate(getCentury);
+        return this._deriveDate((d: Date) => getEraUnit(d, 100));
     }
 
     /**
@@ -334,7 +333,7 @@ export class DateTimeExprNamespace {
      * └────────────┴─────┘
      */
     millennium() {
-        return this._deriveDate(getMillennium);
+        return this._deriveDate((d: Date) => getEraUnit(d, 1000));
     }
 
     /**

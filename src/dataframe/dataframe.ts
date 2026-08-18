@@ -691,7 +691,7 @@ export class DataFrame<T extends RowRecord = any> {
             }
         }
 
-        const targetIndex = Math.max(0, Math.min(index, selectList.length));
+        const targetIndex = clamp(index, { min: 0, max: selectList.length });
         selectList.splice(targetIndex, 0, colExpr);
 
         return this.select<any>(...selectList);
@@ -1560,12 +1560,10 @@ export class DataFrame<T extends RowRecord = any> {
     slice(start: number, end?: number): DataFrame<T> {
         const total = this._height;
 
-        const actualStart = start < 0 ? Math.max(total + start, 0) : Math.min(start, total);
-        const actualEnd = end === undefined
-            ? total
-            : (end < 0 ? Math.max(total + end, 0) : Math.min(end, total));
+        const actualStart = clamp(start < 0 ? total + start : start, { min: 0, max: total });
+        const actualEnd = clamp(end === undefined ? total : (end < 0 ? total + end : end), { min: 0, max: total });
 
-        const n = Math.max(actualEnd - actualStart, 0);
+        const n = clamp(actualEnd - actualStart, { min: 0 });
 
         return this.limit(n, { offset: actualStart });
     }

@@ -244,7 +244,7 @@ cyclicObj.self = cyclicObj;
 cyclicObj.nested = { target: "found_in_cyclic", parent: cyclicObj };
 
 assert(jsonPathMatch(cyclicObj, "$..target") === "found_in_cyclic", "15/10: Circular object graph does not infinite loop / stack overflow and finds target");
-assert(jsonPathMatch({ self: cyclicObj }, "$.self") === null, "15/10: Circular object result fails stringification safely returning null without throw");
+assert(jsonPathMatch({ self: cyclicObj }, "$.self") === '{"name":"root","self":"[Circular]","nested":{"target":"found_in_cyclic","parent":"[Circular]"}}', "15/10: Circular object result serializes safely with [Circular] placeholder without throw");
 
 const escapeObj = {
     "line\nbreak": "yes_newline",

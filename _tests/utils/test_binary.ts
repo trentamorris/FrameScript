@@ -251,7 +251,6 @@ const customU8Bin = toValidBinary(customU8);
 assert(customU8Bin instanceof Uint8Array && customU8Bin[1] === 20, "Subclassed Uint8Array converts to Uint8Array");
 
 // 10.15 Prototype pollution & polluted Object.prototype
-const origProto = (Object.prototype as any).range;
 try {
     (Object.prototype as any).range = "Int32";
     assert(isValidBinary([0, 255]) === true, "Polluted Object.prototype does not alter UInt8 validation");

@@ -1,38 +1,22 @@
 /** @internalfile */
 import type { JSONFormat } from "../types";
 import { isTypedArray, stepSliceArray } from "./array";
-import { isObj, isSet, isMap, isRegExp, isError, isURLSearchParams, isValidDateObj } from "./object";
-import { toValidInt } from "./number";
-import { isBlankString } from "./string";
+import { isObj, isSet, isMap, isRegExp, isError, isURLSearchParams, isValidDateObj, unboxPrimitiveObj } from "./object";
+import { isValidBigInt, toValidInt } from "./number";
+import { isBlankString, stripChars } from "./string";
 import { InvalidArgumentError, IOStreamError } from "../exceptions";
-import { CONTROL_UNESCAPE_MAP } from "../constants";
+import { CONTROL_UNESCAPE_MAP, NEWLINE_PATTERN } from "../constants";
 
-const NO_FALLBACK_SYMBOL = Symbol("no_fallback");
 const INVALID_SYMBOL = Symbol("invalid");
 
-const isWrapped = (str: string): boolean => {
-    const len = str.length;
+function _isWrappedJsonComposite(str: string, options: { trim?: boolean } = {}): boolean {
+    const s = options?.trim ? (stripChars(str) ?? "") : str;
+    const len = s.length;
     if (len < 2) return false;
-    const fChar = str[0];
-    const lChar = str[len - 1];
+    const fChar = s[0];
+    const lChar = s[len - 1];
     return (fChar === "{" && lChar === "}") || (fChar === "[" && lChar === "]");
-};
-
-const isWrappedUntrimmed = (str: string): boolean => {
-    let first = 0;
-    const len = str.length;
-    while (first < len && /\s/.test(str[first])) {
-        first++;
-    }
-    let last = len - 1;
-    while (last >= first && /\s/.test(str[last])) {
-        last--;
-    }
-    if (first >= last) return false;
-    const fChar = str[first];
-    const lChar = str[last];
-    return (fChar === "{" && lChar === "}") || (fChar === "[" && lChar === "]");
-};
+}
 
 export interface NDJSONParseOptions {
     /**
@@ -111,19 +95,17 @@ export type SafeJsonParseOptions<T = unknown, F = T> = JSONParseOptions & {
  * @param options - Configuration options for validation.
  * @returns `true` if the input is a valid JSON or NDJSON string; `false` otherwise.
  */
-export function isJsonString(
+export function isJsonString<T = unknown>(
     input: unknown,
-    options: SafeJsonParseOptions = {}
+    options: SafeJsonParseOptions<T> = {}
 ): input is string {
     if (typeof input !== "string") return false;
 
-    const result = safeJsonParse(input, {
+    return safeJsonParse(input, {
         ...options,
         fallback: INVALID_SYMBOL,
-        onError: () => { } // Silence errors during pure structural checking
-    });
-
-    return result !== INVALID_SYMBOL;
+        onError: undefined
+    }) !== INVALID_SYMBOL;
 }
 
 /**
@@ -135,79 +117,74 @@ export function isJsonString(
  * @param options - Configuration options for parsing and validation.
  * @returns The parsed value, the fallback, or the original input.
  */
-export function safeJsonParse<T = unknown, I = unknown, F = T>(
+export function safeJsonParse<T = unknown, I = unknown, F = T, Opts extends SafeJsonParseOptions<T, F> = SafeJsonParseOptions<T, F>>(
     input: I,
-    options: SafeJsonParseOptions<T, F> = {}
-): T | I | F {
+    options: Opts = {} as Opts
+): Opts extends { format: "ndjson" } ? (T[] | I | F) : (T | I | F) {
+    const fallbackVal = "fallback" in options ? (options.fallback as F) : (input as unknown as F);
+    if (typeof input !== "string") return fallbackVal as any;
+
     const {
         format = "json",
         allowPrimitives = false,
         trimBeforeParse = false,
         reviver,
-        ndjson: { skipInvalidLines = false, maxLines, skipLines } = {},
+        ndjson = {},
         guard,
         onError
     } = options;
 
-    const hasFallback = "fallback" in options;
-    const fallback = hasFallback ? options.fallback : NO_FALLBACK_SYMBOL;
-
-    if (typeof input !== "string") {
-        return hasFallback ? (fallback as F) : input;
-    }
-
     const s = trimBeforeParse ? input.trim() : input;
-    if (s === "") {
-        return hasFallback ? (fallback as F) : input;
-    }
-
-    let result: unknown;
 
     try {
-        if (format === "ndjson") {
-            const parsedData: any[] = [];
-            let nonEmptyCount = 0;
-            let parsedCount = 0;
-            let lastIndex = 0;
-            const newlineRegex = /\r\n|\n|\r/g;
-            let match: RegExpExecArray | null;
+        let result: unknown;
 
-            while (true) {
-                match = newlineRegex.exec(s);
-                const line = match ? s.substring(lastIndex, match.index) : s.substring(lastIndex);
-                if (match) {
-                    lastIndex = newlineRegex.lastIndex;
+        if (format === "ndjson") {
+            const { skipInvalidLines = false, maxLines, skipLines = 0 } = ndjson;
+            const parsedData: any[] = [];
+            const newlineRegex = new RegExp(NEWLINE_PATTERN, "g");
+            let lastIndex = 0;
+            let nonEmptyCount = 0;
+
+            while (maxLines === undefined || parsedData.length < maxLines) {
+                const match = newlineRegex.exec(s);
+                const line = (match ? s.substring(lastIndex, match.index) : s.substring(lastIndex)).trim();
+                if (match) lastIndex = newlineRegex.lastIndex;
+
+                if (line === "") {
+                    if (!match) break;
+                    continue;
                 }
 
-                const trimmedLine = line.trim();
-                if (trimmedLine !== "") {
-                    nonEmptyCount++;
-                    if (skipLines === undefined || nonEmptyCount > skipLines) {
-                        if (!allowPrimitives && !isWrapped(trimmedLine)) {
-                            if (!skipInvalidLines) {
-                                throw new InvalidArgumentError("NDJSON line is not wrapped and primitives are disallowed");
-                            }
-                        } else {
-                            if (maxLines !== undefined && parsedCount >= maxLines) break;
-                            try {
-                                parsedData.push(JSON.parse(trimmedLine, reviver));
-                                parsedCount++;
-                            } catch (err) {
-                                if (!skipInvalidLines) throw err;
-                            }
-                        }
-                    }
+                nonEmptyCount++;
+                if (nonEmptyCount <= skipLines) {
+                    if (!match) break;
+                    continue;
+                }
+
+                if (!allowPrimitives && !_isWrappedJsonComposite(line)) {
+                    if (!skipInvalidLines) throw new InvalidArgumentError("NDJSON line is not wrapped and primitives are disallowed");
+                    if (!match) break;
+                    continue;
+                }
+
+                try {
+                    parsedData.push(JSON.parse(line, reviver));
+                } catch (err) {
+                    if (!skipInvalidLines) throw err;
                 }
 
                 if (!match) break;
             }
 
-            if (parsedData.length === 0) {
+            const hadProcessableLines = nonEmptyCount > skipLines;
+            if (parsedData.length === 0 && hadProcessableLines && maxLines !== 0) {
                 throw new IOStreamError("No valid NDJSON lines processed");
             }
+
             result = parsedData;
         } else {
-            if (!allowPrimitives && !isWrappedUntrimmed(s)) {
+            if (!allowPrimitives && !_isWrappedJsonComposite(s, { trim: !trimBeforeParse })) {
                 throw new InvalidArgumentError("JSON string is not wrapped and primitives are disallowed");
             }
             result = JSON.parse(s, reviver);
@@ -216,18 +193,12 @@ export function safeJsonParse<T = unknown, I = unknown, F = T>(
         if (guard && !guard(result)) {
             throw new InvalidArgumentError("Parsed value failed guard validation");
         }
-    } catch (err) {
-        if (onError) {
-            try {
-                onError(err);
-            } catch {
-                // Ignore errors thrown within the user's onError handler to preserve safe return contract
-            }
-        }
-        return hasFallback ? (fallback as F) : input;
-    }
 
-    return result as T;
+        return result as any;
+    } catch (err) {
+        try { onError?.(err); } catch { /* ignore user handler errors */ }
+        return fallbackVal as any;
+    }
 }
 
 export interface SafeJsonReplacerOptions {
@@ -295,17 +266,7 @@ export interface SafeJsonReplacerOptions {
 export function createSafeJsonReplacer(options: SafeJsonReplacerOptions = {}) {
     const bigintStrat = options.bigintStrategy ?? "string";
     let seen = options.handleCircular ? new WeakSet<any>() : null;
-    const isArrayReplacer = Array.isArray(options.replacer);
-    const whitelist = isArrayReplacer ? (options.replacer as (string | number)[]).map(String) : null;
-
-    const handleBigInt = (val: bigint) => {
-        if (bigintStrat === "number") {
-            return val <= BigInt(Number.MAX_SAFE_INTEGER) && val >= BigInt(Number.MIN_SAFE_INTEGER)
-                ? Number(val)
-                : val.toString();
-        }
-        return val.toString();
-    };
+    const whitelist = Array.isArray(options.replacer) ? (options.replacer as (string | number)[]).map(String) : null;
 
     return function replacer(this: any, k: string, v: any): any {
         let val = v;
@@ -328,50 +289,53 @@ export function createSafeJsonReplacer(options: SafeJsonReplacerOptions = {}) {
             }
         }
 
-        if (raw !== null && typeof raw !== "object" && typeof raw !== "bigint") {
+        const candidate = (val !== null && typeof val === "object") || typeof val === "bigint" ? val : raw;
+        const unboxed = isObj(candidate) ? unboxPrimitiveObj(candidate) : candidate;
+
+        if (unboxed !== null && typeof unboxed !== "object" && typeof unboxed !== "bigint") {
             return val;
         }
 
-        if (seen && raw !== null && typeof raw === "object") {
-            if (k === "") {
-                seen = new WeakSet();
-            }
-            if (seen.has(raw)) {
-                return options.onCircular ? options.onCircular.call(this, k, raw) : "[Circular]";
-            }
-            seen.add(raw);
+        if (seen && (isObj(unboxed) || Array.isArray(unboxed))) {
+            if (k === "") seen = new WeakSet();
+            if (seen.has(unboxed)) return options.onCircular ? options.onCircular.call(this, k, unboxed) : "[Circular]";
+            seen.add(unboxed);
         }
 
-        if (typeof raw === "bigint") {
+        if (typeof unboxed === "bigint") {
             if (options.voidBigIntReplacement) return val;
-            return options.onBigInt ? options.onBigInt(raw) : handleBigInt(raw);
+            if (options.onBigInt) return options.onBigInt(unboxed);
+            if (bigintStrat === "number" && isValidBigInt(unboxed, { range: { min: BigInt(Number.MIN_SAFE_INTEGER), max: BigInt(Number.MAX_SAFE_INTEGER) } })) {
+                return Number(unboxed);
+            }
+            return unboxed.toString();
         }
-        if (isTypedArray(raw)) {
+        if (isTypedArray(unboxed)) {
             if (options.voidTypedArrayReplacement) return val;
-            return options.onTypedArray ? options.onTypedArray(raw) : Array.from(raw as any);
+            return options.onTypedArray ? options.onTypedArray(unboxed) : Array.from(unboxed as any);
         }
-        if (isSet(raw)) {
+        if (isSet(unboxed)) {
             if (options.voidSetReplacement) return val;
-            return options.onSet ? options.onSet(raw) : Array.from(raw);
+            return options.onSet ? options.onSet(unboxed) : Array.from(unboxed);
         }
-        if (isMap(raw)) {
+        if (isMap(unboxed)) {
             if (options.voidMapReplacement) return val;
-            return options.onMap ? options.onMap(raw) : Array.from(raw.entries());
+            return options.onMap ? options.onMap(unboxed) : Array.from(unboxed.entries());
         }
-        if (isRegExp(raw)) {
+        if (isRegExp(unboxed)) {
             if (options.voidRegExpReplacement) return val;
-            return options.onRegExp ? options.onRegExp(raw) : raw.toString();
+            return options.onRegExp ? options.onRegExp(unboxed) : unboxed.toString();
         }
-        if (isValidDateObj(raw)) {
+        if (isValidDateObj(unboxed)) {
             if (options.voidDateReplacement) return val;
-            if (options.onDate) return options.onDate(raw);
-            return options.formatDate ? options.formatDate(raw) : raw.toISOString();
+            if (options.onDate) return options.onDate(unboxed);
+            return options.formatDate ? options.formatDate(unboxed) : unboxed.toISOString();
         }
-        if (isError(raw)) {
-            return options.onError ? options.onError(raw) : { name: raw.name, message: raw.message, stack: raw.stack };
+        if (isError(unboxed)) {
+            return options.onError ? options.onError(unboxed) : { name: unboxed.name, message: unboxed.message, stack: unboxed.stack };
         }
-        if (isURLSearchParams(raw)) {
-            return options.onURLSearchParams ? options.onURLSearchParams(raw) : raw.toString();
+        if (isURLSearchParams(unboxed)) {
+            return options.onURLSearchParams ? options.onURLSearchParams(unboxed) : unboxed.toString();
         }
 
         return val;
@@ -400,7 +364,7 @@ export type JsonTokenType =
     | "wildcard"
     /** 
      * Recursively searches and collects matching keys down the hierarchy (e.g., ..foo) 
-     * */
+     */
     | "rec";
 
 /**
@@ -588,13 +552,12 @@ export function jsonPathMatch(jsonInput: unknown, path: string): string | null {
     if (curr.length === 0 || curr[0] == null) return null;
 
     const res = curr[0];
-    if (typeof res === "object") {
+    if (isObj(res) || Array.isArray(res)) {
         try {
-            return JSON.stringify(res);
+            return JSON.stringify(res, createSafeJsonReplacer({ handleCircular: true }));
         } catch {
             return null;
         }
     }
     return String(res);
 }
-

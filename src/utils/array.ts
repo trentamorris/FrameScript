@@ -1,6 +1,6 @@
 /** @internalfile */
 import { isClass, isObj, isPlainObj, isValidDateObj, typedArrayTagGetter } from "./object";
-import { toValidNumber, isValidNumber, isValidInt, toValidBigInt, isValidBigInt } from "./number";
+import { toValidNumber, isValidNumber, isValidInt, toValidBigInt, isValidBigInt, clamp } from "./number";
 import { toValidDate } from "./date";
 import { toCanonicalString } from "./string";
 import type { AnyTypedArray, ColumnData, SkewOptions, KurtosisOptions, EntropyOptions } from "../types";
@@ -254,11 +254,8 @@ export function sortArray(
         }
     }
 
-    if (nulls.length === 0) {
-        return valid;
-    }
-
-    return nullsLast ? valid.concat(nulls) : nulls.concat(valid);
+    if (nulls.length === 0) return valid;
+    return nullsLast ? [...valid, ...nulls] : [...nulls, ...valid];
 }
 
 const DEFAULT_STATS = { sum: null, product: null, count: 0, min: null, max: null, nanMin: null, nanMax: null, minIdx: null, maxIdx: null, mean: null, variance: 0, std: 0, nullCount: 0, nanCount: 0, len: 0, hasNulls: false, isNumeric: false };
@@ -610,7 +607,7 @@ export function joinArray(
 ): string {
     const len = arr.length;
     const strList: string[] = [];
-    const maxLimit = limit !== undefined ? Math.max(0, limit) : len;
+    const maxLimit = clamp(limit ?? len, { min: 0 });
 
     let truncated = false;
     for (let i = 0; i < len; i++) {
@@ -806,18 +803,6 @@ function getSortedValidNumbers(values: ArrayLike<any>): Float64Array | null {
 }
 
 /**
- * Computes the median of a numeric array, filtering out non-numeric and NaN values.
- * Returns null if no valid numbers remain.
- */
-export function computeMedian(values: ArrayLike<any>): number | null {
-    const validNums = getSortedValidNumbers(values);
-    if (!validNums) return null;
-    const len = validNums.length;
-    const mid = Math.floor(len / 2);
-    return len % 2 !== 0 ? validNums[mid] : (validNums[mid - 1] + validNums[mid]) / 2;
-}
-
-/**
  * Computes the quantile of a numeric array using linear interpolation, filtering out non-numeric and NaN values.
  * q must be in [0, 1]. Returns null if no valid numbers remain or q is out of bounds.
  */
@@ -831,6 +816,14 @@ export function computeQuantile(values: ArrayLike<any>, q: number): number | nul
     const high = Math.ceil(idx);
     if (low === high) return validNums[low];
     return validNums[low] + (idx - low) * (validNums[high] - validNums[low]);
+}
+
+/**
+ * Computes the median of a numeric array, filtering out non-numeric and NaN values.
+ * Returns null if no valid numbers remain.
+ */
+export function computeMedian(values: ArrayLike<any>): number | null {
+    return computeQuantile(values, 0.5);
 }
 
 /**
@@ -869,7 +862,7 @@ export function shiftArray(arr: any[] | AnyTypedArray, n: number): any[] {
 
     const shiftCount = Math.trunc(n);
     if (isNaN(shiftCount) || shiftCount === 0) {
-        return Array.isArray(arr) ? arr.slice() : Array.from(arr as any);
+        return toValidArray(arr);
     }
 
     const absN = Math.abs(shiftCount);
@@ -948,7 +941,7 @@ export function computeStatisticalMatrix(
     }
 
     const correlation = C_XY / denominator;
-    const clampedCorrelation = Math.max(-1, Math.min(1, correlation));
+    const clampedCorrelation = clamp(correlation, { min: -1, max: 1 });
 
     return {
         covariance,
@@ -1022,7 +1015,7 @@ export function computeCorrelationOfFlatArrays(
     if (denominator === 0 || Number.isNaN(denominator)) return null;
 
     const correlation = C_XY / denominator;
-    return Math.max(-1, Math.min(1, correlation));
+    return clamp(correlation, { min: -1, max: 1 });
 }
 
 /**
@@ -1110,8 +1103,8 @@ export function computeWeightedAverage(pairs: ColumnData<[any, any]>): number | 
  * Generates Cartesian product pair index arrays for two lengths lenA and lenB.
  */
 export function computeCartesianProduct(lenA: number, lenB: number): { leftIndices: number[]; rightIndices: number[] } {
-    const safeLenA = Math.max(0, Math.floor(lenA || 0));
-    const safeLenB = Math.max(0, Math.floor(lenB || 0));
+    const safeLenA = clamp(Math.floor(lenA || 0), { min: 0 });
+    const safeLenB = clamp(Math.floor(lenB || 0), { min: 0 });
     const total = safeLenA * safeLenB;
 
     if (!isValidInt(total, { range: "UInt32" })) {

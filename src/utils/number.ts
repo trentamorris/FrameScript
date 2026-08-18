@@ -457,7 +457,7 @@ function getDecimalMaxVal(precision: number, scale: number): number | null {
         return Number.MAX_SAFE_INTEGER;
     }
 
-    const safeScale = Math.min(scale, 16);
+    const safeScale = clamp(scale, { min: 0, max: 16 });
     const maxVal = Math.pow(10, integerDigits) - Math.pow(10, -safeScale);
     return maxVal > 0 ? maxVal : null;
 }

@@ -9,6 +9,7 @@ import {
     isUint8ClampedArray,
 } from "./object";
 import { isValidInt, type IntOptions } from "./number";
+import { isArrayOfType } from "./array";
 import type { AnyTypedArray } from "../types";
 import { TEXT_ENCODER } from "../constants";
 
@@ -27,6 +28,7 @@ export function isBinaryObj(
 }
 
 const UINT8_INT_OPTS: IntOptions = { range: "UInt8" };
+const isUInt8 = (n: unknown): n is number => isValidInt(n, UINT8_INT_OPTS);
 
 export function isValidBinary(
     v: unknown,
@@ -38,15 +40,7 @@ export function isValidBinary(
         if (options?.strict) return false;
         if (typeof v === "string") return true;
         if (ArrayBuffer.isView(v)) return !isDetachedBuffer(v);
-        if (Array.isArray(v)) {
-            const len = v.length;
-            for (let i = 0; i < len; i++) {
-                if (!isValidInt(v[i], UINT8_INT_OPTS)) {
-                    return false;
-                }
-            }
-            return true;
-        }
+        if (Array.isArray(v)) return isArrayOfType(v, isUInt8);
     } catch {
         return false;
     }
@@ -54,21 +48,22 @@ export function isValidBinary(
 }
 
 export function toValidBinary(v: unknown, options?: BinaryValidationOptions): Uint8Array | null {
+    if (v == null) return null;
     try {
-        if (!isValidBinary(v, options)) return null;
-        if (isUint8Array(v)) {
-            return v;
-        }
+        if (isUint8Array(v)) return v;
+        if (isDetachedBuffer(v)) return null;
+
         if (ArrayBuffer.isView(v)) {
             return new Uint8Array(v.buffer, v.byteOffset, v.byteLength);
         }
         if (isArrayBuffer(v) || isSharedArrayBuffer(v)) {
             return new Uint8Array(v);
         }
+        if (options?.strict) return null;
         if (typeof v === "string") {
             return TEXT_ENCODER.encode(v);
         }
-        if (Array.isArray(v)) {
+        if (Array.isArray(v) && isArrayOfType(v, isUInt8)) {
             return Uint8Array.from(v);
         }
     } catch {

@@ -1,7 +1,10 @@
+declare const process: any;
+declare const __dirname: string;
+declare const require: any;
 import { $df, DataFrame } from "../../src/index";
 import { isJsonString, safeJsonParse, createSafeJsonReplacer } from "../../src/utils";
-import * as fs from "fs";
-import * as path from "path";
+const fs = typeof require === "function" ? require("fs") : null;
+const path = typeof require === "function" ? require("path") : null;
 
 console.log("=========================================");
 console.log("STARTING DATAFRAME JSON I/O TESTS...");
@@ -203,11 +206,11 @@ try {
     }
 
     // 16. Test fallback with guard failure
-    const guardFallbackRes = safeJsonParse('{"a": 1}', {
+    const guardFallbackRes = safeJsonParse<{ b: number }>('{"a": 1}', {
         guard: (v): v is { b: number } => typeof v === "object" && v !== null && "b" in v,
         fallback: { b: 99 }
     });
-    if (typeof guardFallbackRes === "string" || guardFallbackRes.b !== 99) {
+    if (typeof guardFallbackRes !== "object" || guardFallbackRes === null || (guardFallbackRes as any).b !== 99) {
         throw new Error("safeJsonParse guard fallback failed");
     }
 

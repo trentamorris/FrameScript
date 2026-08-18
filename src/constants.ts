@@ -1,6 +1,8 @@
 export const NEWLINE = "\n";
 export const CARRIAGE_RETURN = "\r";
 export const UTF8_BOM = "\ufeff";
+export const NEWLINE_PATTERN = "\\r\\n|\\n|\\r";
+export const NEWLINE_REGEX = /\r\n|\n|\r/;
 
 /** Reusable singleton TextEncoder instance for UTF-8 string encoding across the codebase. */
 export const TEXT_ENCODER = new TextEncoder();

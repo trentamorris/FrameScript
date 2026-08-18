@@ -3,10 +3,11 @@ import type { ColumnDict } from "../types";
 import { strftime, toValidDate } from "./date";
 import { createSafeJsonReplacer, type SafeJsonReplacerOptions } from "./json";
 import { formatNumber, toValidNumber, toValidBigInt, type NumericFormatOptions } from "./number";
-import { NEWLINE, CARRIAGE_RETURN, UTF8_BOM } from "../constants";
+import { NEWLINE, CARRIAGE_RETURN, UTF8_BOM, NEWLINE_REGEX } from "../constants";
 import { DataType, Utf8, Boolean as BoolType, Int64, Float64, Datetime } from "../datatypes";
 import type { ReadCSVOptions } from "../dataframe/types";
-import { unboxPrimitiveObj } from "./object";
+import { unboxPrimitiveObj, isValidDateObj } from "./object";
+import { replaceString, stripChars } from "./string";
 
 export interface FormatCSVValueOptions {
     /**
@@ -85,66 +86,56 @@ export interface WriteCSVOptions extends FormatCSVValueOptions {
 
 // Removed stringifyCsvObject
 
-function formatCsvValueInternal(options: FormatCSVValueOptions = {}) {
+export function formatCsvValue(options: FormatCSVValueOptions = {}) {
     const nullValue = options.nullValue !== undefined ? options.nullValue : "";
     const formatNum = formatNumber(options.numericFormatOptions);
     const replacerOptions = options.replacerOptions || {};
 
-    const formatDate = (v: Date): string => {
-        if (options.datetimeFormat) return strftime(v, { format: options.datetimeFormat });
-        if (options.dateFormat) return strftime(v, { format: options.dateFormat });
-        if (options.timeFormat) return strftime(v, { format: options.timeFormat });
-        return v.toISOString();
+    const format = options.datetimeFormat ?? options.dateFormat ?? options.timeFormat;
+    const formatDate = format
+        ? (v: Date): string => (isValidDateObj(v) ? strftime(v, { format }) : nullValue)
+        : (v: Date): string => (isValidDateObj(v) ? v.toISOString() : nullValue);
+
+    const mergedReplacerOptions: SafeJsonReplacerOptions = {
+        formatDate,
+        onBigInt: formatNum,
+        ...replacerOptions
     };
 
-    const replacer = createSafeJsonReplacer({
-        formatDate,
-        ...replacerOptions
-    });
-
-    const hasCustomBigInt = typeof replacerOptions.onBigInt === "function";
+    const replacer = createSafeJsonReplacer(mergedReplacerOptions);
 
     return (val: any): { str: string; isNumeric: boolean } => {
-        if (val === null || val === undefined || typeof val === "symbol" || typeof val === "function") {
+        if (val === null || val === undefined || typeof val === "symbol" || typeof val === "function" || (val instanceof Date && !isValidDateObj(val))) {
             return { str: nullValue, isNumeric: false };
-        }
-
-        if (typeof val === "bigint" && !hasCustomBigInt && !replacerOptions.voidBigIntReplacement) {
-            return { str: formatNum(val), isNumeric: true };
         }
 
         const raw = replacer.call(null, "", val);
-        const processed = unboxPrimitiveObj(raw);
+        const res = unboxPrimitiveObj(raw);
 
-        if (processed === null || processed === undefined || typeof processed === "symbol" || typeof processed === "function") {
+        if (res === null || res === undefined || typeof res === "symbol" || typeof res === "function") {
             return { str: nullValue, isNumeric: false };
         }
-
-        if (typeof processed === "string") return { str: processed, isNumeric: false };
-        if (typeof processed === "number" || typeof processed === "bigint") {
-            return { str: formatNum(processed), isNumeric: true };
+        if (typeof val === "bigint" || typeof val === "number") {
+            return { str: typeof res === "string" ? res : formatNum(res), isNumeric: true };
         }
-        if (typeof processed === "boolean") return { str: processed ? "true" : "false", isNumeric: false };
-
-        if (typeof processed === "object") {
-            // Instantiate a fresh replacer specifically for nested stringification
-            // to avoid state carry-over (such as visited circular reference sets)
+        if (typeof res === "number" || typeof res === "bigint") {
+            return { str: formatNum(res), isNumeric: true };
+        }
+        if (typeof res === "string") {
+            return { str: res, isNumeric: false };
+        }
+        if (typeof res === "boolean") {
+            return { str: res ? "true" : "false", isNumeric: false };
+        }
+        if (typeof res === "object") {
             return {
-                str: JSON.stringify(processed, createSafeJsonReplacer({
-                    formatDate,
-                    ...replacerOptions
-                })),
+                str: JSON.stringify(res, createSafeJsonReplacer(mergedReplacerOptions)),
                 isNumeric: false
             };
         }
 
-        return { str: String(processed), isNumeric: false };
+        return { str: String(res), isNumeric: false };
     };
-}
-
-export function formatCsvValue(options: FormatCSVValueOptions = {}) {
-    const formatted = formatCsvValueInternal(options);
-    return (val: any): string => formatted(val).str;
 }
 
 export function stringifyCSV(
@@ -168,85 +159,43 @@ export function stringifyCSV(
     const lines: string[] = [];
     let isFirstRow = true;
 
-    const formatValue = formatCsvValueInternal(formatOptions);
+    const formatValue = formatCsvValue(formatOptions);
 
     const escapeAndQuote = (val: any, isHeader = false): string => {
-        let strVal: string;
-        let isNumeric = false;
+        const formatted = isHeader ? { str: String(val), isNumeric: false } : formatValue(val);
+        const strVal = formatted.str;
+        if (quoteStyle === "never") return strVal;
 
-        if (isHeader) {
-            strVal = String(val);
-        } else {
-            const formatted = formatValue(val);
-            strVal = formatted.str;
-            isNumeric = formatted.isNumeric;
-        }
-
-        if (quoteStyle === "never") {
-            return strVal;
-        }
-
-        if (quoteStyle === "always") {
-            const escaped = strVal.split(quoteChar).join(quoteChar + quoteChar);
-            return quoteChar + escaped + quoteChar;
-        }
-
-        if (quoteStyle === "non_numeric") {
-            if (!isNumeric && val != null) {
-                const escaped = strVal.split(quoteChar).join(quoteChar + quoteChar);
-                return quoteChar + escaped + quoteChar;
-            }
-        }
-
-        // Default: "necessary"
-        const needsQuoting =
+        const shouldQuote =
+            quoteStyle === "always" ||
+            (quoteStyle === "non_numeric" && (isHeader || (!formatted.isNumeric && val != null))) ||
             strVal.includes(separator) ||
             strVal.includes(quoteChar) ||
-            strVal.includes(NEWLINE) ||
-            strVal.includes(CARRIAGE_RETURN);
+            NEWLINE_REGEX.test(strVal);
 
-        if (needsQuoting) {
-            const escaped = strVal.split(quoteChar).join(quoteChar + quoteChar);
-            return quoteChar + escaped + quoteChar;
-        }
-        return strVal;
+        if (!shouldQuote) return strVal;
+        const escaped = replaceString(strVal, quoteChar, quoteChar + quoteChar, { literal: true, n: Infinity })!;
+        return quoteChar + escaped + quoteChar;
     };
 
     const outputLine = (line: string) => {
-        if (isFirstRow) {
-            const initial = includeBom ? UTF8_BOM + line : line;
-            if (onRow) {
-                onRow(initial);
-            } else {
-                lines.push(initial);
-            }
-            isFirstRow = false;
-        } else {
-            if (onRow) {
-                onRow(lineTerminator + line);
-            } else {
-                lines.push(line);
-            }
-        }
+        const prefix = isFirstRow ? (includeBom ? UTF8_BOM : "") : (onRow ? lineTerminator : "");
+        isFirstRow = false;
+        const fullLine = prefix + line;
+        if (onRow) onRow(fullLine);
+        else lines.push(fullLine);
     };
 
-    // Headers
-    if (includeHeader) {
-        const headerRow = new Array(numKeys);
-        for (let i = 0; i < numKeys; i++) {
-            headerRow[i] = escapeAndQuote(keys[i], true);
-        }
-        outputLine(headerRow.join(separator));
-    }
-
-    // Rows
-    for (let r = 0; r < height; r++) {
+    const writeRow = (getVal: (i: number) => any, isHeader: boolean) => {
         const row = new Array(numKeys);
         for (let i = 0; i < numKeys; i++) {
-            row[i] = escapeAndQuote(columns[keys[i]][r], false);
+            row[i] = escapeAndQuote(getVal(i), isHeader);
         }
         outputLine(row.join(separator));
-    }
+    };
+
+    if (includeHeader) writeRow((i) => keys[i], true);
+    for (let r = 0; r < height; r++) writeRow((i) => columns[keys[i]][r], false);
 
     return onRow ? (includeBom ? UTF8_BOM : "") : lines.join(lineTerminator);
 }
@@ -255,77 +204,77 @@ export function parseCSV(content: string, options: ReadCSVOptions = {}): string[
     const separator = options.separator || ",";
     const quoteChar = options.quoteChar || '"';
 
-    let csvContent = content;
-    if (csvContent.startsWith(UTF8_BOM)) {
-        csvContent = csvContent.substring(UTF8_BOM.length);
-    }
+    const csvContent = stripChars(content, UTF8_BOM, { mode: "start", returnStringOnNull: true }) ?? "";
 
     const rows: string[][] = [];
     let currentRow: string[] = [];
     let currentCell = "";
     let inQuotes = false;
-    let hasAnyData = false;
-    let lastCharWasSeparator = false;
+    let hasRowData = false;
+
+    const flushCell = () => {
+        currentRow.push(currentCell);
+        currentCell = "";
+    };
+
+    const flushRow = () => {
+        if (!hasRowData && currentRow.length === 0 && currentCell === "") return;
+        flushCell();
+        rows.push(currentRow);
+        currentRow = [];
+        hasRowData = false;
+    };
 
     const len = csvContent.length;
     for (let i = 0; i < len; i++) {
         const char = csvContent[i];
 
         if (inQuotes) {
-            hasAnyData = true;
-            lastCharWasSeparator = false;
-            if (char === quoteChar) {
-                if (i + 1 < len && csvContent[i + 1] === quoteChar) {
-                    currentCell += quoteChar;
-                    i++; // Skip escaped quote
-                } else {
-                    inQuotes = false;
-                }
-            } else {
+            hasRowData = true;
+            if (char !== quoteChar) {
                 currentCell += char;
+                continue;
             }
-        } else {
-            if (char === quoteChar) {
-                hasAnyData = true;
-                lastCharWasSeparator = false;
-                inQuotes = true;
-            } else if (char === separator) {
-                currentRow.push(currentCell);
-                currentCell = "";
-                lastCharWasSeparator = true;
-            } else {
-                let isLineBreak = false;
-                if (char === CARRIAGE_RETURN) {
-                    isLineBreak = true;
-                    if (i + 1 < len && csvContent[i + 1] === NEWLINE) {
-                        i++;
-                    }
-                } else if (char === NEWLINE) {
-                    isLineBreak = true;
-                }
 
-                if (isLineBreak) {
-                    if (hasAnyData || currentRow.length > 0 || currentCell !== "" || lastCharWasSeparator) {
-                        currentRow.push(currentCell);
-                        rows.push(currentRow);
-                        currentRow = [];
-                        currentCell = "";
-                        hasAnyData = false;
-                        lastCharWasSeparator = false;
-                    }
-                } else {
-                    hasAnyData = true;
-                    lastCharWasSeparator = false;
-                    currentCell += char;
-                }
+            if (i + 1 < len && csvContent[i + 1] === quoteChar) {
+                currentCell += quoteChar;
+                i++; // Skip escaped quote
+                continue;
             }
+
+            inQuotes = false;
+            continue;
         }
+
+        if (char === quoteChar) {
+            hasRowData = true;
+            if (currentCell.length === 0) {
+                inQuotes = true;
+                continue;
+            }
+            currentCell += quoteChar;
+            continue;
+        }
+
+        if (char === separator) {
+            hasRowData = true;
+            flushCell();
+            continue;
+        }
+
+        if (char === CARRIAGE_RETURN || char === NEWLINE) {
+            if (char === CARRIAGE_RETURN && i + 1 < len && csvContent[i + 1] === NEWLINE) {
+                i++; // Skip \n in \r\n
+            }
+            flushRow();
+            continue;
+        }
+
+        hasRowData = true;
+        currentCell += char;
     }
 
-    if (hasAnyData || currentRow.length > 0 || currentCell !== "" || lastCharWasSeparator) {
-        currentRow.push(currentCell);
-        rows.push(currentRow);
-    }
+    flushRow();
 
     return rows;
 }
@@ -337,96 +286,64 @@ export function inferAndCoerceCSVColumn(
     const nullValues = new Set(options.nullValues ?? ["", "NA", "null", "NaN"]);
     const len = values.length;
 
-    let isAllBoolean = true;
-    let isAllNumber = true;
-    let isAllBigInt = true;
-    let isAllDate = true;
+    const candidates = [
+        {
+            type: BoolType,
+            parse: (v: string): boolean | null => {
+                const l = v.toLowerCase();
+                return (l === "true" || l === "1") ? true : (l === "false" || l === "0") ? false : null;
+            },
+            active: true
+        },
+        {
+            type: Int64,
+            parse: (v: string) => toValidBigInt(v, { truncate: false }),
+            active: true
+        },
+        {
+            type: Float64,
+            parse: (v: string) => toValidNumber(v, { allowNonFiniteNumbers: true }),
+            active: true
+        },
+        {
+            type: Datetime,
+            parse: (v: string) => toValidDate(v),
+            active: true
+        }
+    ];
 
     let hasValidData = false;
 
     for (let i = 0; i < len; i++) {
-        const val = values[i].trim();
+        const val = stripChars(values[i], null, { returnStringOnNull: true }) ?? "";
         if (nullValues.has(val)) continue;
 
         hasValidData = true;
+        let anyActive = false;
 
-        if (isAllBoolean) {
-            const lower = val.toLowerCase();
-            if (lower !== "true" && lower !== "false" && lower !== "1" && lower !== "0") {
-                isAllBoolean = false;
+        for (let c = 0; c < candidates.length; c++) {
+            const cand = candidates[c];
+            if (!cand.active) continue;
+            if (cand.parse(val) === null) {
+                cand.active = false;
+            } else {
+                anyActive = true;
             }
         }
 
-        if (isAllBigInt) {
-            if (toValidBigInt(val, { truncate: false }) === null) {
-                isAllBigInt = false;
-            }
-        }
-
-        if (isAllNumber) {
-            if (toValidNumber(val, { allowNonFiniteNumbers: true }) === null) {
-                isAllNumber = false;
-            }
-        }
-
-        if (isAllDate) {
-            if (toValidDate(val) === null) {
-                isAllDate = false;
-            }
-        }
-
-        // Fast exit if it's strictly a string column
-        if (!isAllBoolean && !isAllNumber && !isAllBigInt && !isAllDate) {
-            break;
-        }
+        if (!anyActive) break;
     }
+
+    const match = hasValidData ? candidates.find(c => c.active) : undefined;
+    const type = match?.type ?? Utf8;
+    const parseFn = match?.parse;
 
     const out = new Array(len);
-
-    if (!hasValidData || (!isAllBoolean && !isAllNumber && !isAllBigInt && !isAllDate)) {
-        for (let i = 0; i < len; i++) {
-            const val = values[i];
-            out[i] = nullValues.has(val.trim()) ? null : val;
-        }
-        return { type: Utf8, values: out };
+    for (let i = 0; i < len; i++) {
+        const raw = values[i];
+        const trimmed = stripChars(raw, null, { returnStringOnNull: true }) ?? "";
+        out[i] = nullValues.has(trimmed) ? null : (parseFn ? parseFn(trimmed) : raw);
     }
 
-    if (isAllBoolean) {
-        for (let i = 0; i < len; i++) {
-            const val = values[i].trim();
-            if (nullValues.has(val)) {
-                out[i] = null;
-            } else {
-                const lower = val.toLowerCase();
-                out[i] = (lower === "true" || lower === "1");
-            }
-        }
-        return { type: BoolType, values: out };
-    }
-
-    if (isAllBigInt) {
-        for (let i = 0; i < len; i++) {
-            const val = values[i].trim();
-            out[i] = nullValues.has(val) ? null : toValidBigInt(val, { truncate: false });
-        }
-        return { type: Int64, values: out };
-    }
-
-    if (isAllNumber) {
-        for (let i = 0; i < len; i++) {
-            const val = values[i].trim();
-            out[i] = nullValues.has(val) ? null : toValidNumber(val, { allowNonFiniteNumbers: true });
-        }
-        return { type: Float64, values: out };
-    }
-
-    if (isAllDate) {
-        for (let i = 0; i < len; i++) {
-            const val = values[i].trim();
-            out[i] = nullValues.has(val) ? null : toValidDate(val);
-        }
-        return { type: Datetime, values: out };
-    }
-
-    return { type: Utf8, values: out };
+    return { type, values: out };
 }
