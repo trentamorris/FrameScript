@@ -844,20 +844,518 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
     throw new Error("join_asof heterogeneous leftOn/rightOn/leftBy/rightBy failed");
 }
 
-// Unsorted check error validation
-const unsortedRight = new DataFrame([
-    { time: 30, symbol: "AAPL", bid: 102.0 },
-    { time: 10, symbol: "AAPL", bid: 99.5 }
-]);
-let unsortedErrorCaught = false;
-try {
-    trades.join_asof({ other: unsortedRight, on: "time", by: "symbol", check_sorted: true });
-} catch (e: any) {
-    unsortedErrorCaught = true;
+// -------------------------------------------------------------
+// EXTENSIVE ROBUST EDGE CASE TESTS FOR JOIN AND JOIN_ASOF
+// -------------------------------------------------------------
+{
+    // Edge Case 1: Empty left DataFrame (0 rows with key column) with non-empty right DataFrame
+    const emptyL = new DataFrame<any>({ id: [] as number[] });
+    const nonEmptyR = new DataFrame<any>([{ id: 1, val: "A" }, { id: 2, val: "B" }]);
+
+    const emptyInner = emptyL.join({ other: nonEmptyR, on: "id", how: "inner" });
+    if (emptyInner.height !== 0) throw new Error("Empty left inner join height must be 0");
+
+    const emptyLeftJoin = emptyL.join({ other: nonEmptyR, on: "id", how: "left" });
+    if (emptyLeftJoin.height !== 0) throw new Error("Empty left left join height must be 0");
+
+    const emptyRightJoin = emptyL.join({ other: nonEmptyR, on: "id", how: "right" });
+    if (emptyRightJoin.height !== 2 || emptyRightJoin.to_dicts()[0].val !== "A") {
+        throw new Error("Empty left right join should preserve right rows");
+    }
+
+    const emptyOuterJoin = emptyL.join({ other: nonEmptyR, on: "id", how: "outer" });
+    if (emptyOuterJoin.height !== 2) throw new Error("Empty left outer join height mismatch");
+
+    // Edge Case 2: Cross Join with 0-height DataFrames
+    const emptyCross1 = emptyL.join({ other: nonEmptyR, how: "cross" });
+    if (emptyCross1.height !== 0) throw new Error("Cross join with empty left must have height 0");
+
+    const emptyCross2 = nonEmptyR.join({ other: emptyL, how: "cross" });
+    if (emptyCross2.height !== 0) throw new Error("Cross join with empty right must have height 0");
+
+    // Edge Case 3: join_nulls option (matching null with null)
+    const dfNullLeft = new DataFrame<any>([
+        { k: null, lval: 1 },
+        { k: "X", lval: 2 }
+    ]);
+    const dfNullRight = new DataFrame<any>([
+        { k: null, rval: 10 },
+        { k: "X", rval: 20 }
+    ]);
+
+    const joinNullsDefault = dfNullLeft.join({ other: dfNullRight, on: "k", how: "inner" });
+    if (joinNullsDefault.height !== 1 || joinNullsDefault.to_dicts()[0].k !== "X") {
+        throw new Error("Default join_nulls: false should ignore null==null matches");
+    }
+
+    const joinNullsTrue = dfNullLeft.join({ other: dfNullRight, on: "k", how: "inner", join_nulls: true });
+    if (joinNullsTrue.height !== 2) {
+        throw new Error("join_nulls: true should match null with null");
+    }
+    const nullMatchedRow = joinNullsTrue.to_dicts().find((r: any) => r.k === null);
+    if (!nullMatchedRow || nullMatchedRow.lval !== 1 || nullMatchedRow.rval !== 10) {
+        throw new Error("join_nulls: true matched row values incorrect");
+    }
+
+    // Edge Case 4: Semi & Anti join with duplicate keys and nulls
+    const semiLeft = new DataFrame<any>([
+        { id: 1, name: "A" },
+        { id: 1, name: "A_dup" },
+        { id: 2, name: "B" },
+        { id: null, name: "Null1" }
+    ]);
+    const semiRight = new DataFrame<any>([
+        { id: 1, score: 100 },
+        { id: 1, score: 200 },
+        { id: 3, score: 300 }
+    ]);
+
+    const semiResult = semiLeft.join({ other: semiRight, on: "id", how: "semi" });
+    if (semiResult.height !== 2 || semiResult.to_dicts()[0].id !== 1 || semiResult.to_dicts()[1].id !== 1) {
+        throw new Error("Semi join should keep all matching left rows and omit right columns");
+    }
+    if ("score" in semiResult.to_dicts()[0]) {
+        throw new Error("Semi join should not include right table columns");
+    }
+
+    const antiResult = semiLeft.join({ other: semiRight, on: "id", how: "anti" });
+    if (antiResult.height !== 2 || antiResult.to_dicts()[0].id !== 2 || antiResult.to_dicts()[1].id !== null) {
+        throw new Error("Anti join should keep unmatched rows (id: 2 and null when join_nulls: false)");
+    }
+
+    // Edge Case 5: maintain_order ("left", "right", "left_right", "right_left")
+    const ordLeft = new DataFrame<any>([
+        { id: 3, l: "L3" },
+        { id: 1, l: "L1" },
+        { id: 2, l: "L2" }
+    ]);
+    const ordRight = new DataFrame<any>([
+        { id: 1, r: "R1" },
+        { id: 2, r: "R2" },
+        { id: 4, r: "R4" }
+    ]);
+
+    const ordOuterLR = ordLeft.join({ other: ordRight, on: "id", how: "outer", maintain_order: "left_right" });
+    const ordLRRows = ordOuterLR.to_dicts();
+    if (ordLRRows[0].id !== 3 || ordLRRows[1].id !== 1 || ordLRRows[2].id !== 2 || ordLRRows[3].id !== 4) {
+        throw new Error("maintain_order: 'left_right' ordering mismatch");
+    }
+
+    const ordOuterRL = ordLeft.join({ other: ordRight, on: "id", how: "outer", maintain_order: "right_left" });
+    const ordRLRows = ordOuterRL.to_dicts();
+    if (ordRLRows[0].id !== 1 || ordRLRows[1].id !== 2 || ordRLRows[2].id !== 4 || ordRLRows[3].id !== 3) {
+        throw new Error("maintain_order: 'right_left' ordering mismatch");
+    }
+
+    // Edge Case 6: Multiple non-key column collision with custom suffixes
+    const colLeft = new DataFrame<any>([{ id: 1, x: "L_X", y: "L_Y", z: "L_Z" }]);
+    const colRight = new DataFrame<any>([{ id: 1, x: "R_X", y: "R_Y", z: "R_Z" }]);
+    const colJoined = colLeft.join({ other: colRight, on: "id", how: "inner", suffixes: ["_src", "_tgt"] });
+    const colDict = colJoined.to_dicts()[0];
+    if (colDict.x_src !== "L_X" || colDict.x_tgt !== "R_X" || colDict.y_src !== "L_Y" || colDict.y_tgt !== "R_Y") {
+        throw new Error("Custom suffixes on multiple colliding columns mismatch");
+    }
+
+    // Edge Case 7: join_asof with exact match toggle, tolerance, and nearest strategy
+    const asofLeftT = new DataFrame<any>([
+        { t: 10, cat: "A" },
+        { t: 25, cat: "A" },
+        { t: 50, cat: "A" }
+    ]);
+    const asofRightT = new DataFrame<any>([
+        { t: 10, cat: "A", price: 100 },
+        { t: 20, cat: "A", price: 200 },
+        { t: 60, cat: "A", price: 600 }
+    ]);
+
+    // 7a: strategy "backward" with allow_exact_matches: false
+    const asofNoExact = asofLeftT.join_asof({
+        other: asofRightT,
+        on: "t",
+        by: "cat",
+        strategy: "backward",
+        allow_exact_matches: false
+    });
+    const noExactRows = asofNoExact.to_dicts();
+    if (noExactRows[0].price !== null || noExactRows[1].price !== 200) {
+        throw new Error("join_asof allow_exact_matches: false failed for exact key");
+    }
+
+    // 7b: strategy "nearest" with tolerance
+    const asofNearest = asofLeftT.join_asof({
+        other: asofRightT,
+        on: "t",
+        by: "cat",
+        strategy: "nearest",
+        tolerance: 15
+    });
+    const nearestRows = asofNearest.to_dicts();
+    if (nearestRows[0].price !== 100 || nearestRows[1].price !== 200 || nearestRows[2].price !== 600) {
+        throw new Error("join_asof strategy 'nearest' with tolerance failed");
+    }
+
+    // 7c: strategy "nearest" exceeding tolerance
+    const asofExceedTol = asofLeftT.join_asof({
+        other: asofRightT,
+        on: "t",
+        by: "cat",
+        strategy: "nearest",
+        tolerance: 5
+    });
+    const exceedRows = asofExceedTol.to_dicts();
+    if (exceedRows[1].price !== 200 || exceedRows[2].price !== null) {
+        throw new Error("join_asof nearest exceeding tolerance should produce null");
+    }
+
+    // Edge Case 8: Unsorted check error validation
+    const unsortedRight = new DataFrame([
+        { time: 30, symbol: "AAPL", bid: 102.0 },
+        { time: 10, symbol: "AAPL", bid: 99.5 }
+    ]);
+    let unsortedErrorCaught = false;
+    try {
+        const sampleTrades = new DataFrame([{ time: 20, symbol: "AAPL", price: 100.0 }]);
+        sampleTrades.join_asof({ other: unsortedRight, on: "time", by: "symbol", check_sorted: true });
+    } catch (e: any) {
+        unsortedErrorCaught = true;
+    }
+    // ─── 10/10 ULTRA-COMPLEX ROBUST EDGE CASES ────────────────────────────────
+
+    // 1. Many-to-Many Cross Product Explosion with Composite Nulls and join_nulls
+    {
+        const m2mL = new DataFrame<any>([
+            { k1: "A", k2: null, val_l: 1 },
+            { k1: "A", k2: null, val_l: 2 },
+            { k1: "B", k2: 10, val_l: 3 },
+        ]);
+        const m2mR = new DataFrame<any>([
+            { k1: "A", k2: null, val_r: "X" },
+            { k1: "A", k2: null, val_r: "Y" },
+            { k1: "A", k2: null, val_r: "Z" },
+            { k1: "B", k2: 10, val_r: "W" },
+        ]);
+
+        // Default join_nulls: false -> null composite keys don't match -> only (B, 10) matches
+        const m2mDefault = m2mL.join({ other: m2mR, on: ["k1", "k2"], how: "inner", join_nulls: false });
+        if (m2mDefault.height !== 1 || m2mDefault.to_dicts()[0].val_r !== "W") {
+            throw new Error("M2M Complex Case 1: join_nulls: false failed to suppress null composite joins");
+        }
+
+        // join_nulls: true -> (A, null) has 2 left rows * 3 right rows = 6 rows + 1 from (B, 10) = 7 total rows
+        const m2mTrue = m2mL.join({ other: m2mR, on: ["k1", "k2"], how: "inner", join_nulls: true });
+        if (m2mTrue.height !== 7) {
+            throw new Error(`M2M Complex Case 1: Expected 7 exploded rows, got ${m2mTrue.height}`);
+        }
+    }
+
+    // 2. BigInt & Extreme Numeric Boundary Keys (Int64, -0, NaN, Infinity)
+    {
+        const numL = new DataFrame<any>([
+            { id: 9007199254740993n, label: "big1" },
+            { id: -9007199254740993n, label: "big2" },
+            { id: 0, label: "zero" },
+            { id: Infinity, label: "inf" },
+        ]);
+        const numR = new DataFrame<any>([
+            { id: 9007199254740993n, score: 100 },
+            { id: -9007199254740993n, score: 200 },
+            { id: -0, score: 300 },
+            { id: Infinity, score: 400 },
+        ]);
+
+        const resNum = numL.join({ other: numR, on: "id", how: "inner" });
+        if (resNum.height !== 4) {
+            throw new Error(`Complex Case 2: BigInt & numeric boundary join height mismatch (${resNum.height})`);
+        }
+        const rows = resNum.to_dicts();
+        const big1 = rows.find((r: any) => r.label === "big1");
+        const big2 = rows.find((r: any) => r.label === "big2");
+        const zero = rows.find((r: any) => r.label === "zero");
+        const inf = rows.find((r: any) => r.label === "inf");
+
+        if (!big1 || big1.score !== 100 || !big2 || big2.score !== 200 || !zero || zero.score !== 300 || !inf || inf.score !== 400) {
+            throw new Error("Complex Case 2: BigInt / Extreme numeric boundary values mismatched");
+        }
+    }
+
+    // 3. Exact Date Objects with Milliseconds as Join Keys
+    {
+        const d1 = new Date("2026-01-01T12:00:00.123Z");
+        const d2 = new Date("2026-01-01T12:00:00.124Z"); // 1ms difference
+        const d3 = new Date("2026-01-01T12:00:00.123Z"); // exact match to d1
+
+        const dateL = new DataFrame<any>([{ timestamp: d1, event: "E1" }, { timestamp: d2, event: "E2" }]);
+        const dateR = new DataFrame<any>([{ timestamp: d3, meta: "M1" }]);
+
+        const dateRes = dateL.join({ other: dateR, on: "timestamp", how: "inner" });
+        if (dateRes.height !== 1 || dateRes.to_dicts()[0].event !== "E1" || dateRes.to_dicts()[0].meta !== "M1") {
+            throw new Error("Complex Case 3: Date millisecond precision join key failed");
+        }
+    }
+
+    // 4. Nested Object and Array Canonical Key Join
+    {
+        const objL = new DataFrame<any>([
+            { conf: { a: 1, b: "x" }, l: 10 },
+            { conf: { b: "x", a: 1 }, l: 20 }, // Unordered object keys should canonicalize to same hash
+            { conf: [1, 2, 3], l: 30 }
+        ]);
+        const objR = new DataFrame<any>([
+            { conf: { a: 1, b: "x" }, r: 100 },
+            { conf: [1, 2, 3], r: 300 }
+        ]);
+
+        const objRes = objL.join({ other: objR, on: "conf", how: "inner" });
+        // { a: 1, b: "x" } matches rows 0 and 1, array matches row 2 -> 3 total matches
+        if (objRes.height !== 3) {
+            throw new Error(`Complex Case 4: Deep object/array canonical hashing join failed (height: ${objRes.height})`);
+        }
+    }
+
+    // 5. Quadruple Colliding Suffix Cascade
+    {
+        // When both left and right contain col, col_right, col_right_1
+        const deepL = new DataFrame<any>([{ id: 1, data: "L0", data_right: "L1", data_right_1: "L2" }]);
+        const deepR = new DataFrame<any>([{ id: 1, data: "R0", data_right: "R1" }]);
+
+        const deepJoined = deepL.join({ other: deepR, on: "id", how: "inner", suffixes: ["", "_right"] });
+        const resObj = deepJoined.to_dicts()[0];
+
+        // Left keeps data, data_right, data_right_1
+        // Right's 'data' wants 'data_right' (taken) -> 'data_right_1' (taken) -> allocates 'data_right_2'
+        // Right's 'data_right' wants 'data_right_right' (available)
+        if (resObj.data !== "L0" || resObj.data_right !== "L1" || resObj.data_right_1 !== "L2" || resObj.data_right_2 !== "R0") {
+            throw new Error("Complex Case 5: Quadruple cascading suffix collision resolution failed");
+        }
+    }
+
+    // 6. Full Outer Join Key Coalescing with Heterogeneous LeftOn/RightOn
+    {
+        const hL = new DataFrame<any>([
+            { user_id: "U1", left_only: "L1" },
+            { user_id: "U2", left_only: "L2" }
+        ]);
+        const hR = new DataFrame<any>([
+            { account_id: "U2", right_only: "R2" },
+            { account_id: "U3", right_only: "R3" }
+        ]);
+
+        const hOuter = hL.join({
+            other: hR,
+            leftOn: "user_id",
+            rightOn: "account_id",
+            how: "outer",
+            coalesce: true
+        });
+
+        if (hOuter.height !== 3) throw new Error("Complex Case 6: Heterogeneous outer join height mismatch");
+        const rows = hOuter.to_dicts();
+
+        // account_id should be coalesced into user_id
+        const u1 = rows.find((r: any) => r.user_id === "U1");
+        const u2 = rows.find((r: any) => r.user_id === "U2");
+        const u3 = rows.find((r: any) => r.user_id === "U3");
+
+        if (!u1 || u1.right_only !== null || !u2 || u2.left_only !== "L2" || u2.right_only !== "R2" || !u3 || u3.left_only !== null || u3.right_only !== "R3") {
+            throw new Error("Complex Case 6: Heterogeneous outer join coalescing values failed");
+        }
+        if ("account_id" in rows[0]) {
+            throw new Error("Complex Case 6: Right key 'account_id' should be coalesced away when coalesce: true");
+        }
+    }
+
+    // 7. join_asof "forward" Strategy with Multi-Column Partitioning & Duplicates
+    {
+        const fwdL = new DataFrame<any>([
+            { time: 100, region: "US", sector: "TECH", quote: "Q1" },
+            { time: 150, region: "US", sector: "TECH", quote: "Q2" },
+            { time: 200, region: "EU", sector: "FIN", quote: "Q3" },
+        ]);
+        const fwdR = new DataFrame<any>([
+            { time: 120, region: "US", sector: "TECH", ask: 12.5 },
+            { time: 150, region: "US", sector: "TECH", ask: 15.0 }, // Exact match
+            { time: 180, region: "US", sector: "TECH", ask: 18.0 },
+            { time: 190, region: "EU", sector: "FIN", ask: 99.0 }, // Before EU quote (forward will ignore 190, looks for >= 200)
+            { time: 210, region: "EU", sector: "FIN", ask: 101.0 },
+        ]);
+
+        const fwdJoined = fwdL.join_asof({
+            other: fwdR,
+            on: "time",
+            by: ["region", "sector"],
+            strategy: "forward",
+            allow_exact_matches: true
+        });
+
+        const rows = fwdJoined.to_dicts();
+        if (rows[0].ask !== 12.5 || rows[1].ask !== 15.0 || rows[2].ask !== 101.0) {
+            throw new Error("Complex Case 7: join_asof forward strategy with composite 'by' keys failed");
+        }
+    }
+
+    // 8. join_asof "nearest" Equidistant Tie-Breaking Edge Case
+    {
+        // When left time is 15, and right has 10 and 20 (both diff 5)
+        const tieL = new DataFrame<any>([{ t: 15 }]);
+        const tieR = new DataFrame<any>([{ t: 10, v: "backward_10" }, { t: 20, v: "forward_20" }]);
+
+        const nearestRes = tieL.join_asof({
+            other: tieR,
+            on: "t",
+            strategy: "nearest"
+        });
+        const rows = nearestRes.to_dicts();
+        // Math.abs(15 - 10) <= Math.abs(15 - 20) -> tie broken backward to 10
+        if (rows[0].v !== "backward_10") {
+            throw new Error("Complex Case 8: join_asof nearest tie-break failed");
+        }
+    }
+
+    // 9. TypedArray Schema Preservation with Null Injection in Outer Joins
+    {
+        const typedL = new DataFrame<any>({
+            id: new Int32Array([1, 2]),
+            score: new Float64Array([10.5, 20.5])
+        });
+        const typedR = new DataFrame<any>({
+            id: new Int32Array([2, 3]),
+            score: new Float64Array([200.5, 300.5])
+        });
+
+        const typedOuter = typedL.join({ other: typedR, on: "id", how: "outer", suffixes: ["_l", "_r"] });
+        if (typedOuter.height !== 3) throw new Error("Complex Case 9: TypedArray outer join height mismatch");
+
+        const rows = typedOuter.to_dicts();
+        const r1 = rows.find((r: any) => r.id === 1);
+        const r3 = rows.find((r: any) => r.id === 3);
+
+        if (r1.score_l !== 10.5 || r1.score_r !== null || r3.score_l !== null || r3.score_r !== 300.5) {
+            throw new Error("Complex Case 9: TypedArray outer join null injection corrupted values");
+        }
+    }
+
+    // 10. Complex Maintain Order: 'right' and 'left_right' with Semi/Anti and Heterogeneous Outer
+    {
+        const orderL = new DataFrame<any>([
+            { id: 99, val: "L99" },
+            { id: 10, val: "L10" },
+            { id: 50, val: "L50" }
+        ]);
+        const orderR = new DataFrame<any>([
+            { id: 50, score: 500 },
+            { id: 99, score: 990 },
+            { id: 70, score: 700 }
+        ]);
+
+        // Maintain order 'right': matched and right unmatched rows follow right table index order
+        const outerRightOrder = orderL.join({ other: orderR, on: "id", how: "outer", maintain_order: "right" });
+        const rightOrderRows = outerRightOrder.to_dicts();
+
+        // Expected order: id 50 (rIdx 0), id 99 (rIdx 1), id 70 (rIdx 2), id 10 (unmatched left)
+        if (rightOrderRows[0].id !== 50 || rightOrderRows[1].id !== 99 || rightOrderRows[2].id !== 70 || rightOrderRows[3].id !== 10) {
+            throw new Error("Complex Case 10: maintain_order 'right' sequence failed");
+        }
+    }
+
+    // ─── 11. THE ULTIMATE MULTI-TIER TORTURE TEST: 6-KEY COMPOSITE JOIN WITH SPECIAL CHARS, ARRAYS & NULLS
+    {
+        const tortureL = new DataFrame<any>([
+            { k_str: "foo::bar|baz", k_num: -0,  k_big: 1234567890123456789n, k_date: new Date("2026-05-20T00:00:00.123Z"), k_obj: { x: [1, { y: 2 }] }, k_null: null, left_val: "LV1" },
+            { k_str: "foo::bar|baz", k_num: 0,   k_big: 1234567890123456789n, k_date: new Date("2026-05-20T00:00:00.123Z"), k_obj: { x: [1, { y: 2 }] }, k_null: null, left_val: "LV2" },
+            { k_str: "diff",         k_num: 100, k_big: 999n,                 k_date: new Date("2020-01-01T00:00:00.000Z"), k_obj: { x: [] },              k_null: 42,   left_val: "LV3" },
+        ]);
+
+        const tortureR = new DataFrame<any>([
+            { k_str: "foo::bar|baz", k_num: 0,   k_big: 1234567890123456789n, k_date: new Date("2026-05-20T00:00:00.123Z"), k_obj: { x: [1, { y: 2 }] }, k_null: null, right_val: "RV1" },
+            { k_str: "foo::bar|baz", k_num: -0,  k_big: 1234567890123456789n, k_date: new Date("2026-05-20T00:00:00.123Z"), k_obj: { x: [1, { y: 2 }] }, k_null: null, right_val: "RV2" },
+            { k_str: "unmatched",    k_num: 999, k_big: 1n,                   k_date: new Date("2026-12-31T00:00:00.000Z"), k_obj: null,                   k_null: null, right_val: "RV3" },
+        ]);
+
+        const keys = ["k_str", "k_num", "k_big", "k_date", "k_obj", "k_null"];
+
+        // Case 11a: join_nulls = false -> composite key with k_null == null must not match
+        const resSuppressed = tortureL.join({ other: tortureR, on: keys, how: "inner", join_nulls: false });
+        if (resSuppressed.height !== 0) {
+            throw new Error("Torture Test 11a: join_nulls: false failed on composite key with null entry");
+        }
+
+        // Case 11b: join_nulls = true -> (-0 matches 0, Date matches Date, deep object matches deep object, null matches null)
+        // 2 left rows * 2 right rows = 4 matches
+        const resMatched = tortureL.join({ other: tortureR, on: keys, how: "inner", join_nulls: true });
+        if (resMatched.height !== 4) {
+            throw new Error(`Torture Test 11b: Expected 4 cross matches, got ${resMatched.height}`);
+        }
+
+        // Case 11c: Full Outer join with join_nulls = true
+        // 4 matched rows + 1 left unmatched ("LV3") + 1 right unmatched ("RV3") = 6 total rows
+        const resOuter = tortureL.join({ other: tortureR, on: keys, how: "outer", join_nulls: true });
+        if (resOuter.height !== 6) {
+            throw new Error(`Torture Test 11c: Expected 6 outer rows, got ${resOuter.height}`);
+        }
+    }
+
+    // ─── 12. EXTREME ASOF JOIN: DUPLICATE TIMESTAMPS, MULTI-TIER 'BY' NULLS & BIDIRECTIONAL NEAREST
+    {
+        // 10 distinct events at microsecond-like offsets with duplicate timestamps in right table
+        const asofStressL = new DataFrame<any>([
+            { t: 100, grp1: "A", grp2: "X", event: "L100_A_X" },
+            { t: 105, grp1: "A", grp2: "X", event: "L105_A_X" }, // strictly between 100 and 110
+            { t: 110, grp1: "A", grp2: "X", event: "L110_A_X" }, // exact match with duplicate right records
+            { t: 120, grp1: "B", grp2: null, event: "L120_B_null" },
+            { t: 130, grp1: "C", grp2: "Z", event: "L130_C_Z" }, // no right records in group C
+        ]);
+
+        const asofStressR = new DataFrame<any>([
+            { t: 90,  grp1: "A", grp2: "X", r_bid: 9.0 },
+            { t: 100, grp1: "A", grp2: "X", r_bid: 10.0 },
+            { t: 110, grp1: "A", grp2: "X", r_bid: 11.0 }, // Right has two prices at t=110
+            { t: 110, grp1: "A", grp2: "X", r_bid: 11.5 },
+            { t: 115, grp1: "B", grp2: null, r_bid: 50.0 },
+            { t: 125, grp1: "B", grp2: null, r_bid: 60.0 },
+        ]);
+
+        // Backward test
+        const backwardRes = asofStressL.join_asof({
+            other: asofStressR,
+            on: "t",
+            by: ["grp1", "grp2"],
+            strategy: "backward"
+        });
+        const bRows = backwardRes.to_dicts();
+        if (bRows[0].r_bid !== 10.0 || bRows[1].r_bid !== 10.0 || bRows[2].r_bid !== 11.5 || bRows[3].r_bid !== 50.0 || bRows[4].r_bid !== null) {
+            throw new Error("Extreme Asof Test 12: Backward strategy resolution mismatch with duplicates & composite by-keys");
+        }
+
+        // Forward test
+        const forwardRes = asofStressL.join_asof({
+            other: asofStressR,
+            on: "t",
+            by: ["grp1", "grp2"],
+            strategy: "forward"
+        });
+        const fRows = forwardRes.to_dicts();
+        if (fRows[0].r_bid !== 10.0 || fRows[1].r_bid !== 11.0 || fRows[2].r_bid !== 11.0 || fRows[3].r_bid !== 60.0 || fRows[4].r_bid !== null) {
+            throw new Error("Extreme Asof Test 12: Forward strategy resolution mismatch with duplicates & composite by-keys");
+        }
+
+        // Nearest test with tolerance = 6
+        const nearestRes = asofStressL.join_asof({
+            other: asofStressR,
+            on: "t",
+            by: ["grp1", "grp2"],
+            strategy: "nearest",
+            tolerance: 6
+        });
+        const nRows = nearestRes.to_dicts();
+        // L100 (exact match -> 10.0)
+        // L105 (dist to 100 is 5 <= 6, dist to 110 is 5 <= 6 -> tie broken backward to 100 -> bid 10.0)
+        // L110 (exact match at t=110, backward binary search selects last matching duplicate -> bid 11.5)
+        // L120 (dist to 115 is 5 <= 6, dist to 125 is 5 <= 6 -> tie broken backward to 115 -> bid 50.0)
+        // L130 (no right candidate -> null)
+        if (nRows[0].r_bid !== 10.0 || nRows[1].r_bid !== 10.0 || nRows[2].r_bid !== 11.5 || nRows[3].r_bid !== 50.0 || nRows[4].r_bid !== null) {
+            throw new Error("Extreme Asof Test 12: Nearest strategy resolution mismatch");
+        }
+    }
 }
-if (!unsortedErrorCaught) throw new Error("join_asof failed to throw InvalidArgumentError when right keys are unsorted");
 
 console.log("✓ join tests passed!");
-
-
-

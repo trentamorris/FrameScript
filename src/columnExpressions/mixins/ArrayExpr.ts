@@ -5,7 +5,7 @@ import {
     getArrayStats,
     sortArray,
     SortArrayOptions,
-    computeMedian,
+    computeQuantile,
     getUniqueArrayStats,
     computeMode,
     isArrayOfType,
@@ -546,7 +546,7 @@ export class ArrayExprNamespace {
      * └────────────────┴──────┘
      */
     median() {
-        return this._deriveArray((arr) => computeMedian(arr));
+        return this._deriveArray((arr) => computeQuantile(arr, 0.5));
     }
 
     /**

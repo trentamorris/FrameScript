@@ -12,50 +12,24 @@ function partition_by_columns(
     height: number,
     partitionKeys: (string | IExpr)[]
 ): Map<string, number[]> {
-    const partitionMap = new Map<string, number[]>();
-
     const pKeysLen = partitionKeys.length;
-    const keyColumns = new Array(pKeysLen);
+    const evalCols: ColumnDict = {};
+    const evalKeys = new Array<string>(pKeysLen);
+
     for (let i = 0; i < pKeysLen; i++) {
         const pKey = partitionKeys[i];
         if (typeof pKey === "string") {
             assertColumnExists(pKey, columns, "Partition key", " in the DataFrame.");
-            keyColumns[i] = columns[pKey];
+            evalCols[pKey] = columns[pKey];
+            evalKeys[i] = pKey;
         } else {
-            keyColumns[i] = pKey.evaluate(columns, height);
+            const keyName = `__part_${i}`;
+            evalCols[keyName] = pKey.evaluate(columns, height);
+            evalKeys[i] = keyName;
         }
     }
 
-    if (pKeysLen === 1) {
-        const keyCol = keyColumns[0];
-        for (let i = 0; i < height; i++) {
-            const val = keyCol[i];
-            const hash = val == null ? "" : toCanonicalString(val);
-            let group = partitionMap.get(hash);
-            if (group === undefined) {
-                group = [];
-                partitionMap.set(hash, group);
-            }
-            group.push(i);
-        }
-        return partitionMap;
-    }
-
-    for (let i = 0; i < height; i++) {
-        const keyValues = new Array(pKeysLen);
-        for (let j = 0; j < pKeysLen; j++) {
-            const val = keyColumns[j][i];
-            keyValues[j] = val == null ? "" : toCanonicalString(val);
-        }
-        const hash = keyValues.join(KEY_SEPARATOR);
-        let group = partitionMap.get(hash);
-        if (group === undefined) {
-            group = [];
-            partitionMap.set(hash, group);
-        }
-        group.push(i);
-    }
-    return partitionMap;
+    return buildGroupMap(evalCols, evalKeys, height);
 }
 
 export function resolveWindowExpr(expr: IExpr, columns: ColumnDict, height: number): ColumnData {
@@ -228,23 +202,47 @@ export function inferColumnType(col: ColumnData): RegisteredDataType {
     return DataTypeRegistry.Utf8;
 }
 
-export function gatherColumnsByIndices(columns: ColumnDict, indices: number[]): ColumnDict {
+export function gatherColumnByIndices(
+    col: ColumnData,
+    indices: (number | null)[],
+    unmatchedSentinel: number = UNMATCHED_ROW_INDEX
+): ColumnData {
+    const len = indices.length;
+    const out = new Array(len);
+
+    for (let r = 0; r < len; r++) {
+        const idx = indices[r];
+        out[r] = idx !== null && idx !== unmatchedSentinel ? col[idx] : null;
+    }
+    return out;
+}
+
+export function gatherColumnsByIndices(
+    columns: ColumnDict,
+    indices: (number | null)[],
+    unmatchedSentinel: number = UNMATCHED_ROW_INDEX
+): ColumnDict {
     const keys = Object.keys(columns);
     const numKeys = keys.length;
-    const newHeight = indices.length;
     const res: ColumnDict = {};
     for (let j = 0; j < numKeys; j++) {
         const k = keys[j];
-        const oldCol = columns[k];
-        const newCol = isTypedArray(oldCol)
-            ? new (oldCol.constructor as any)(newHeight)
-            : new Array(newHeight);
-        for (let idx = 0; idx < newHeight; idx++) {
-            newCol[idx] = oldCol[indices[idx]];
-        }
-        res[k] = newCol;
+        res[k] = gatherColumnByIndices(columns[k], indices, unmatchedSentinel);
     }
     return res;
+}
+
+export function buildGroupMap(columns: ColumnDict, keys: string[], height: number): Map<string, number[]> {
+    const groups = new Map<string, number[]>();
+    for (let i = 0; i < height; i++) {
+        const hash = computeRowHash(columns, keys, i);
+        let group = groups.get(hash);
+        if (group === undefined) {
+            groups.set(hash, group = []);
+        }
+        group.push(i);
+    }
+    return groups;
 }
 
 /**
@@ -592,20 +590,6 @@ export function materializeJoinedDataFrame<R extends RowRecord = any>(
         }
         allocatedNames.add(candidate);
         return candidate;
-    };
-
-    const gatherColumnByIndices = (
-        col: ColumnData,
-        indices: (number | null)[],
-        unmatchedSentinel: number = UNMATCHED_ROW_INDEX
-    ): ColumnData => {
-        const len = indices.length;
-        const out = new Array(len);
-        for (let r = 0; r < len; r++) {
-            const idx = indices[r];
-            out[r] = idx !== null && idx !== unmatchedSentinel ? col[idx] : null;
-        }
-        return out;
     };
 
     const leftToRightKeyMap = new Map<string, string>();

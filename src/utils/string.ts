@@ -3,15 +3,19 @@ import { isPlainObj, isRegExp, isValidDateObj, isSet, isMap, unboxPrimitiveObj }
 import { isTypedArray, toValidArray } from "./array";
 import { createSafeJsonReplacer } from "./json";
 import { toValidBinary } from "./binary";
-import { isValidNumber } from "./number";
+import { isValidNumber, isValidInt } from "./number";
 import {
     KEY_SEPARATOR,
     KEY_PAIR_SEPARATOR,
     TEXT_ENCODER,
+    TEXT_DECODER,
+    TEXT_DECODER_FATAL,
     MAX_C0_CONTROL_CODE,
     ASCII_DEL_CODE,
-    SURROGATE_MIN_CODE,
-    SURROGATE_MAX_CODE,
+    SURROGATE_HIGH_MIN_CODE,
+    SURROGATE_HIGH_MAX_CODE,
+    SURROGATE_LOW_MIN_CODE,
+    SURROGATE_LOW_MAX_CODE,
     NAMED_CONTROL_ESCAPES,
 } from "../constants";
 import { InvalidArgumentError } from "../exceptions";
@@ -76,15 +80,17 @@ export type StripCharsOptions = {
     };
 };
 
+export function _trimByMode(str: string, mode: StripMode = "both"): string {
+    if (mode === "start") return str.trimStart();
+    if (mode === "end") return str.trimEnd();
+    return str.trim();
+}
+
 export function stripChars(
     str: string | null | undefined,
     characters: string | RegExp | null = null,
     options: StripCharsOptions = {}
 ): string | null {
-    if (str == null) {
-        return options.returnStringOnNull ? "" : null;
-    }
-
     const {
         mode = "both",
         returnStringOnNull = false,
@@ -96,196 +102,96 @@ export function stripChars(
         stringOptions
     } = options;
 
-    const { literal = false, caseInsensitive = false } = stringOptions ?? {};
+    if (str == null) return returnStringOnNull ? "" : null;
 
-    const trimString = (s: string, m: StripMode = "both"): string => {
-        if (m === "start") return s.trimStart();
-        if (m === "end") return s.trimEnd();
-        return s.trim();
-    };
+    const finish = (res: string) => (returnStringOnNull || res.length > 0) ? res : null;
 
-    let workStr = str;
-    if (trimFirst && characters != null) {
-        workStr = trimString(str, mode);
-    }
+    if (characters == null) return finish(_trimByMode(str, mode));
 
-    if (characters == null) {
-        const result = trimString(workStr, mode);
-        return (returnStringOnNull || result !== "") ? result : null;
-    }
-
-    const matches = isRegExp(characters)
-        ? (char: string) => {
-            try {
-                characters.lastIndex = 0;
-            } catch { }
-            return characters.test(char);
-        }
-        : (() => {
-            const targetSet = new Set(caseInsensitive ? (characters as string).toLowerCase() : characters);
-            return (char: string) => targetSet.has(caseInsensitive ? char.toLowerCase() : char);
-        })();
-
+    const workStr = trimFirst ? _trimByMode(str, mode) : str;
     const len = workStr.length;
+    if (len === 0) return returnStringOnNull ? "" : null;
 
-    const isDefaultScan = maxScanStart === 1 && maxMatchesStart === 1 && maxScanEnd === 1 && maxMatchesEnd === 1;
-    if (isDefaultScan && !literal) {
-        let startIndex = 0;
-        let endIndex = len;
+    const isReg = isRegExp(characters);
+    if (!isReg && typeof characters !== "string") return finish(workStr);
+    if (typeof characters === "string" && characters.length === 0) return finish(workStr);
 
-        if (mode === "both" || mode === "start") {
-            while (startIndex < len && matches(workStr[startIndex])) {
-                startIndex++;
-            }
-        }
+    const { literal = false, caseInsensitive = false } = stringOptions ?? {};
+    const pattern = isReg
+        ? characters
+        : (literal ? escapeRegExp(characters) : `[${escapeRegExp(characters)}]+`);
+    const asciiCaseInsensitive = isReg ? (characters.ignoreCase || caseInsensitive) : caseInsensitive;
 
-        if (mode === "both" || mode === "end") {
-            while (endIndex > startIndex && matches(workStr[endIndex - 1])) {
-                endIndex--;
-            }
-        }
+    const matches = _collectPatternCandidates(
+        workStr,
+        pattern,
+        0,
+        { asciiCaseInsensitive },
+        () => null
+    );
 
-        const result = startIndex === 0 && endIndex === len ? workStr : workStr.substring(startIndex, endIndex);
-        return (returnStringOnNull || result !== "") ? result : null;
-    }
+    const matchCount = matches.length;
+    if (matchCount === 0) return finish(workStr);
 
     const stripped = new Uint8Array(len);
+    let hasStripped = false;
 
-    const scanNonLiteral = (
+    const scan = (
         isStart: boolean,
-        limit: number | null,
+        maxScan: number | null,
         maxMatches: number | null
     ): void => {
-        if (len === 0 || maxMatches === 0) {
-            return;
-        }
+        if (maxMatches === 0) return;
 
-        const start = isStart ? 0 : len - 1;
-        const end = isStart ? len : -1;
+        let totalSkipped = 0;
+        let lastPos = isStart ? 0 : len;
+        let blockCount = 0;
+
+        const startIdx = isStart ? 0 : matchCount - 1;
+        const endIdx = isStart ? matchCount : -1;
         const step = isStart ? 1 : -1;
 
-        let inBlock = false;
-        let matchesFound = 0;
-        let totalSkipped = 0;
+        for (let i = startIdx; i !== endIdx; i += step) {
+            const m = matches[i];
+            const skipped = isStart ? (m.start - lastPos) : (lastPos - m.end);
 
-        for (let i = start; i !== end; i += step) {
-            if (matches(workStr[i])) {
-                if (!inBlock) {
-                    if (limit !== null && limit >= 0 && totalSkipped >= limit) {
-                        break;
-                    }
-                    if (maxMatches !== null && maxMatches >= 0 && matchesFound >= maxMatches) {
-                        break;
-                    }
-                    inBlock = true;
-                    matchesFound++;
-                }
-                stripped[i] = 1;
-            } else {
-                inBlock = false;
-                totalSkipped++;
-                if (limit !== null && limit >= 0 && totalSkipped >= limit) {
-                    break;
-                }
+            if (skipped > 0) {
+                totalSkipped += skipped;
+                if (maxScan !== null && maxScan >= 0 && totalSkipped >= maxScan) break;
             }
+
+            if (skipped > 0 || literal || blockCount === 0) blockCount++;
+            if (maxMatches !== null && maxMatches >= 0 && blockCount > maxMatches) break;
+
+            for (let k = m.start; k < m.end; k++) stripped[k] = 1;
+            hasStripped = true;
+            lastPos = isStart ? m.end : m.start;
         }
     };
 
-    const scanLiteral = (
-        patStr: string,
-        patLen: number,
-        isStart: boolean,
-        limit: number | null,
-        maxMatches: number | null
-    ): void => {
-        if (len === 0 || maxMatches === 0 || patLen === 0) {
-            return;
-        }
+    if (mode === "both" || mode === "start") scan(true, maxScanStart, maxMatchesStart);
+    if (mode === "both" || mode === "end") scan(false, maxScanEnd, maxMatchesEnd);
 
-        let currentIdx = isStart ? 0 : len - 1;
-        let matchesFound = 0;
-        let totalSkipped = 0;
-        const searchStr = caseInsensitive ? workStr.toLowerCase() : workStr;
-
-        while (currentIdx >= 0 && currentIdx < len) {
-            if (maxMatches !== null && maxMatches >= 0 && matchesFound >= maxMatches) {
-                break;
-            }
-
-            const searchStart = isStart ? currentIdx : (currentIdx - patLen + 1);
-            if (!isStart && searchStart < 0) {
-                break;
-            }
-
-            const matchIdx = isStart
-                ? searchStr.indexOf(patStr, searchStart)
-                : searchStr.lastIndexOf(patStr, searchStart);
-
-            if (matchIdx === -1) {
-                break;
-            }
-
-            const skippedInThisStep = isStart
-                ? (matchIdx - currentIdx)
-                : (currentIdx - (matchIdx + patLen - 1));
-            totalSkipped += skippedInThisStep;
-
-            if (limit !== null && limit >= 0 && totalSkipped >= limit) {
-                break;
-            }
-
-            for (let i = 0; i < patLen; i++) {
-                stripped[matchIdx + i] = 1;
-            }
-            matchesFound++;
-            currentIdx = isStart ? (matchIdx + patLen) : (matchIdx - 1);
-        }
-    };
-
-    if (mode === "both" || mode === "start") {
-        if (literal && typeof characters === "string") {
-            const patStr = caseInsensitive ? characters.toLowerCase() : characters;
-            scanLiteral(patStr, characters.length, true, maxScanStart, maxMatchesStart);
-        } else {
-            scanNonLiteral(true, maxScanStart, maxMatchesStart);
-        }
-    }
-
-    if (mode === "both" || mode === "end") {
-        if (literal && typeof characters === "string") {
-            const patStr = caseInsensitive ? characters.toLowerCase() : characters;
-            scanLiteral(patStr, characters.length, false, maxScanEnd, maxMatchesEnd);
-        } else {
-            scanNonLiteral(false, maxScanEnd, maxMatchesEnd);
-        }
-    }
+    if (!hasStripped) return finish(workStr);
 
     let result = "";
     for (let i = 0; i < len; i++) {
-        if (stripped[i] === 0) {
-            result += workStr[i];
-        }
+        if (stripped[i] === 0) result += workStr[i];
     }
-    return (returnStringOnNull || result !== "") ? result : null;
+    return finish(result);
 }
 
 export function toCanonicalString(
     val: any,
     { depth = 0, maxDepth = 50 }: { depth?: number; maxDepth?: number } = {}
 ): string {
-    if (depth > maxDepth) {
-        return "v:circular";
-    }
-    if (val === null) {
-        return "v:null";
-    }
-    if (val === undefined) {
-        return "v:undefined";
-    }
+    if (depth > maxDepth) return "v:circular";
+    if (val === null) return "v:null";
+    if (val === undefined) return "v:undefined";
 
-    if (isValidDateObj(val)) {
-        return `d:${val.getTime()}`;
-    }
+    val = unboxPrimitiveObj(val);
+
+    if (isValidDateObj(val)) return `d:${val.getTime()}`;
 
     if (isTypedArray(val)) {
         const s = val.toString();
@@ -321,16 +227,26 @@ export function toCanonicalString(
         const nextOpt = { depth: depth + 1, maxDepth };
         for (let i = 0; i < len; i++) {
             const k = keys[i];
-            parts[i] = `${toCanonicalString(k, nextOpt)}${KEY_SEPARATOR}${toCanonicalString(val.get(k), nextOpt)}`;
+            let mapVal: unknown;
+            try {
+                mapVal = val.get(k);
+            } catch {
+                mapVal = "v:error";
+            }
+            parts[i] = `${toCanonicalString(k, nextOpt)}${KEY_SEPARATOR}${toCanonicalString(mapVal, nextOpt)}`;
         }
         parts.sort();
         return `map:{${parts.join(KEY_PAIR_SEPARATOR)}}`;
     }
 
     if (typeof val === "object" && typeof val.toJSON === "function") {
-        const jsonVal = val.toJSON();
-        if (jsonVal !== val) {
-            return `j:${toCanonicalString(jsonVal, { depth: depth + 1, maxDepth })}`;
+        try {
+            const jsonVal = val.toJSON();
+            if (jsonVal !== val) {
+                return `j:${toCanonicalString(jsonVal, { depth: depth + 1, maxDepth })}`;
+            }
+        } catch {
+            // Fall through
         }
     }
 
@@ -346,7 +262,13 @@ export function toCanonicalString(
         const nextOpt = { depth: depth + 1, maxDepth };
         for (let i = 0; i < len; i++) {
             const k = keys[i];
-            parts[i] = `${toCanonicalString(k, nextOpt)}${KEY_SEPARATOR}${toCanonicalString(val[k], nextOpt)}`;
+            let propVal: unknown;
+            try {
+                propVal = val[k];
+            } catch {
+                propVal = "v:error";
+            }
+            parts[i] = `${toCanonicalString(k, nextOpt)}${KEY_SEPARATOR}${toCanonicalString(propVal, nextOpt)}`;
         }
         return `o:{${parts.join(KEY_PAIR_SEPARATOR)}}`;
     }
@@ -377,21 +299,21 @@ export interface ChangeCaseOptions {
     format: "camel" | "kebab" | "pascal" | "snake" | "title";
 }
 
-const CONTRACTION_REGEX = /(\p{L})['’](\p{L})/gu;
+const CONTRACTION_REGEX = /(\p{L})['’]+(?=\p{L})/gu;
 const WORDS_REGEX = new RegExp(
     [
         // Rule A: Acronym Plurals (e.g., 'KPIs', 'APIs')
-        `\\p{Lu}+s(?!\\p{Ll})`,
+        `[\\p{Lu}\\p{M}]+s(?![\\p{Ll}\\p{M}])`,
         // Rule B: Acronym Transitions (e.g., 'HTTP' in 'HTTPClient')
-        `\\p{Lu}+(?=\\p{Lu}\\p{Ll})`,
+        `[\\p{Lu}\\p{M}]+(?=[\\p{Lu}\\p{M}][\\p{Ll}\\p{M}])`,
         // Rule C: TitleCase / PascalCase words (e.g., 'Client')
-        `\\p{Lu}+\\p{Ll}*`,
+        `[\\p{Lu}\\p{M}]+[\\p{Ll}\\p{M}]*`,
         // Rule D: Pure lowercase words
-        `\\p{Ll}+`,
+        `[\\p{Ll}\\p{M}]+`,
         // Rule E: Numeric digit groups
         `\\p{N}+`,
-        // Rule F: Non-cased global scripts (e.g., Kanji, Cyrillic variants, Arabic)
-        `\\p{L}+`
+        // Rule F: Non-cased global scripts (e.g., Devanagari, Thai, Arabic, Kanji, CJK)
+        `[\\p{L}\\p{M}]+`
     ].join("|"),
     "gu"
 );
@@ -410,7 +332,7 @@ export function toWords(str: any): string[] {
 
     const normalized = primitiveStr
         .normalize("NFC")
-        .replace(CONTRACTION_REGEX, "$1$2");
+        .replace(CONTRACTION_REGEX, "$1");
 
     const matches = normalized.match(WORDS_REGEX) || [];
 
@@ -425,6 +347,11 @@ export function toWords(str: any): string[] {
     return safeTokens;
 }
 
+function _getCodePointStep(str: string, index: number = 0): number {
+    const cp = str.codePointAt(index);
+    return cp != null && cp > 0xffff ? 2 : 1;
+}
+
 /**
  * High-performance, predictable case converter
  */
@@ -433,16 +360,19 @@ export function changeCase(str: any, options: ChangeCaseOptions): string {
     const len = words.length;
     if (len === 0) return "";
 
-    const { format } = options;
+    const { format } = options ?? {};
 
     if (format === "camel" || format === "pascal" || format === "title") {
         const joinChar = format === "title" ? " " : "";
         const formattedWords = new Array(len);
         for (let i = 0; i < len; i++) {
             const w = words[i];
-            formattedWords[i] = (i === 0 && format === "camel")
-                ? w.toLowerCase()
-                : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+            if (i === 0 && format === "camel") {
+                formattedWords[i] = w.toLowerCase();
+            } else {
+                const step = _getCodePointStep(w, 0);
+                formattedWords[i] = w.slice(0, step).toUpperCase() + w.slice(step).toLowerCase();
+            }
         }
         return formattedWords.join(joinChar);
     }
@@ -456,7 +386,7 @@ export function changeCase(str: any, options: ChangeCaseOptions): string {
         return lowerWords.join(joinChar);
     }
 
-    return String(str);
+    return words.join(" ");
 }
 
 
@@ -628,8 +558,7 @@ export function decodeBase64ToBytes(b64: string, strict: boolean = true): Uint8A
  * Decodes a Uint8Array byte array back into a parsed JSON object.
  */
 export function decodeBytesToJson(bytes: Uint8Array): unknown {
-    const jsonStr = new TextDecoder("utf-8").decode(bytes);
-    return JSON.parse(jsonStr);
+    return JSON.parse(TEXT_DECODER.decode(bytes));
 }
 
 /**
@@ -669,9 +598,11 @@ export function decodeHexToBytes(hex: string): Uint8Array {
  * Decodes a Hex-encoded string into a standard UTF-8 string.
  */
 export function decodeHex(str: string, strict: boolean = true): string | null {
+    if (str == null) return null;
     try {
         const bytes = decodeHexToBytes(str);
-        return new TextDecoder("utf-8", { fatal: strict }).decode(bytes);
+        const decoder = strict ? TEXT_DECODER_FATAL : TEXT_DECODER;
+        return decoder.decode(bytes);
     } catch (err) {
         if (strict) throw err;
         return null;
@@ -682,12 +613,13 @@ export function decodeHex(str: string, strict: boolean = true): string | null {
  * Decodes a Base64 or Base64URL-encoded string into a standard UTF-8 string.
  */
 export function decodeBase64(str: string, strict: boolean = true): string | null {
+    if (str == null) return null;
     try {
-        if (typeof str !== "string") str = String(str);
-        const cleanStr = str.trim();
+        const cleanStr = typeof str === "string" ? str.trim() : String(str).trim();
         const stdB64 = decodeBase64URLToBase64(cleanStr);
         const bytes = decodeBase64ToBytes(stdB64, strict);
-        return new TextDecoder("utf-8", { fatal: strict }).decode(bytes);
+        const decoder = strict ? TEXT_DECODER_FATAL : TEXT_DECODER;
+        return decoder.decode(bytes);
     } catch (err) {
         if (strict) throw err;
         return null;
@@ -717,10 +649,6 @@ export function decodeString(
 }
 
 
-
-
-
-
 // ============================================================================
 // REGEX UTILITIES & EXTRACTION HELPERS
 // ============================================================================
@@ -739,19 +667,41 @@ const TC39_REGEX = new RegExp(`[${BASE_CONTROL_PATTERN}\\\\^$*+?.()|[\\]{}/#,=<>
 // nonAlphanumeric mode: C0 controls/surrogates + ASCII non-alphanumerics (< 0x80)
 const NON_ALPHANUMERIC_ASCII_REGEX = new RegExp(`[${BASE_CONTROL_PATTERN}]|[\\x20-\\x2F\\x3A-\\x40\\x5B-\\x5E\\x5F\\x60\\x7B-\\x7E]`, "gu");
 
-const _replaceRegexChar = (ch: string): string => {
+export type UnicodeSurrogateType = "all" | "high" | "low";
+
+export type IsUnicodeSurrogateOptions = {
+    type?: UnicodeSurrogateType;
+};
+
+/**
+ * Checks whether a 16-bit code unit is a Unicode surrogate.
+ * @internal
+ */
+function _isUnicodeSurrogate(code: number, options: IsUnicodeSurrogateOptions = {}): boolean {
+    if (!isValidInt(code, { range: "UInt16" })) return false;
+
+    const { type = "all" } = options;
+    switch (type) {
+        case "high": return code >= SURROGATE_HIGH_MIN_CODE && code <= SURROGATE_HIGH_MAX_CODE;
+        case "low": return code >= SURROGATE_LOW_MIN_CODE && code <= SURROGATE_LOW_MAX_CODE;
+        case "all": return code >= SURROGATE_HIGH_MIN_CODE && code <= SURROGATE_LOW_MAX_CODE;
+        default: return false;
+    }
+}
+
+function _replaceRegexChar(ch: string): string {
     const code = ch.codePointAt(0)!;
     const isControl = code <= MAX_C0_CONTROL_CODE || code === ASCII_DEL_CODE;
-    const isSurrogate = ch.length === 1 && code >= SURROGATE_MIN_CODE && code <= SURROGATE_MAX_CODE;
+    const isSurrogateChar = ch.length === 1 && _isUnicodeSurrogate(code);
 
-    if (isControl || isSurrogate) {
+    if (isControl || isSurrogateChar) {
         const named = NAMED_CONTROL_ESCAPES[code];
         if (named) return named;
         const hex = code.toString(16);
         return isControl ? `\\x${hex.padStart(2, "0")}` : `\\u${hex.padStart(4, "0")}`;
     }
     return "\\" + ch;
-};
+}
 
 export function escapeRegExp(
     val: unknown,
@@ -784,31 +734,10 @@ export function toCleanRegExp(
     const isGlobal = options?.global ?? false;
 
     try {
-        if (!isRegExp(pattern)) {
-            const patStr = typeof pattern === "string" ? pattern : String(pattern);
-            let flags = isGlobal ? "g" : "";
-            if (options?.asciiCaseInsensitive) flags += "i";
+        const isReg = isRegExp(pattern);
+        const patStr = isReg ? pattern.source : (typeof pattern === "string" ? pattern : String(pattern));
 
-            if ((patStr.includes("\\p{") || patStr.includes("\\P{")) && !flags.includes("u") && !flags.includes("v")) {
-                try {
-                    return { reg: new RegExp(patStr, flags + "u"), input };
-                } catch {
-                    try {
-                        return { reg: new RegExp(patStr, flags + "v"), input };
-                    } catch {
-                        // Fall through to standard compilation
-                    }
-                }
-            }
-
-            try {
-                return { reg: new RegExp(patStr, flags), input };
-            } catch {
-                return null;
-            }
-        }
-
-        let flags = pattern.flags.replace(/y/g, "");
+        let flags = isReg ? pattern.flags.replace(/y/g, "") : "";
         if (isGlobal) {
             if (!flags.includes("g")) flags += "g";
         } else {
@@ -821,7 +750,23 @@ export function toCleanRegExp(
                 : flags.replace(/i/g, "");
         }
 
-        const reg = new RegExp(pattern.source, flags);
+        if ((patStr.includes("\\p{") || patStr.includes("\\P{")) && !flags.includes("u") && !flags.includes("v")) {
+            try {
+                const reg = new RegExp(patStr, flags + "u");
+                reg.lastIndex = 0;
+                return { reg, input };
+            } catch {
+                try {
+                    const reg = new RegExp(patStr, flags + "v");
+                    reg.lastIndex = 0;
+                    return { reg, input };
+                } catch {
+                    // Fall through to standard compilation
+                }
+            }
+        }
+
+        const reg = new RegExp(patStr, flags);
         reg.lastIndex = 0;
         return { reg, input };
     } catch {
@@ -900,9 +845,7 @@ function _collectPatternCandidates<T>(
 
         if (start === end) {
             if (start === input.length) break;
-            const cp = input.codePointAt(start);
-            const step = cp != null && cp > 0xffff ? 2 : 1;
-            reg.lastIndex = start + step;
+            reg.lastIndex = start + _getCodePointStep(input, start);
         }
     }
     return candidates;
@@ -1075,8 +1018,6 @@ export function extractRegexGroups(
     return extractRegexEngine(str, pattern, options)?.[0] ?? null;
 }
 
-
-
 export function extractRegexMany(
     str: string | null | undefined,
     patterns: (string | RegExp)[] | (string | RegExp),
@@ -1092,35 +1033,27 @@ export function extractRegexMany(
     );
 }
 
+function _toLiteralPattern(pattern: string | RegExp, mode?: EscapeRegexOptions["mode"]): string | RegExp {
+    return isRegExp(pattern)
+        ? new RegExp(escapeRegExp(pattern, { mode }), pattern.flags)
+        : escapeRegExp(pattern, { mode });
+}
+
 export function findRegex(
     str: string | null | undefined,
     pattern: string | RegExp,
     options?: FindOptions
 ): number | null {
     if (str == null || pattern == null) return null;
-    const { literal = false, asciiCaseInsensitive = false, mode } = options ?? {};
+    const { literal = false, mode, ...engineOpts } = options ?? {};
 
-    if (literal) {
-        const isReg = isRegExp(pattern);
-        const patStr = escapeRegExp(pattern, { mode });
-        let flags = asciiCaseInsensitive ? "i" : "";
-        if (isReg) {
-            for (const f of ["i", "u", "v", "m", "s"]) {
-                if (pattern.flags.includes(f) && !flags.includes(f)) {
-                    flags += f;
-                }
-            }
-        }
-        const reg = new RegExp(patStr, flags);
-        const match = str.match(reg);
-        if (!match || match.index == null) return null;
-        return TEXT_ENCODER.encode(str.slice(0, match.index)).length;
-    }
+    const pat = literal ? _toLiteralPattern(pattern, mode) : pattern;
+    const cleanObj = toCleanRegExp(str, pat, { ...engineOpts, global: false });
+    if (!cleanObj) return null;
 
-    const res = extractRegexEngine(str, pattern, { ...options, global: false });
-    if (!res || !res[0] || res[0]._index == null) return null;
-    const charIdx = Number(res[0]._index);
-    return TEXT_ENCODER.encode(str.slice(0, charIdx)).length;
+    const match = cleanObj.input.match(cleanObj.reg);
+    if (!match || match.index == null) return null;
+    return TEXT_ENCODER.encode(cleanObj.input.slice(0, match.index)).length;
 }
 
 export function findManyRegex(
@@ -1162,7 +1095,7 @@ export function splitString(
         ...engineOpts
     } = options ?? {};
 
-    const patStr = literal ? escapeRegExp(delimiter, { mode }) : delimiter;
+    const patStr = literal ? _toLiteralPattern(delimiter, mode) : delimiter;
     const cleanObj = toCleanRegExp(str, patStr, { ...engineOpts, global: true });
     if (!cleanObj) return null;
     const { reg: pattern } = cleanObj;
@@ -1182,9 +1115,6 @@ export function splitString(
         if (matchStart === matchEnd) {
             if (matchStart === str.length) break;
 
-            const cp = str.codePointAt(matchStart);
-            const step = cp != null && cp > 0xffff ? 2 : 1;
-
             if (matchStart > 0 && matchStart >= lastIndex) {
                 parts.push(str.slice(lastIndex, matchStart));
                 matchCount++;
@@ -1192,7 +1122,7 @@ export function splitString(
                 if (matchCount >= maxSplits) break;
             }
 
-            pattern.lastIndex = matchStart + step;
+            pattern.lastIndex = matchStart + _getCodePointStep(str, matchStart);
             continue;
         }
 
@@ -1230,22 +1160,17 @@ function _expandReplacementString(
     captures: (string | undefined)[],
     groups?: Record<string, string>
 ): string {
+    if (!template.includes("$")) return template;
     return template.replace(/\$\$|\$([$'`&]|\d{1,2}|<[^>]+>)/g, (m, token?: string) => {
-        if (m === "$$") return "$";
+        if (m === "$$" || token === "$") return "$";
         if (!token) return m;
-        if (token === "$") return "$";
         if (token === "&") return match;
         if (token === "`") return fullStr.slice(0, offset);
         if (token === "'") return fullStr.slice(offset + match.length);
-        if (token.startsWith("<")) {
-            if (groups === undefined) return m;
-            const name = token.slice(1, -1);
-            return groups[name] ?? "";
-        }
-        const groupIndex = Number(token);
-        if (groupIndex > 0 && groupIndex <= captures.length) {
-            return captures[groupIndex - 1] ?? "";
-        }
+        if (token.startsWith("<")) return groups ? (groups[token.slice(1, -1)] ?? "") : m;
+
+        const idx = Number(token);
+        if (idx > 0 && idx <= captures.length) return captures[idx - 1] ?? "";
 
         if (token.length === 2) {
             const firstDigit = Number(token[0]);
@@ -1272,7 +1197,7 @@ export function replaceString(
 
     if (effectiveN === 0) return input;
 
-    const pat = literal ? escapeRegExp(pattern, { mode }) : pattern;
+    const pat = literal ? _toLiteralPattern(pattern, mode) : pattern;
     const cleanObj = toCleanRegExp(input, pat, { ...engineOpts, global: engineOpts?.global ?? (effectiveN !== 1) });
     if (!cleanObj) return input;
     const { reg } = cleanObj;
@@ -1314,36 +1239,33 @@ export function replaceManyString(
     if (str == null || patterns == null) return null;
     const input = typeof str === "string" ? str : String(str);
 
-    let patList: (string | RegExp)[];
+    const isObjPatterns = isPlainObj(patterns);
+    if (!isObjPatterns && !Array.isArray(patterns)) return input;
+
+    const patList = isObjPatterns ? Object.keys(patterns) : patterns;
+    const len = patList.length;
+    if (len === 0) return input;
+
     let repList: (string | ((match: string, ...args: any[]) => string))[] | null = null;
     let scalarRep: string | ((match: string, ...args: any[]) => string) | null = null;
 
-    if (!Array.isArray(patterns) && typeof patterns === "object") {
-        patList = Object.keys(patterns);
+    if (isObjPatterns) {
         repList = Object.values(patterns);
-    } else if (Array.isArray(patterns)) {
-        patList = patterns;
-        if (Array.isArray(replaceWith)) {
-            if (replaceWith.length === 1 && patList.length > 1) {
-                scalarRep = replaceWith[0];
-            } else if (replaceWith.length !== patList.length) {
-                throw new InvalidArgumentError(
-                    `replace_many length mismatch: expected ${patList.length} replacement strings, got ${replaceWith.length}`
-                );
-            } else {
-                repList = replaceWith;
-            }
-        } else if (replaceWith != null) {
-            scalarRep = replaceWith;
+    } else if (Array.isArray(replaceWith)) {
+        if (replaceWith.length === 1 && len > 1) {
+            scalarRep = replaceWith[0];
+        } else if (replaceWith.length !== len) {
+            throw new InvalidArgumentError(
+                `replace_many length mismatch: expected ${len} replacement strings, got ${replaceWith.length}`
+            );
         } else {
-            return input;
+            repList = replaceWith;
         }
+    } else if (replaceWith != null) {
+        scalarRep = replaceWith;
     } else {
         return input;
     }
-
-    const len = patList.length;
-    if (len === 0) return input;
 
     type Candidate = { start: number; end: number; patternIndex: number; payload: string };
     const candidates: Candidate[] = [];
@@ -1360,9 +1282,10 @@ export function replaceManyString(
                 if (match.groups !== undefined) fnArgs.push(match.groups);
                 return String((rawRep as Function)(...fnArgs));
             }
+            const repStr = String(rawRep);
             return options?.literal
-                ? String(rawRep)
-                : _expandReplacementString(String(rawRep), match[0], start, input, captures, match.groups);
+                ? repStr
+                : _expandReplacementString(repStr, match[0], start, input, captures, match.groups);
         });
 
         for (let j = 0; j < items.length; j++) candidates.push(items[j]);

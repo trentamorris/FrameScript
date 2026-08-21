@@ -1,8 +1,22 @@
 declare const process: any;
 declare const require: any;
-import { isArrayOfType, toValidArray, toArrayOfType, getUniqueArrayStats, joinArray, sortArray, computeMedian, computeQuantile, computeMode } from "../../src/utils/array";
+import { isArrayOfType, toValidArray, toArrayOfType, getUniqueArrayStats, joinArray, sortArray, computeQuantile, computeMode } from "../../src/utils/array";
 
-import { toValidNumber, toValidFloat, formatNumber, isValidFloat, toValidBigInt, isValidBigInt, clamp, roundToScale } from "../../src/utils/number";
+import {
+    isValidNumber,
+    toValidNumber,
+    toValidFloat,
+    isValidFloat,
+    isValidInt,
+    toValidInt,
+    isValidBigInt,
+    toValidBigInt,
+    formatNumber,
+    clamp,
+    roundToScale,
+    toValidDecimal,
+    mulberry32
+} from "../../src/utils/number";
 import { isValidDateObj, isObj, isRegExp, isSet, isMap, unboxPrimitiveObj } from "../../src/utils/object";
 import { toCanonicalString } from "../../src/utils/string";
 import { createSafeJsonReplacer } from "../../src/utils/json";
@@ -352,10 +366,10 @@ try {
     }
 
     // 4. stats functions
-    const medianVal = computeMedian([1, 5, 2, 4, 3]);
-    if (medianVal !== 3) throw new Error("computeMedian odd length failed: " + medianVal);
-    const medianValEven = computeMedian([1, 5, 2, 4, 3, 6]);
-    if (medianValEven !== 3.5) throw new Error("computeMedian even length failed: " + medianValEven);
+    const medianVal = computeQuantile([1, 5, 2, 4, 3], 0.5);
+    if (medianVal !== 3) throw new Error("computeQuantile (median) odd length failed: " + medianVal);
+    const medianValEven = computeQuantile([1, 5, 2, 4, 3, 6], 0.5);
+    if (medianValEven !== 3.5) throw new Error("computeQuantile (median) even length failed: " + medianValEven);
 
     const quantileVal = computeQuantile([1, 2, 3, 4, 5], 0.25);
     if (quantileVal !== 2) throw new Error("computeQuantile failed: " + quantileVal);
@@ -862,6 +876,238 @@ try {
     }
     const badObj = new BadCustom();
     if (testUnbox(badObj) !== badObj) throw new Error("unboxPrimitiveObj bad custom valueOf should return object itself");
+
+    // ==========================================
+    // EXHAUSTIVE NUMBER UTILITIES TEST SUITE
+    // ==========================================
+
+    // 1. isValidNumber exhaustive edge cases
+    if (!isValidNumber(42)) throw new Error("isValidNumber: 42 failed");
+    if (!isValidNumber(-0)) throw new Error("isValidNumber: -0 failed");
+    if (!isValidNumber(Number.MIN_VALUE)) throw new Error("isValidNumber: Number.MIN_VALUE failed");
+    if (!isValidNumber(Number.MAX_VALUE)) throw new Error("isValidNumber: Number.MAX_VALUE failed");
+    if (!isValidNumber(Number.EPSILON)) throw new Error("isValidNumber: Number.EPSILON failed");
+    if (isValidNumber(NaN)) throw new Error("isValidNumber: NaN without options should return false");
+    if (!isValidNumber(NaN, { allowNaN: true })) throw new Error("isValidNumber: NaN with allowNaN: true failed");
+    if (!isValidNumber(NaN, { allowNonFiniteNumbers: true })) throw new Error("isValidNumber: NaN with allowNonFiniteNumbers: true failed");
+    if (isValidNumber(Infinity)) throw new Error("isValidNumber: Infinity without options should return false");
+    if (!isValidNumber(Infinity, { allowNonFiniteNumbers: true })) throw new Error("isValidNumber: Infinity with allowNonFiniteNumbers: true failed");
+    if (!isValidNumber(-Infinity, { allowNonFiniteNumbers: true })) throw new Error("isValidNumber: -Infinity with allowNonFiniteNumbers: true failed");
+    if (isValidNumber("42")) throw new Error("isValidNumber: string '42' should return false");
+    if (isValidNumber(null)) throw new Error("isValidNumber: null should return false");
+    if (isValidNumber(undefined)) throw new Error("isValidNumber: undefined should return false");
+    if (isValidNumber(Symbol(1))) throw new Error("isValidNumber: Symbol should return false");
+    if (isValidNumber(10n)) throw new Error("isValidNumber: BigInt should return false");
+
+    // 2. isValidInt & toValidInt comprehensive tests
+    // isValidInt ranges
+    if (!isValidInt(0)) throw new Error("isValidInt: 0 failed");
+    if (!isValidInt(-2147483648)) throw new Error("isValidInt: Int32 MIN failed");
+    if (!isValidInt(2147483647)) throw new Error("isValidInt: Int32 MAX failed");
+    if (isValidInt(2147483648)) throw new Error("isValidInt: Int32 overflow should return false");
+    if (!isValidInt(255, { range: "UInt8" })) throw new Error("isValidInt: UInt8 MAX failed");
+    if (isValidInt(256, { range: "UInt8" })) throw new Error("isValidInt: UInt8 overflow should return false");
+    if (isValidInt(-1, { range: "UInt8" })) throw new Error("isValidInt: UInt8 negative should return false");
+    if (!isValidInt(127, { range: "Int8" })) throw new Error("isValidInt: Int8 MAX failed");
+    if (isValidInt(128, { range: "Int8" })) throw new Error("isValidInt: Int8 overflow should return false");
+    if (!isValidInt(-128, { range: "Int8" })) throw new Error("isValidInt: Int8 MIN failed");
+    if (isValidInt(-129, { range: "Int8" })) throw new Error("isValidInt: Int8 underflow should return false");
+    if (!isValidInt(65535, { range: "UInt16" })) throw new Error("isValidInt: UInt16 MAX failed");
+    if (isValidInt(65536, { range: "UInt16" })) throw new Error("isValidInt: UInt16 overflow should return false");
+    if (!isValidInt(32767, { range: "Int16" })) throw new Error("isValidInt: Int16 MAX failed");
+    if (isValidInt(32768, { range: "Int16" })) throw new Error("isValidInt: Int16 overflow should return false");
+    if (!isValidInt(4294967295, { range: "UInt32" })) throw new Error("isValidInt: UInt32 MAX failed");
+    if (isValidInt(4294967296, { range: "UInt32" })) throw new Error("isValidInt: UInt32 overflow should return false");
+    if (isValidInt(10.5)) throw new Error("isValidInt: float should return false");
+    if (isValidInt(NaN)) throw new Error("isValidInt: NaN should return false");
+    if (isValidInt(Infinity)) throw new Error("isValidInt: Infinity should return false");
+    if (!isValidInt(10, { range: { min: 5, max: 15 } })) throw new Error("isValidInt: custom range inside failed");
+    if (isValidInt(20, { range: { min: 5, max: 15 } })) throw new Error("isValidInt: custom range outside failed");
+    if (isValidInt(10, { range: "unknown" as any })) throw new Error("isValidInt: unknown range string should return false");
+
+    // toValidInt coercion & clamping
+    if (toValidInt("42.9", { coerce: "truncate" }) !== 42) throw new Error("toValidInt truncate failed");
+    if (toValidInt("42.9", { coerce: "floor" }) !== 42) throw new Error("toValidInt floor failed");
+    if (toValidInt("-42.1", { coerce: "floor" }) !== -43) throw new Error("toValidInt negative floor failed");
+    if (toValidInt("42.1", { coerce: "ceil" }) !== 43) throw new Error("toValidInt ceil failed");
+    if (toValidInt("-42.9", { coerce: "ceil" }) !== -42) throw new Error("toValidInt negative ceil failed");
+    if (toValidInt("42.5", { coerce: "round" }) !== 43) throw new Error("toValidInt round failed");
+    if (toValidInt("42.4", { coerce: "round" }) !== 42) throw new Error("toValidInt round down failed");
+    if (toValidInt(999, { range: "Int8" }) !== 127) throw new Error("toValidInt Int8 max clamping failed");
+    if (toValidInt(-999, { range: "Int8" }) !== -128) throw new Error("toValidInt Int8 min clamping failed");
+    if (toValidInt(999, { range: "UInt8" }) !== 255) throw new Error("toValidInt UInt8 max clamping failed");
+    if (toValidInt(-999, { range: "UInt8" }) !== 0) throw new Error("toValidInt UInt8 min clamping failed");
+    if (toValidInt("invalid") !== null) throw new Error("toValidInt: invalid string should return null");
+    if (toValidInt(null) !== null) throw new Error("toValidInt: null should return null");
+    if (toValidInt(undefined) !== null) throw new Error("toValidInt: undefined should return null");
+    if (toValidInt(42, { range: "unknown" as any }) !== null) throw new Error("toValidInt: unknown range string should return null");
+
+    // 3. toValidDecimal precision and scale tests
+    if (toValidDecimal(12.3456, { scale: 2 }) !== 12.35) throw new Error("toValidDecimal: scale 2 rounding failed");
+    if (toValidDecimal("12.3456", { scale: 3 }) !== 12.346) throw new Error("toValidDecimal: scale 3 rounding string failed");
+    if (toValidDecimal(12345.67, { precision: 5, scale: 2 }) !== 999.99) throw new Error("toValidDecimal: precision 5 scale 2 max clamping failed");
+    if (toValidDecimal(-12345.67, { precision: 5, scale: 2 }) !== -999.99) throw new Error("toValidDecimal: precision 5 scale 2 min clamping failed");
+    if (toValidDecimal(500, { precision: 3, scale: 0 }) !== 500) throw new Error("toValidDecimal: precision 3 scale 0 within range failed");
+    if (toValidDecimal(1500, { precision: 3, scale: 0 }) !== 999) throw new Error("toValidDecimal: precision 3 scale 0 clamped failed");
+    if (toValidDecimal("invalid") !== null) throw new Error("toValidDecimal: invalid string should return null");
+    if (toValidDecimal(null) !== null) throw new Error("toValidDecimal: null should return null");
+    if (toValidDecimal(undefined) !== null) throw new Error("toValidDecimal: undefined should return null");
+
+    // 4. roundToScale exhaustive tests
+    if (roundToScale(1.005, 2) !== 1.01) throw new Error("roundToScale: 1.005 to scale 2 failed");
+    if (roundToScale(1.2345, 3) !== 1.235) throw new Error("roundToScale: 1.2345 to scale 3 failed");
+    if (roundToScale(1.2345, 0) !== 1) throw new Error("roundToScale: scale 0 failed");
+    if (roundToScale(12345, -2) !== 12300) throw new Error("roundToScale: scale -2 failed");
+    if (roundToScale(12345, -3) !== 12000) throw new Error("roundToScale: scale -3 failed");
+    if (roundToScale(1.5e-3, 4) !== 0.0015) throw new Error("roundToScale: scientific notation float failed");
+    if (roundToScale(Infinity, 2) !== Infinity) throw new Error("roundToScale: Infinity non-finite guard failed");
+    if (roundToScale(-Infinity, 2) !== -Infinity) throw new Error("roundToScale: -Infinity non-finite guard failed");
+    if (!Number.isNaN(roundToScale(NaN, 2))) throw new Error("roundToScale: NaN non-finite guard failed");
+
+    // 5. clamp with BigInt values and boundary edge cases
+    if (clamp(5n, { min: 1n, max: 10n }) !== 5n) throw new Error("clamp BigInt: within bounds failed");
+    if (clamp(0n, { min: 1n, max: 10n }) !== 1n) throw new Error("clamp BigInt: lower bound failed");
+    if (clamp(15n, { min: 1n, max: 10n }) !== 10n) throw new Error("clamp BigInt: upper bound failed");
+    if (clamp(5n, { min: 10n, max: 1n }) !== 10n) throw new Error("clamp BigInt: invalid min > max should return min");
+    if (clamp(-50n, { min: 0n }) !== 0n) throw new Error("clamp BigInt: only min bound failed");
+    if (clamp(50n, { max: 20n }) !== 20n) throw new Error("clamp BigInt: only max bound failed");
+    if (clamp(10n) !== 10n) throw new Error("clamp BigInt: no options failed");
+
+    // 6. mulberry32 PRNG determinism & boundary tests
+    const prng1 = mulberry32(12345);
+    const prng2 = mulberry32(12345);
+    const prng3 = mulberry32(67890);
+
+    const val1A = prng1();
+    const val1B = prng1();
+    const val2A = prng2();
+    const val2B = prng2();
+    const val3A = prng3();
+
+    if (val1A !== val2A || val1B !== val2B) {
+        throw new Error("mulberry32: Identical seeds should produce identical PRNG sequences");
+    }
+    if (val1A === val3A) {
+        throw new Error("mulberry32: Different seeds should produce different values");
+    }
+    for (let i = 0; i < 1000; i++) {
+        const r = prng1();
+        if (r < 0 || r >= 1) {
+            throw new Error(`mulberry32: Generated value out of [0, 1) range: ${r}`);
+        }
+    }
+
+    // 7. formatNumber BigInt, accounting, and locale tests
+    const acctFormatter = formatNumber({ accountingNegatives: true });
+    if (acctFormatter(-42n) !== "(42)") throw new Error("formatNumber: BigInt negative accounting format failed");
+    if (acctFormatter(42n) !== "42") throw new Error("formatNumber: BigInt positive accounting format failed");
+    if (acctFormatter(-123.45) !== "(123.45)") throw new Error("formatNumber: number negative accounting format failed");
+    if (acctFormatter(123.45) !== "123.45") throw new Error("formatNumber: number positive accounting format failed");
+    if (acctFormatter(-Infinity) !== "(∞)") throw new Error("formatNumber: -Infinity accounting format failed");
+
+    const deFormatter = formatNumber({ locale: "de-DE", useGrouping: false });
+    if (deFormatter(1234.56) !== "1234,56") throw new Error("formatNumber: de-DE decimal comma failed");
+
+    // ==========================================
+    // 8. 10/10 DIFFICULTY EXTREME NUMBER EDGE CASES
+    // ==========================================
+
+    // 8a. Subnormals / Denormals (Number.MIN_VALUE = 5e-324)
+    if (toValidNumber(5e-324) !== 5e-324) throw new Error("10/10: Subnormal 5e-324 literal failed");
+    if (toValidNumber("5e-324") !== 5e-324) throw new Error("10/10: Subnormal string '5e-324' failed");
+    if (!isValidNumber(Number.MIN_VALUE)) throw new Error("10/10: isValidNumber on Number.MIN_VALUE failed");
+    if (!isValidFloat(Number.MIN_VALUE)) throw new Error("10/10: isValidFloat on Number.MIN_VALUE failed");
+    if (!isValidFloat(Number.MIN_VALUE, { floatPrecision: "Float32" })) {
+        throw new Error("10/10: isValidFloat Float32 underflow should return true for 0");
+    }
+
+    // 8b. Negative Zero (-0) Preservation & Equality
+    const negZeroNum = toValidNumber(-0);
+    if (!Object.is(negZeroNum, -0) || (1 / negZeroNum!) !== -Infinity) {
+        throw new Error("10/10: -0 literal preservation failed");
+    }
+    const negZeroStr = toValidNumber("-0");
+    if (!Object.is(negZeroStr, -0) || (1 / negZeroStr!) !== -Infinity) {
+        throw new Error("10/10: '-0' string preservation failed");
+    }
+    const negZeroFloat = toValidFloat("-0");
+    if (!Object.is(negZeroFloat, -0) || (1 / negZeroFloat!) !== -Infinity) {
+        throw new Error("10/10: toValidFloat '-0' preservation failed");
+    }
+
+    // 8c. Zero-width spaces & non-standard Unicode whitespace injection
+    if (toValidNumber("1\u200B2\u200C3\u200D4\uFEFF") !== 1234) {
+        throw new Error("10/10: Zero-width space injection cleaning failed");
+    }
+    if (toValidNumber("1\u00A0234,56") !== 1234.56) {
+        throw new Error("10/10: Non-breaking space in European number failed");
+    }
+    if (toValidNumber("1\u3000234.56") !== 1234.56) {
+        throw new Error("10/10: Ideographic full-width space in English number failed");
+    }
+
+    // 8d. Extreme BigInt scientific mantissa padding and shifting
+    if (toValidBigInt("0.000000000000000000000000000001e35") !== 100000n) {
+        throw new Error("10/10: Extreme fractional zero padded mantissa toValidBigInt failed");
+    }
+    if (toValidBigInt("-0000123.450000e+0003") !== -123450n) {
+        throw new Error("10/10: Negative leading and trailing zero scientific toValidBigInt failed");
+    }
+    if (toValidBigInt("1000000000000000000000000000000e-25") !== 100000n) {
+        throw new Error("10/10: Large integer mantissa with negative exponent toValidBigInt failed");
+    }
+    if (toValidBigInt("0.000000000000000000000000000000e5") !== 0n) {
+        throw new Error("10/10: Pure zero mantissa scientific toValidBigInt failed");
+    }
+    if (toValidBigInt("0e+0") !== 0n || toValidBigInt("-0e+0") !== 0n) {
+        throw new Error("10/10: Zero exponent scientific toValidBigInt failed");
+    }
+
+    // 8e. Adversarial corrupted range objects & prototype isolation
+    if (isValidInt(50, { range: { min: 100, max: 0 } })) {
+        throw new Error("10/10: Inverted range { min: 100, max: 0 } should return false");
+    }
+    if (isValidBigInt(50n, { range: { min: 100n, max: 0n } })) {
+        throw new Error("10/10: Inverted BigInt range should return false");
+    }
+    if (isValidInt(50, { range: { min: NaN, max: 100 } })) {
+        throw new Error("10/10: Range with NaN min should return false");
+    }
+    const nullProtoRange = Object.assign(Object.create(null), { min: 0, max: 100 });
+    if (!isValidInt(50, { range: nullProtoRange })) {
+        throw new Error("10/10: Null prototype range object failed");
+    }
+    if (isValidInt(50, { range: { min: "0", max: "100" } as any })) {
+        throw new Error("10/10: String range bounds in isValidInt should return false");
+    }
+    if (isValidInt(50, { range: { min: 0n, max: 100n } as any })) {
+        throw new Error("10/10: BigInt range bounds in isValidInt should return false");
+    }
+
+    // 8f. Parentheses, signs & boundary traps
+    if (toValidNumber("()") !== null) throw new Error("10/10: '()' should return null");
+    if (toValidNumber("(   )") !== null) throw new Error("10/10: '(   )' should return null");
+    if (toValidNumber("(-)") !== null) throw new Error("10/10: '(-)' should return null");
+    if (toValidNumber("(+)") !== null) throw new Error("10/10: '(+)' should return null");
+    if (toValidNumber("123.45--") !== null) throw new Error("10/10: '123.45--' should return null");
+    if (toValidNumber("123.45++") !== null) throw new Error("10/10: '123.45++' should return null");
+    if (toValidNumber("+-123") !== null) throw new Error("10/10: '+-123' should return null");
+    if (toValidNumber("-+123") !== null) throw new Error("10/10: '-+123' should return null");
+
+    // 8g. Floating point exponent overflow & underflow boundaries
+    const maxFloatFinite = toValidNumber("1.7976931348623157e+308");
+    if (maxFloatFinite === null || !Number.isFinite(maxFloatFinite)) {
+        throw new Error("10/10: Maximum finite double precision float failed");
+    }
+    if (toValidNumber("1e+309") !== null) {
+        throw new Error("10/10: 1e+309 overflow without allowNonFiniteNumbers should return null");
+    }
+    if (toValidNumber("1e+309", { allowNonFiniteNumbers: true }) !== Infinity) {
+        throw new Error("10/10: 1e+309 overflow with allowNonFiniteNumbers should return Infinity");
+    }
+    if (toValidNumber("-1e+309", { allowNonFiniteNumbers: true }) !== -Infinity) {
+        throw new Error("10/10: -1e+309 overflow with allowNonFiniteNumbers should return -Infinity");
+    }
 
     console.log("🎉 ALL UTILS TYPES TESTS PASSED SUCCESSFULLY!");
 } catch (err) {

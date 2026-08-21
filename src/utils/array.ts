@@ -818,13 +818,6 @@ export function computeQuantile(values: ArrayLike<any>, q: number): number | nul
     return validNums[low] + (idx - low) * (validNums[high] - validNums[low]);
 }
 
-/**
- * Computes the median of a numeric array, filtering out non-numeric and NaN values.
- * Returns null if no valid numbers remain.
- */
-export function computeMedian(values: ArrayLike<any>): number | null {
-    return computeQuantile(values, 0.5);
-}
 
 /**
  * Computes the mode(s) of an array, filtering out null/undefined values.
@@ -889,20 +882,14 @@ export function shiftArray(arr: any[] | AnyTypedArray, n: number): any[] {
 }
 
 /**
- * Robust, single-pass computation using Welford's algorithm to calculate
- * covariance, variances, and correlation simultaneously with high numerical stability.
+ * Unzips and validates a ColumnData pair array into contiguous Float64Array buffers.
+ * @internal
  */
-export function computeStatisticalMatrix(
-    pairs: ColumnData<[any, any]>
-): { covariance: number | null; correlation: number | null } | null {
+function _unzipValidNumericPairs(pairs: ColumnData<[any, any]>): { xArr: Float64Array; yArr: Float64Array; count: number } {
     const len = pairs.length;
+    const xArr = new Float64Array(len);
+    const yArr = new Float64Array(len);
     let count = 0;
-
-    let meanX = 0;
-    let meanY = 0;
-    let M2_X = 0;
-    let M2_Y = 0;
-    let C_XY = 0;
 
     for (let i = 0; i < len; i++) {
         const pair = pairs[i];
@@ -912,22 +899,45 @@ export function computeStatisticalMatrix(
         const y = toValidNumber(pair[1]);
         if (x === null || y === null) continue;
 
+        xArr[count] = x;
+        yArr[count] = y;
         count++;
+    }
+
+    return { xArr, yArr, count };
+}
+
+/**
+ * Computes 2-variable Welford stats (covariance, variances, and correlation) on flat numeric buffers.
+ * @internal
+ */
+function _computeWelfordMatrix(
+    xArr: ArrayLike<number>,
+    yArr: ArrayLike<number>,
+    count: number
+): { covariance: number | null; correlation: number | null } | null {
+    if (count < 2) return null;
+
+    let meanX = 0, meanY = 0;
+    let M2_X = 0, M2_Y = 0;
+    let C_XY = 0;
+
+    for (let i = 0; i < count; i++) {
+        const x = xArr[i];
+        const y = yArr[i];
 
         const deltaX = x - meanX;
-        meanX += deltaX / count;
+        meanX += deltaX / (i + 1);
         const deltaX2 = x - meanX;
 
         const deltaY = y - meanY;
-        meanY += deltaY / count;
+        meanY += deltaY / (i + 1);
         const deltaY2 = y - meanY;
 
         C_XY += deltaX * deltaY2;
         M2_X += deltaX * deltaX2;
         M2_Y += deltaY * deltaY2;
     }
-
-    if (count < 2) return { covariance: null, correlation: null };
 
     const covariance = C_XY / (count - 1);
 
@@ -940,13 +950,21 @@ export function computeStatisticalMatrix(
         return { covariance, correlation: null };
     }
 
-    const correlation = C_XY / denominator;
-    const clampedCorrelation = clamp(correlation, { min: -1, max: 1 });
+    const correlation = clamp(C_XY / denominator, { min: -1, max: 1 });
+    return { covariance, correlation };
+}
 
-    return {
-        covariance,
-        correlation: clampedCorrelation
-    };
+/**
+ * Robust, single-pass computation using Welford's algorithm to calculate
+ * covariance, variances, and correlation simultaneously with high numerical stability.
+ */
+export function computeStatisticalMatrix(
+    pairs: ColumnData<[any, any]>
+): { covariance: number | null; correlation: number | null } | null {
+    const { xArr, yArr, count } = _unzipValidNumericPairs(pairs);
+    if (count < 2) return { covariance: null, correlation: null };
+
+    return _computeWelfordMatrix(xArr, yArr, count) ?? { covariance: null, correlation: null };
 }
 
 /**
@@ -986,36 +1004,8 @@ export function computeCorrelationOfFlatArrays(
     yArr: ArrayLike<number>,
     count: number
 ): number | null {
-    if (count < 2) return null;
-
-    let meanX = 0, meanY = 0;
-    let M2_X = 0, M2_Y = 0;
-    let C_XY = 0;
-
-    for (let i = 0; i < count; i++) {
-        const x = xArr[i];
-        const y = yArr[i];
-
-        const deltaX = x - meanX;
-        meanX += deltaX / (i + 1);
-        const deltaX2 = x - meanX;
-
-        const deltaY = y - meanY;
-        meanY += deltaY / (i + 1);
-        const deltaY2 = y - meanY;
-
-        C_XY += deltaX * deltaY2;
-        M2_X += deltaX * deltaX2;
-        M2_Y += deltaY * deltaY2;
-    }
-
-    if (M2_X === 0 || M2_Y === 0) return null;
-
-    const denominator = Math.sqrt(M2_X * M2_Y);
-    if (denominator === 0 || Number.isNaN(denominator)) return null;
-
-    const correlation = C_XY / denominator;
-    return clamp(correlation, { min: -1, max: 1 });
+    const stats = _computeWelfordMatrix(xArr, yArr, count);
+    return stats ? stats.correlation : null;
 }
 
 /**
@@ -1023,24 +1013,7 @@ export function computeCorrelationOfFlatArrays(
  * Optimized to achieve near-zero secondary allocations.
  */
 export function computeSpearmanCorrelation(pairs: ColumnData<[any, any]>): number | null {
-    const len = pairs.length;
-    const xArr = new Float64Array(len);
-    const yArr = new Float64Array(len);
-    let count = 0;
-
-    for (let i = 0; i < len; i++) {
-        const pair = pairs[i];
-        if (pair) {
-            const x = toValidNumber(pair[0]);
-            const y = toValidNumber(pair[1]);
-            if (x !== null && y !== null) {
-                xArr[count] = x;
-                yArr[count] = y;
-                count++;
-            }
-        }
-    }
-
+    const { xArr, yArr, count } = _unzipValidNumericPairs(pairs);
     if (count < 2) return null;
 
     const xRanks = _computeRanks(xArr.subarray(0, count));

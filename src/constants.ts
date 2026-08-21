@@ -6,6 +6,9 @@ export const NEWLINE_REGEX = /\r\n|\n|\r/;
 
 /** Reusable singleton TextEncoder instance for UTF-8 string encoding across the codebase. */
 export const TEXT_ENCODER = new TextEncoder();
+/** Reusable singleton TextDecoder instances for non-fatal and fatal UTF-8 decoding. */
+export const TEXT_DECODER = new TextDecoder("utf-8");
+export const TEXT_DECODER_FATAL = new TextDecoder("utf-8", { fatal: true });
 
 export const MS_PER_WEEK = 604_800_000;
 export const MS_PER_DAY = 86_400_000;
@@ -55,8 +58,10 @@ export const UINT8_MAX = 255;
 /** Unicode Codepoint Boundaries for Control Characters & Surrogates */
 export const MAX_C0_CONTROL_CODE = 0x1f;
 export const ASCII_DEL_CODE = 0x7f;
-export const SURROGATE_MIN_CODE = 0xd800;
-export const SURROGATE_MAX_CODE = 0xdfff;
+export const SURROGATE_HIGH_MIN_CODE = 0xd800;
+export const SURROGATE_HIGH_MAX_CODE = 0xdbff;
+export const SURROGATE_LOW_MIN_CODE = 0xdc00;
+export const SURROGATE_LOW_MAX_CODE = 0xdfff;
 
 /** Named escape mappings for common control characters */
 export const NAMED_CONTROL_ESCAPES: Readonly<Record<number, string>> = Object.freeze({

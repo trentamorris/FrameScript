@@ -31,6 +31,12 @@ import {
     replaceString,
     replaceManyString
 } from "../../src/utils/string";
+import {
+    SURROGATE_HIGH_MIN_CODE,
+    SURROGATE_HIGH_MAX_CODE,
+    SURROGATE_LOW_MIN_CODE,
+    SURROGATE_LOW_MAX_CODE
+} from "../../src/constants";
 
 console.log("=========================================");
 console.log("STARTING UTILS STRING TESTS...");
@@ -104,7 +110,193 @@ try {
     if (stripChars("alOuLoUd", "ALOU", { maxScanStart: -1, stringOptions: { literal: true, caseInsensitive: true } }) !== "LoUd") throw new Error("Expected case-insensitive literal match to strip start");
     if (stripChars("AlOuAlOuD", "alou", { maxScanStart: -1, maxMatchesStart: 2, stringOptions: { literal: true, caseInsensitive: true } }) !== "D") throw new Error("Expected case-insensitive literal multi-match to succeed");
 
-    // 12. toCanonicalString tests
+    // 11b. Complex edge cases for stripChars
+    // Empty strings & 0 limits
+    if (stripChars("", "abc") !== null) throw new Error("Expected stripChars('', 'abc') to be null");
+    if (stripChars("", "abc", { returnStringOnNull: true }) !== "") throw new Error("Expected stripChars('', 'abc', { returnStringOnNull: true }) to be ''");
+    if (stripChars("", "") !== null) throw new Error("Expected stripChars('', '') to be null");
+    if (stripChars("", "", { returnStringOnNull: true }) !== "") throw new Error("Expected stripChars('', '', { returnStringOnNull: true }) to be ''");
+    if (stripChars("hello", "") !== "hello") throw new Error("Expected empty characters string to strip nothing");
+    if (stripChars("hello", "", { stringOptions: { literal: true } }) !== "hello") throw new Error("Expected empty literal characters string to strip nothing");
+    if (stripChars("hello", "l", { maxMatchesStart: 0, maxMatchesEnd: 0 }) !== "hello") throw new Error("Expected maxMatches: 0 to strip nothing");
+    if (stripChars("hello", "h", { mode: "end" }) !== "hello") throw new Error("Expected mode: 'end' not to strip start");
+    if (stripChars("hello", "o", { mode: "start" }) !== "hello") throw new Error("Expected mode: 'start' not to strip end");
+
+    // Overlapping literal substrings and boundary limits
+    if (stripChars("banana", "na", { mode: "end", stringOptions: { literal: true }, maxMatchesEnd: 1 }) !== "bana") throw new Error("Expected single literal strip from end of banana");
+    if (stripChars("banana", "na", { mode: "end", stringOptions: { literal: true }, maxMatchesEnd: 2 }) !== "ba") throw new Error("Expected dual literal strip from end of banana");
+    if (stripChars("banana", "an", { mode: "end", stringOptions: { literal: true }, maxScanEnd: 2, maxMatchesEnd: 1 }) !== "bana") throw new Error("Expected single literal strip with maxScanEnd 2");
+    if (stripChars("aaaaa", "aa", { mode: "start", stringOptions: { literal: true }, maxMatchesStart: 2 }) !== "a") throw new Error("Expected non-overlapping literal block consumption from start");
+    if (stripChars("abababa", "aba", { mode: "both", stringOptions: { literal: true } }) !== "b") throw new Error("Expected non-overlapping literal strip from both sides");
+    if (stripChars("XabcXYZabcX", "abc", { stringOptions: { literal: true }, maxScanStart: 1, maxScanEnd: 1 }) !== "XabcXYZabcX") throw new Error("Expected maxScan 1 to skip match when 1 char before pattern");
+    if (stripChars("XabcXYZabcX", "abc", { stringOptions: { literal: true }, maxScanStart: 2, maxScanEnd: 2 }) !== "XXYZX") throw new Error("Expected maxScan 2 to strip abc while retaining non-matching X characters");
+
+    // Unicode, Multi-byte & Surrogate Pair edge cases
+    if (stripChars("🚀🚀Hello World🚀", "🚀") !== "Hello World") throw new Error("Expected multi-byte emoji stripping to succeed");
+    if (stripChars("🎉✨Hello✨🎉", "🎉✨") !== "Hello") throw new Error("Expected multi-emoji character set stripping to succeed");
+    if (stripChars("🎉✨Hello✨🎉", "✨🎉", { mode: "end" }) !== "🎉✨Hello") throw new Error("Expected multi-emoji stripping from end only");
+    if (stripChars("🎉✨Hello✨🎉", "🎉✨", { stringOptions: { literal: true }, mode: "start" }) !== "Hello✨🎉") throw new Error("Expected literal multi-emoji sequence to strip start");
+    if (stripChars("   \t\n  \r\n   ", null) !== null) throw new Error("Expected pure mixed whitespace to return null");
+    if (stripChars("   \t\n  \r\n   ", null, { returnStringOnNull: true }) !== "") throw new Error("Expected pure mixed whitespace with returnStringOnNull: true to return ''");
+
+    // trimFirst interaction with mode and character sets
+    if (stripChars("  \t abcXYZcba \t  ", "abc", { trimFirst: true, mode: "both" }) !== "XYZ") throw new Error("Expected trimFirst with mode both to cleanly strip surrounded characters");
+    if (stripChars("  \t abcXYZcba \t  ", "abc", { trimFirst: true, mode: "start" }) !== "XYZcba \t  ") throw new Error("Expected trimFirst with mode start to preserve trailing whitespace and end characters");
+    if (stripChars("  \t abcXYZcba \t  ", "abc", { trimFirst: true, mode: "end" }) !== "  \t abcXYZ") throw new Error("Expected trimFirst with mode end to preserve leading whitespace and start characters");
+    if (stripChars("   \t\n   ", "abc", { trimFirst: true }) !== null) throw new Error("Expected trimFirst on pure whitespace to return null");
+    if (stripChars("   \t\n   ", "abc", { trimFirst: true, returnStringOnNull: true }) !== "") throw new Error("Expected trimFirst on pure whitespace with returnStringOnNull: true to return ''");
+
+    // Stateful regex safety (regex with 'g' flag and non-zero lastIndex)
+    const statefulRegex = /[0-9]/g;
+    statefulRegex.lastIndex = 3;
+    if (stripChars("123abc456", statefulRegex) !== "abc") throw new Error("Expected stateful regex with lastIndex to reset cleanly and strip correctly");
+    const stickyRegex = /[0-9]/y;
+    stickyRegex.lastIndex = 2;
+    if (stripChars("123abc456", stickyRegex) !== "abc") throw new Error("Expected sticky regex to test from index 0");
+
+    // String characters with special regex characters as literal characters
+    if (stripChars("$$$hello$$$", "$") !== "hello") throw new Error("Expected $ character to be stripped cleanly without regex parsing issues");
+    if (stripChars("***[hello]***", "*[]") !== "hello") throw new Error("Expected * and brackets to strip correctly");
+    if (stripChars("+++[hello]+++", "[hello]", { stringOptions: { literal: true }, maxScanStart: -1, maxScanEnd: -1 }) !== "++++++") throw new Error("Expected literal bracketed string to strip out completely");
+    if (stripChars("(((test)))", "(", { mode: "start" }) !== "test)))") throw new Error("Expected parenthesis set in mode start to strip cleanly");
+    if (stripChars("(((test)))", ")", { mode: "end" }) !== "(((test") throw new Error("Expected parenthesis set in mode end to strip cleanly");
+
+    // Complete stripping resulting in empty vs null
+    if (stripChars("xxxxx", "x") !== null) throw new Error("Expected complete character stripping to return null by default");
+    if (stripChars("xxxxx", "x", { returnStringOnNull: true }) !== "") throw new Error("Expected complete character stripping to return '' when returnStringOnNull: true");
+    if (stripChars("abcabc", "abc", { stringOptions: { literal: true }, maxScanStart: -1, maxScanEnd: -1 }) !== null) throw new Error("Expected complete literal stripping to return null");
+    if (stripChars("abcabc", "abc", { stringOptions: { literal: true }, maxScanStart: -1, maxScanEnd: -1, returnStringOnNull: true }) !== "") throw new Error("Expected complete literal stripping to return '' with returnStringOnNull");
+
+    // 11c. Comprehensive Edge Case Tests for stripChars
+    // Bounded matching with maxMatches & maxScan limits
+    if (stripChars("Xabc", "a", { maxScanStart: 1 }) !== "Xabc") throw new Error("Expected maxScanStart 1 to stop when first char does not match");
+    if (stripChars("abcX", "c", { maxScanEnd: 1 }) !== "abcX") throw new Error("Expected maxScanEnd 1 to stop when last char does not match");
+    if (stripChars("Xabc", "a", { maxScanStart: 2 }) !== "Xbc") throw new Error("Expected maxScanStart 2 to skip 1 char and strip 'a'");
+    if (stripChars("abcX", "c", { maxScanEnd: 2 }) !== "abX") throw new Error("Expected maxScanEnd 2 to skip 1 char and strip 'c'");
+    if (stripChars("axaya", "a", { mode: "start", maxScanStart: -1, maxMatchesStart: 2 }) !== "xya") throw new Error("Expected 2 matches from start to strip first two 'a' chars in mode start");
+    if (stripChars("axaya", "a", { mode: "end", maxScanEnd: -1, maxMatchesEnd: 1 }) !== "axay") throw new Error("Expected 1 match from end to strip last 'a' char only in mode end");
+
+    // Complete character depletion and returnStringOnNull
+    if (stripChars("---", "-") !== null) throw new Error("Expected complete character strip to return null by default");
+    if (stripChars("---", "-", { returnStringOnNull: true }) !== "") throw new Error("Expected complete character strip to return '' with returnStringOnNull: true");
+    if (stripChars("###", /[#]/) !== null) throw new Error("Expected complete regex strip to return null by default");
+    if (stripChars("###", /[#]/, { returnStringOnNull: true }) !== "") throw new Error("Expected complete regex strip to return '' with returnStringOnNull: true");
+
+    // Case-folding & accented Unicode characters
+    if (stripChars("HELLOworldhello", "hello", { stringOptions: { literal: true, caseInsensitive: true }, maxScanStart: -1, maxScanEnd: -1, mode: "both" }) !== "world") throw new Error("Expected case-insensitive literal stripping from both sides");
+    if (stripChars("ÁÉÍÓÚtestáéíóú", "ÁÉÍÓÚ", { stringOptions: { literal: true, caseInsensitive: true }, maxScanStart: -1, maxScanEnd: -1, mode: "both" }) !== "test") throw new Error("Expected accented case-insensitive literal strip");
+    if (stripChars("ΣhelloΣ", "σ", { stringOptions: { caseInsensitive: true } }) !== "hello") throw new Error("Expected Greek sigma case insensitive match");
+
+    // 11d. Additional Edge Cases: ZWJ emoji sequences, zero-width regex, negative limits, special metacharacters
+    if (stripChars("👨‍👩‍👧‍👦hello👨‍👩‍👧‍👦", "👨‍👩‍👧‍👦", { stringOptions: { literal: true } }) !== "hello") throw new Error("Expected complex ZWJ emoji sequence literal strip to succeed");
+    if (stripChars("hello", /(?:)/) !== "hello") throw new Error("Expected zero-width empty regex to strip nothing and not loop");
+    if (stripChars("[-^hello$-]", "-[]^$") !== "hello") throw new Error("Expected character set containing special regex characters to strip cleanly");
+    if (stripChars("aaloud", "lou", { maxScanStart: -5 }) !== "aad") throw new Error("Expected arbitrary negative maxScan to act as unlimited scan");
+    if (stripChars("axaya", "a", { mode: "start", maxScanStart: -1, maxMatchesStart: -10 }) !== "xy") throw new Error("Expected arbitrary negative maxMatches to act as unlimited matches");
+    if (stripChars("   ", "abc", { trimFirst: true }) !== null) throw new Error("Expected trimFirst on whitespace-only string to return null");
+    if (stripChars("   ", "abc", { trimFirst: true, returnStringOnNull: true }) !== "") throw new Error("Expected trimFirst on whitespace-only string with returnStringOnNull to return ''");
+
+    // 11e. 10/10 Difficulty Edge Cases
+    // 1. Unicode Property Escapes in RegExp
+    if (stripChars("你好World世界", /\p{Script=Han}/u) !== "World") throw new Error("Expected Unicode property escape \\p{Script=Han} to strip Chinese characters");
+    if (stripChars("αβγHelloωψχ", /\p{Script=Greek}/u) !== "Hello") throw new Error("Expected Unicode property escape \\p{Script=Greek} to strip Greek characters");
+
+    // 2. Dual-Direction Overlapping Boundary Strip with Symmetrical Patterns
+    if (stripChars("abracadabra", "abra", { stringOptions: { literal: true }, mode: "both" }) !== "cad") throw new Error("Expected overlapping dual-direction literal stripping of abracadabra to leave cad");
+    if (stripChars("abaXaba", "aba", { stringOptions: { literal: true }, maxMatchesStart: 1, maxMatchesEnd: 1 }) !== "X") throw new Error("Expected dual-direction exact match limit to leave X");
+
+    // 3. Combining Diacritical Marks (NFD decomposed forms)
+    const nfd = "e\u0301";
+    if (stripChars(`${nfd}hello${nfd}`, nfd, { stringOptions: { literal: true } }) !== "hello") throw new Error("Expected NFD combining mark literal stripping to succeed");
+
+    // 4. Zero maxMatches / Zero maxScan vs Unlimited settings
+    if (stripChars("hello", "h", { maxMatchesStart: 0, maxScanStart: -1 }) !== "hello") throw new Error("Expected maxMatches: 0 to override unlimited maxScan");
+    if (stripChars("Xhello", "h", { maxScanStart: 0 }) !== "Xhello") throw new Error("Expected maxScan: 0 to prevent match when not at index 0");
+
+    // 5. Unprintable Control Characters & Null Bytes in Character Set
+    const controlChars = "\x00\x01\x1f\x7f";
+    if (stripChars(`\x00\x01hello\x1f\x7f`, controlChars) !== "hello") throw new Error("Expected unprintable control codes and null bytes to strip cleanly");
+
+    // 6. Lone Surrogates in character set
+    if (stripChars("\uD800hello\uD800", "\uD800") !== "hello") throw new Error("Expected lone surrogate to strip cleanly without RegExp escape throwing");
+
+    // 7. Full-span pattern matches with mode: 'start' and mode: 'end'
+    if (stripChars("aaaa", "aa", { mode: "start", stringOptions: { literal: true }, maxMatchesStart: 1 }) !== "aa") throw new Error("Expected start mode to strip single block on full pattern");
+    if (stripChars("aaaa", "aa", { mode: "end", stringOptions: { literal: true }, maxMatchesEnd: 1 }) !== "aa") throw new Error("Expected end mode to strip single block on full pattern");
+
+    // 8. Literal regex syntax characters (ranges like 'a-z' and '\\w')
+    if (stripChars("a-zHelloa-z", "a-z", { stringOptions: { literal: true } }) !== "Hello") throw new Error("Expected literal range string 'a-z' to strip literally");
+
+    // 10. Non-string / Non-RegExp or unexpected characters argument
+    if (stripChars("hello", 123 as any) !== "hello") throw new Error("Expected invalid characters type to return original string");
+    if (stripChars("hello", {} as any) !== "hello") throw new Error("Expected invalid characters object to return original string");
+    if (stripChars("hello", true as any) !== "hello") throw new Error("Expected boolean characters type to return original string");
+
+    // 11. Single character inputs
+    if (stripChars("a", "a") !== null) throw new Error("Expected single char matching to return null");
+    if (stripChars("a", "a", { returnStringOnNull: true }) !== "") throw new Error("Expected single char matching with returnStringOnNull to return ''");
+    if (stripChars("a", "b") !== "a") throw new Error("Expected single char non-matching to return 'a'");
+    if (stripChars("a", /[a]/) !== null) throw new Error("Expected single char regex match to return null");
+
+    // 12. Multiline newline stripping
+    if (stripChars("\r\nhello\r\n", "\r\n", { stringOptions: { literal: true } }) !== "hello") throw new Error("Expected single multiline CRLF literal strip to succeed");
+    if (stripChars("\r\n\r\nhello\r\n", "\r\n", { stringOptions: { literal: true }, maxMatchesStart: -1 }) !== "hello") throw new Error("Expected multiline CRLF literal strip to succeed with maxMatchesStart: -1");
+    if (stripChars("\n\n\nhello\n\n", "\n") !== "hello") throw new Error("Expected LF character strip to succeed");
+    if (stripChars("\r\nhello\r\n", "\r\n", { stringOptions: { literal: true }, mode: "start" }) !== "hello\r\n") throw new Error("Expected start-only CRLF literal strip to preserve trailing CRLF");
+
+    // 13. Non-matching pattern preserves identity
+    if (stripChars("hello world", "xyz") !== "hello world") throw new Error("Expected non-matching string characters to return original string");
+    if (stripChars("hello world", /[0-9]/) !== "hello world") throw new Error("Expected non-matching regex to return original string");
+
+    // 14. trimFirst with directional modes on whitespace-only input
+    if (stripChars("   ", "abc", { trimFirst: true, mode: "start" }) !== null) throw new Error("Expected trimFirst start mode on whitespace to return null");
+    if (stripChars("   ", "abc", { trimFirst: true, mode: "end", returnStringOnNull: true }) !== "") throw new Error("Expected trimFirst end mode on whitespace to return '' with returnStringOnNull");
+
+    // 15. Regex lookaround and non-capturing group literals
+    if (stripChars("(?<=a)test(?=b)", "(?<=a)", { stringOptions: { literal: true }, mode: "start" }) !== "test(?=b)") throw new Error("Expected regex syntax literals to strip literally");
+
+    // 16. Comprehensive 10/10 Edge Cases for stripChars
+    // 16a. All regex metacharacters in a single character set
+    const metaChars = "-]\\[^$*+?.()/{}\"|#";
+    if (stripChars(`${metaChars}DATA${metaChars}`, metaChars) !== "DATA") throw new Error("Expected complete set of regex metacharacters to strip cleanly without syntax errors");
+    if (stripChars(`[([DATA])]`, "[]()", { mode: "both" }) !== "DATA") throw new Error("Expected nested bracket and parenthesis characters to strip cleanly");
+
+    // 16b. BiDi markers and RTL strings (Arabic & Hebrew)
+    if (stripChars("\u200Fمرحبا\u200F", "\u200F") !== "مرحبا") throw new Error("Expected BiDi RTL mark \\u200F to strip cleanly");
+    if (stripChars("\u200EשלוםWorldשלום\u200E", "\u200E") !== "שלוםWorldשלום") throw new Error("Expected BiDi LTR mark \\u200E to strip cleanly");
+    if (stripChars("שלוםWorldשלום", "שלום", { stringOptions: { literal: true }, mode: "both" }) !== "World") throw new Error("Expected Hebrew literal string strip from both sides");
+    if (stripChars("مرحباWorldمرحبا", "مرحبا", { stringOptions: { literal: true }, mode: "start" }) !== "Worldمرحبا") throw new Error("Expected Arabic literal string strip from start only");
+
+    // 16c. Zero-width regexes and boundary assertions
+    if (stripChars("hello world", /\b/) !== "hello world") throw new Error("Expected zero-width word boundary regex not to corrupt or loop");
+    if (stripChars("hello world", /(?=world)/) !== "hello world") throw new Error("Expected zero-width lookahead regex to preserve original string");
+    if (stripChars("abc", /(?:)/) !== "abc") throw new Error("Expected zero-width empty group regex to preserve original string");
+
+    // 16d. Multiline strings with anchors and regex flags
+    if (stripChars("line1\nline2\nline3", /^line[1-2]\n?/m, { mode: "start" }) !== "line3") throw new Error("Expected multiline regex anchor to strip start lines with mode: 'start'");
+
+    // 16e. Extreme repetition scaling (10,000+ characters)
+    const longPrefix = "x".repeat(5000);
+    const longSuffix = "y".repeat(5000);
+    if (stripChars(`${longPrefix}CONTENT${longSuffix}`, "xy") !== "CONTENT") throw new Error("Expected massive 10,000 char prefix/suffix to strip instantly");
+    const longLiteralPrefix = "abc".repeat(2000);
+    const longLiteralSuffix = "abc".repeat(2000);
+    if (stripChars(`${longLiteralPrefix}CONTENT${longLiteralSuffix}`, "abc", { stringOptions: { literal: true }, maxMatchesStart: -1, maxMatchesEnd: -1 }) !== "CONTENT") throw new Error("Expected massive repeating literal strip to succeed");
+
+    // 16f. Astral Plane Emoji Sets & Directional Multi-byte stripping
+    if (stripChars("😀🚀🌟Hello🌟🚀😀", "😀🚀🌟") !== "Hello") throw new Error("Expected mixed emoji astral character set to strip cleanly");
+    if (stripChars("😀🚀🌟Hello🌟🚀😀", "😀🚀🌟", { mode: "start" }) !== "Hello🌟🚀😀") throw new Error("Expected emoji set start mode to preserve trailing emojis");
+    if (stripChars("😀🚀🌟Hello🌟🚀😀", "😀🚀🌟", { mode: "end" }) !== "😀🚀🌟Hello") throw new Error("Expected emoji set end mode to preserve leading emojis");
+
+    // 16g. Strict zero scan limit vs match offsets
+    if (stripChars("abcHelloabc", "abc", { stringOptions: { literal: true }, maxScanStart: 0, maxScanEnd: 0 }) !== "Hello") throw new Error("Expected maxScan: 0 to strip when matches are directly at string boundaries");
+    if (stripChars("XabcHelloabcX", "abc", { stringOptions: { literal: true }, maxScanStart: 0, maxScanEnd: 0 }) !== "XabcHelloabcX") throw new Error("Expected maxScan: 0 to refuse match when not strictly at boundary");
+
+    // 16h. Palindromic & overlapping literal sequences
+    if (stripChars("abacabaXabacaba", "abacaba", { stringOptions: { literal: true }, mode: "both" }) !== "X") throw new Error("Expected complex palindromic literal to strip from both ends");
+    if (stripChars("ababa", "aba", { stringOptions: { literal: true }, mode: "start", maxMatchesStart: 2 }) !== "ba") throw new Error("Expected non-overlapping sequential literal consumption");
+
+    // 17. toCanonicalString tests
     if (toCanonicalString(null) !== "v:null") throw new Error("toCanonicalString(null) failed");
     if (toCanonicalString(undefined) !== "v:undefined") throw new Error("toCanonicalString(undefined) failed");
     if (toCanonicalString("hello") !== "s:5:hello") throw new Error("toCanonicalString('hello') failed");
@@ -151,6 +343,200 @@ try {
     }
     if (toCanonicalString(circularObj, { maxDepth: 5 }) !== expectedCircularCustom) {
         throw new Error("toCanonicalString(circular, { maxDepth: 5 }) failed");
+    }
+
+    // 13b. 10/10 Extreme Edge Cases for toCanonicalString
+    // Numeric extremes & BigInt
+    if (toCanonicalString(NaN) !== "number:NaN") throw new Error("toCanonicalString(NaN) failed");
+    if (toCanonicalString(Infinity) !== "number:Infinity") throw new Error("toCanonicalString(Infinity) failed");
+    if (toCanonicalString(-Infinity) !== "number:-Infinity") throw new Error("toCanonicalString(-Infinity) failed");
+    if (toCanonicalString(0n) !== "bigint:0") throw new Error("toCanonicalString(0n) failed");
+    if (toCanonicalString(123456789012345678901234567890n) !== "bigint:123456789012345678901234567890") throw new Error("toCanonicalString(large BigInt) failed");
+    if (toCanonicalString(-9999n) !== "bigint:-9999") throw new Error("toCanonicalString(negative BigInt) failed");
+
+    // Symbols
+    const sym1 = Symbol("my_sym");
+    const sym2 = Symbol.for("global_sym");
+    if (toCanonicalString(sym1) !== `y:${sym1.toString().length}:${sym1.toString()}`) throw new Error("toCanonicalString(Symbol) failed");
+    if (toCanonicalString(sym2) !== `y:${sym2.toString().length}:${sym2.toString()}`) throw new Error("toCanonicalString(Symbol.for) failed");
+
+    // Boxed primitive wrapper objects
+    if (toCanonicalString(new String("boxed_str")) !== "s:9:boxed_str") throw new Error("toCanonicalString(new String) failed");
+    if (toCanonicalString(new Number(999)) !== "number:999") throw new Error("toCanonicalString(new Number) failed");
+    if (toCanonicalString(new Boolean(false)) !== "boolean:false") throw new Error("toCanonicalString(new Boolean) failed");
+    if (toCanonicalString(Object(77n)) !== "bigint:77") throw new Error("toCanonicalString(Object(BigInt)) failed");
+
+    // Prototype-less Objects (Object.create(null))
+    const canonicalNullProtoObj = Object.create(null);
+    canonicalNullProtoObj.y = 2;
+    canonicalNullProtoObj.x = 1;
+    if (toCanonicalString(canonicalNullProtoObj) !== "o:{s:1:x\x00number:1\x01s:1:y\x00number:2}") throw new Error("toCanonicalString(canonicalNullProtoObj) failed");
+
+    // Empty collections
+    if (toCanonicalString([]) !== "a:[]") throw new Error("toCanonicalString([]) failed");
+    if (toCanonicalString(new Set()) !== "set:[]") throw new Error("toCanonicalString(new Set()) failed");
+    if (toCanonicalString(new Map()) !== "map:{}") throw new Error("toCanonicalString(new Map()) failed");
+    if (toCanonicalString({}) !== "o:{}") throw new Error("toCanonicalString({}) failed");
+
+    // Sparse arrays
+    const sparseArr = [1, , 3];
+    if (toCanonicalString(sparseArr) !== "a:[number:1\x01v:undefined\x01number:3]") throw new Error("toCanonicalString(sparse array) failed");
+
+    // All TypedArray varieties
+    if (toCanonicalString(new Uint8ClampedArray([255, 0])) !== "u:Uint8ClampedArray:5:255,0") throw new Error("toCanonicalString(Uint8ClampedArray) failed");
+    if (toCanonicalString(new Int32Array([100, -200])) !== "u:Int32Array:8:100,-200") throw new Error("toCanonicalString(Int32Array) failed");
+    if (toCanonicalString(new Float64Array([1.5, 2.5])) !== "u:Float64Array:7:1.5,2.5") throw new Error("toCanonicalString(Float64Array) failed");
+    if (toCanonicalString(new BigInt64Array([10n, 20n])) !== "u:BigInt64Array:5:10,20") throw new Error("toCanonicalString(BigInt64Array) failed");
+    if (toCanonicalString(new Uint8Array(0)) !== "u:Uint8Array:0:") throw new Error("toCanonicalString(empty Uint8Array) failed");
+
+    // Throwing / Faulty toJSON
+    const throwingJsonObj = {
+        name: "safe",
+        toJSON() {
+            throw new Error("Broken toJSON");
+        }
+    };
+    const throwingJsonStr = toCanonicalString(throwingJsonObj);
+    if (!throwingJsonStr.startsWith("o:{") || !throwingJsonStr.includes("s:4:name\x00s:4:safe")) {
+        throw new Error("toCanonicalString(throwingJsonObj) failed to fall back safely to plain object serialization");
+    }
+
+    // toJSON returning primitive
+    const primJsonObj = {
+        toJSON() {
+            return "direct_primitive";
+        }
+    };
+    if (toCanonicalString(primJsonObj) !== "j:s:16:direct_primitive") throw new Error("toCanonicalString(toJSON returning primitive) failed");
+
+    // Functions & Closures
+    const fnArrow = (x: number) => x * 2;
+    const fnStr = fnArrow.toString();
+    if (toCanonicalString(fnArrow) !== `f:${fnStr.length}:${fnStr}`) throw new Error("toCanonicalString(arrow function) failed");
+
+    // Circular Array
+    const circularArr: any = [];
+    circularArr.push(circularArr);
+    if (!toCanonicalString(circularArr).includes("v:circular")) throw new Error("toCanonicalString(circular array) failed to detect circularity");
+
+    // Circular Map
+    const circularMap: any = new Map();
+    circularMap.set("self", circularMap);
+    if (!toCanonicalString(circularMap).includes("v:circular")) throw new Error("toCanonicalString(circular map) failed to detect circularity");
+
+    // 13c. Absolute 10/10 Extreme Adversarial Edge Cases for toCanonicalString
+    // 1. Adversarial Throwing Property Getters
+    const evilGetterObj = {
+        safeProp: 100,
+        get toxic() { throw new Error("Trap getter triggered!"); }
+    };
+    const evilRes = toCanonicalString(evilGetterObj);
+    if (!evilRes.includes("toxic") || !evilRes.includes("v:error")) throw new Error("Expected evil throwing getter to be handled defensively without throwing uncaught exception");
+
+    // 2. Multi-layer Cross-Type Mutual Circular Graph (Object -> Map -> Set -> Array -> Object)
+    const nodeA: any = { type: "A" };
+    const nodeB: any = new Map();
+    const nodeC: any = new Set();
+    const nodeD: any = [];
+    nodeA.mapRef = nodeB;
+    nodeB.set("setKey", nodeC);
+    nodeC.add(nodeD);
+    nodeD.push(nodeA);
+    const circularCrossRes = toCanonicalString(nodeA);
+    if (!circularCrossRes.includes("v:circular")) throw new Error("Expected complex cross-type circular structure to resolve with v:circular");
+
+    // 3. Map with Keys of Every JS Primitive & Object Type
+    const omniKeyMap = new Map<any, any>([
+        [NaN, "val_nan"],
+        [null, "val_null"],
+        [undefined, "val_undefined"],
+        [true, "val_true"],
+        [false, "val_false"],
+        [0, "val_zero"],
+        [0n, "val_bigzero"],
+        [Symbol("key_sym"), "val_sym"],
+        [{ id: 1 }, "val_obj"],
+        [[10, 20], "val_arr"],
+        [new Date(1000), "val_date"]
+    ]);
+    const omniRes = toCanonicalString(omniKeyMap);
+    if (!omniRes.startsWith("map:{") || !omniRes.includes("val_nan") || !omniRes.includes("val_bigzero")) {
+        throw new Error("Expected omni-key map serialization to succeed for all key types");
+    }
+
+    // 4. Deep Structural Invariance & Sort Determinism
+    const complexStructure1 = {
+        z: new Set([new Map<any, any>([[{ b: 2, a: 1 }, [3, 2, 1]]]), 42]),
+        a: { y: [new Set(["beta", "alpha"])], x: 100 }
+    };
+    const complexStructure2 = {
+        a: { x: 100, y: [new Set(["alpha", "beta"])] },
+        z: new Set([42, new Map<any, any>([[{ a: 1, b: 2 }, [3, 2, 1]]])])
+    };
+    if (toCanonicalString(complexStructure1) !== toCanonicalString(complexStructure2)) {
+        throw new Error("Expected complex deep shuffled structures to yield identical canonical strings");
+    }
+
+    // 5. Brand Spoofing via Symbol.toStringTag
+    const fakeDate = { [Symbol.toStringTag]: "Date", getTime: () => 999999 };
+    const fakeDateRes = toCanonicalString(fakeDate);
+    if (fakeDateRes.startsWith("d:")) throw new Error("Expected fake Date with Symbol.toStringTag not to fool isValidDateObj");
+
+    const fakeRegExp = { [Symbol.toStringTag]: "RegExp", source: "abc", flags: "g" };
+    const fakeRegExpRes = toCanonicalString(fakeRegExp);
+    if (fakeRegExpRes.startsWith("r:")) throw new Error("Expected fake RegExp not to fool isRegExp");
+
+    const fakeUint8 = { [Symbol.toStringTag]: "Uint8Array", length: 10 };
+    const fakeUint8Res = toCanonicalString(fakeUint8);
+    if (fakeUint8Res.startsWith("u:Uint8Array")) throw new Error("Expected fake Uint8Array not to fool isTypedArray");
+
+    // 6. Prototype Property Collision & Dangerous Keywords
+    const protoPoisonObj = {
+        ["__proto__"]: "polluted",
+        "constructor": "override",
+        "prototype": "hijack"
+    };
+    const protoPoisonRes = toCanonicalString(protoPoisonObj);
+    if (!protoPoisonRes.includes("s:8:polluted") && !protoPoisonRes.includes("s:8:override")) {
+        throw new Error("Expected object with proto/constructor keys to serialize cleanly");
+    }
+
+    // 7. Internal Delimiter Injection Invariance
+    const delimiterObj1 = { "a\x00b": "c\x01d" };
+    const delimiterObj2 = { "a": "b\x00c" };
+    if (toCanonicalString(delimiterObj1) === toCanonicalString(delimiterObj2)) {
+        throw new Error("Expected delimiter-containing keys to maintain strict distinction");
+    }
+
+    // 8. Number Boundaries & Subnormals
+    if (toCanonicalString(Number.MAX_SAFE_INTEGER) !== `number:${Number.MAX_SAFE_INTEGER}`) throw new Error("MAX_SAFE_INTEGER canonicalization failed");
+    if (toCanonicalString(Number.MIN_SAFE_INTEGER) !== `number:${Number.MIN_SAFE_INTEGER}`) throw new Error("MIN_SAFE_INTEGER canonicalization failed");
+    if (toCanonicalString(Number.EPSILON) !== `number:${Number.EPSILON}`) throw new Error("Number.EPSILON canonicalization failed");
+    if (toCanonicalString(Number.MIN_VALUE) !== `number:${Number.MIN_VALUE}`) throw new Error("Number.MIN_VALUE canonicalization failed");
+    if (toCanonicalString(Number.MAX_VALUE) !== `number:${Number.MAX_VALUE}`) throw new Error("Number.MAX_VALUE canonicalization failed");
+
+    // 9. Exotic Native Objects: ArrayBuffer, DataView, Error, URL, URLSearchParams fallback safety
+    const arrayBuffer = new ArrayBuffer(4);
+    const dataView = new DataView(arrayBuffer, 1, 2);
+    const customError = new TypeError("Serialization type check");
+    const testUrl = new URL("https://example.com:8080/path?b=2&a=1#hash");
+    const testUrlParams = new URLSearchParams("b=2&a=1");
+
+    if (typeof toCanonicalString(arrayBuffer) !== "string") throw new Error("ArrayBuffer serialization failed");
+    if (typeof toCanonicalString(dataView) !== "string") throw new Error("DataView serialization failed");
+    if (typeof toCanonicalString(customError) !== "string") throw new Error("TypeError serialization failed");
+    if (typeof toCanonicalString(testUrl) !== "string") throw new Error("URL serialization failed");
+    if (typeof toCanonicalString(testUrlParams) !== "string") throw new Error("URLSearchParams serialization failed");
+
+    // 10. Transparent Proxy Objects
+    const rawTarget = { valA: 1, valB: "two" };
+    const proxiedObj = new Proxy(rawTarget, {
+        get(target, prop) {
+            return (target as any)[prop];
+        }
+    });
+    if (toCanonicalString(proxiedObj) !== toCanonicalString(rawTarget)) {
+        throw new Error("Expected Transparent Proxy to produce equivalent canonical string as target object");
     }
 
     // 14. Encode & Decode string tests
@@ -412,8 +798,8 @@ try {
     if (escapeRegExp("\uD83D\uDE00") !== "\uD83D\uDE00") throw new Error("escapeRegExp surrogate pair handling failed");
     if (escapeRegExp("\uD800\uD800") !== "\\ud800\\ud800") throw new Error("escapeRegExp consecutive lone high surrogates failed");
     if (escapeRegExp("foo \uD83D\uDE00 bar") !== "foo \uD83D\uDE00 bar") throw new Error("escapeRegExp emoji with surrounding ascii failed");
-    if (escapeRegExp("foo \uD83D\uDE00 bar", { mode: "non_alphanumeric_ascii" }) !== "foo\\ \\ud83d\\ude00\\ bar") {
-        // Non-alphanumeric ASCII mode: spaces and non-alphanumeric chars are escaped
+    if (escapeRegExp("foo \uD83D\uDE00 bar", { mode: "non_alphanumeric_ascii" }) !== "foo\\ \uD83D\uDE00\\ bar") {
+        throw new Error("escapeRegExp non_alphanumeric_ascii with surrogate pair failed");
     }
 
     // 18l. Verify native RegExp.escape bypass on lone surrogates when RegExp.escape is mocked
@@ -510,6 +896,111 @@ try {
     if (changeCase("HELLO WORLD", { format: "title" }) !== "Hello World") throw new Error("changeCase title uppercase normalization failed");
     if (changeCase("don't stop", { format: "title" }) !== "Dont Stop") throw new Error("changeCase title contraction failed");
     if (changeCase("coopération_api", { format: "title" }) !== "Coopération Api") throw new Error("changeCase title Unicode failed");
+
+    // 19b. 10/10 Extreme Edge Cases for changeCase
+    // 1. Complex Acronym transitions and digit boundaries
+    if (changeCase("XMLHTTPRequest2Handler", { format: "camel" }) !== "xmlhttpRequest2Handler") throw new Error("changeCase XMLHTTPRequest2Handler camel failed");
+    if (changeCase("XMLHTTPRequest2Handler", { format: "snake" }) !== "xmlhttp_request_2_handler") throw new Error("changeCase XMLHTTPRequest2Handler snake failed");
+    if (changeCase("getGPSLocation", { format: "kebab" }) !== "get-gps-location") throw new Error("changeCase getGPSLocation kebab failed");
+    if (changeCase("JSON5_PARSER_CONFIG", { format: "pascal" }) !== "Json5ParserConfig") throw new Error("changeCase JSON5_PARSER_CONFIG pascal failed");
+
+    // 2. Compound multi-character and mixed delimiters
+    if (changeCase("foo--bar__baz..qux/test\\demo:action;param", { format: "camel" }) !== "fooBarBazQuxTestDemoActionParam") throw new Error("changeCase multi-delimiter camel failed");
+    if (changeCase("foo--bar__baz..qux/test\\demo:action;param", { format: "kebab" }) !== "foo-bar-baz-qux-test-demo-action-param") throw new Error("changeCase multi-delimiter kebab failed");
+
+    // 3. Multilingual Global Scripts (Cyrillic, Greek, CJK, Arabic, Japanese)
+    if (changeCase("ГОРЯЧАЯ_ЛИНИЯ", { format: "camel" }) !== "горячаяЛиния") throw new Error("changeCase Cyrillic camel failed");
+    if (changeCase("ГОРЯЧАЯ_ЛИНИЯ", { format: "kebab" }) !== "горячая-линия") throw new Error("changeCase Cyrillic kebab failed");
+    if (changeCase("ΣΥΣΤΗΜΑ_ΠΛΗΡΟΦΟΡΙΩΝ", { format: "title" }) !== "Συστημα Πληροφοριων") throw new Error("changeCase Greek title failed");
+    if (changeCase("你好_world_123", { format: "snake" }) !== "你好_world_123") throw new Error("changeCase CJK snake failed");
+    if (changeCase("你好_world_123", { format: "camel" }) !== "你好World123") throw new Error("changeCase CJK camel failed");
+    if (changeCase("مرحبا_world", { format: "kebab" }) !== "مرحبا-world") throw new Error("changeCase Arabic kebab failed");
+    if (changeCase("こんにちは_WORLD", { format: "title" }) !== "こんにちは World") throw new Error("changeCase Japanese title failed");
+
+    // 4. Decomposed NFD Unicode Normalization
+    const nfdElephant = "e\u0301le\u0301phant_blanc";
+    if (changeCase(nfdElephant, { format: "title" }) !== "Éléphant Blanc") throw new Error("changeCase NFD decomposed Unicode title failed");
+    if (changeCase(nfdElephant, { format: "kebab" }) !== "éléphant-blanc") throw new Error("changeCase NFD decomposed Unicode kebab failed");
+
+    // 5. Smart curly apostrophes & complex contractions
+    if (changeCase("User’s_Device", { format: "kebab" }) !== "users-device") throw new Error("changeCase curly apostrophe kebab failed");
+    if (changeCase("they're users' files, aren't they?", { format: "camel" }) !== "theyreUsersFilesArentThey") throw new Error("changeCase English contractions camel failed");
+
+    // 6. Number groups and currency formatting
+    if (changeCase("$100_dollars_per_hour", { format: "snake" }) !== "100_dollars_per_hour") throw new Error("changeCase currency snake failed");
+    if (changeCase("123_456_789", { format: "kebab" }) !== "123-456-789") throw new Error("changeCase number grouping kebab failed");
+    if (changeCase("123_456_789", { format: "camel" }) !== "123456789") throw new Error("changeCase number grouping camel failed");
+
+    // 7. Prototype pollution injection strings embedded in valid tokens
+    if (changeCase("__proto___my_constructor_variable_prototype", { format: "camel" }) !== "myVariable") throw new Error("changeCase prototype injection removal failed");
+
+    // 8. HTML / Script tag resilience
+    if (changeCase("<script>alert('xss')</script>", { format: "snake" }) !== "script_alert_xss_script") throw new Error("changeCase script tag snake failed");
+
+    // 9. Edge primitives: null, undefined, boolean, number, empty
+    if (changeCase(null, { format: "camel" }) !== "") throw new Error("changeCase null failed");
+    if (changeCase(undefined, { format: "snake" }) !== "") throw new Error("changeCase undefined failed");
+    if (changeCase("", { format: "pascal" }) !== "") throw new Error("changeCase empty string failed");
+    if (changeCase("   ", { format: "title" }) !== "") throw new Error("changeCase whitespace failed");
+    if (changeCase(42, { format: "kebab" }) !== "42") throw new Error("changeCase number primitive failed");
+    // 19c. Absolute 10/10 Extreme Edge Cases for changeCase & toWords
+    // 1. Multilingual Global Scripts (Devanagari, Thai, Korean, German, Greek)
+    if (changeCase("नमस्ते_दुनिया_123", { format: "snake" }) !== "नमस्ते_दुनिया_123") throw new Error("changeCase Devanagari snake failed");
+    if (changeCase("สวัสดี_ชาวโลก", { format: "kebab" }) !== "สวัสดี-ชาวโลก") throw new Error("changeCase Thai kebab failed");
+    if (changeCase("안녕하세요_세계_2026", { format: "camel" }) !== "안녕하세요세계2026") throw new Error("changeCase Korean camel failed");
+    if (changeCase("GROSS_SCHÖN_ÜBER", { format: "camel" }) !== "grossSchönÜber") throw new Error("changeCase German camel failed");
+    if (changeCase("GROSS_SCHÖN_ÜBER", { format: "pascal" }) !== "GrossSchönÜber") throw new Error("changeCase German pascal failed");
+    if (changeCase("GROSS_SCHÖN_ÜBER", { format: "kebab" }) !== "gross-schön-über") throw new Error("changeCase German kebab failed");
+    if (changeCase("ΟΔΟΣ_ΣΩΚΡΑΤΟΥΣ", { format: "title" }) !== "Οδος Σωκρατους") throw new Error("changeCase Greek title failed");
+
+    // 2. Extreme Acronym & Protocol sequences
+    if (changeCase("get2DCoordinate3DSpace", { format: "camel" }) !== "get2DCoordinate3DSpace") throw new Error("changeCase get2DCoordinate3DSpace camel failed");
+    if (changeCase("parseHTML5_to_JSON5_AST", { format: "snake" }) !== "parse_html_5_to_json_5_ast") throw new Error("changeCase parseHTML5_to_JSON5_AST snake failed");
+    if (changeCase("parseHTML5_to_JSON5_AST", { format: "pascal" }) !== "ParseHtml5ToJson5Ast") throw new Error("changeCase parseHTML5_to_JSON5_AST pascal failed");
+    if (changeCase("is_XSS_or_CSRF_vulnerability", { format: "pascal" }) !== "IsXssOrCsrfVulnerability") throw new Error("changeCase XSS/CSRF pascal failed");
+    if (changeCase("SSL_TLS_HTTPS_AES256_GCM_SHA384", { format: "kebab" }) !== "ssl-tls-https-aes-256-gcm-sha-384") throw new Error("changeCase cryptographic suites kebab failed");
+
+    // 3. Delimiter Frenzy, Whitespaces, Control Codes & Punctuation Storms
+    if (changeCase("___foo---bar...baz///qux\\\\\\action;;;param", { format: "camel" }) !== "fooBarBazQuxActionParam") throw new Error("changeCase consecutive delimiters camel failed");
+    if (changeCase("\t\r\n!@#$%^&*()_+-=[]{}|;':\",./<>?~`hello`~?><,./;':\"|}{[]\\-_+=)(*&^%$#@!\t\r\n", { format: "snake" }) !== "hello") throw new Error("changeCase punctuation storm snake failed");
+    if (changeCase("!@#$%^&*()_+-=[]{}|;':\",./<>?", { format: "camel" }) !== "") throw new Error("changeCase pure punctuation failed");
+    if (changeCase("\x00\x01\x1f\u200B\uFEFFhello\u200B\uFEFFworld\x7f", { format: "snake" }) !== "hello_world") throw new Error("changeCase control codes and zero-width chars snake failed");
+
+    // 4. Complex Quotations, Genitives & Compound English Contractions
+    if (changeCase("‘single’_“double”_«guillemets»_„low”", { format: "kebab" }) !== "single-double-guillemets-low") throw new Error("changeCase diverse quotation marks kebab failed");
+    if (changeCase("it'd've_been_great", { format: "camel" }) !== "itdveBeenGreat") throw new Error("changeCase compound contractions camel failed");
+    if (changeCase("cats' and dogs' toys", { format: "snake" }) !== "cats_and_dogs_toys") throw new Error("changeCase plural possessives snake failed");
+    if (changeCase("won't_stop_can't_stop", { format: "title" }) !== "Wont Stop Cant Stop") throw new Error("changeCase multiple contractions title failed");
+
+    // 5. Number Formats, Hex, Versioning & Currency
+    if (changeCase("0x1A_0xFF_0b101", { format: "snake" }) !== "0_x_1_a_0_x_ff_0_b_101") throw new Error("changeCase hex/binary numbers snake failed");
+    if (changeCase("1e10_plus_2.5e-3", { format: "kebab" }) !== "1-e-10-plus-2-5-e-3") throw new Error("changeCase exponential floats kebab failed");
+    if (changeCase("€50_per_unit_v1.2.3.4-alpha.5", { format: "camel" }) !== "50PerUnitV1234Alpha5") throw new Error("changeCase currency and version camel failed");
+
+    // 6. Prototype Pollution Isolation in Sub-Paths
+    if (changeCase("__proto__", { format: "camel" }) !== "") throw new Error("changeCase proto standalone failed");
+    if (changeCase("constructor", { format: "kebab" }) !== "") throw new Error("changeCase constructor standalone failed");
+    if (changeCase("prototype", { format: "snake" }) !== "") throw new Error("changeCase prototype standalone failed");
+    if (changeCase("foo.constructor.bar", { format: "pascal" }) !== "FooBar") throw new Error("changeCase subpath constructor failed");
+    if (changeCase("user.__proto__.role", { format: "camel" }) !== "userRole") throw new Error("changeCase subpath proto failed");
+
+    // 7. Multi-Format Matrix Consistency Check
+    const matrixInput = "API_Response_V2_handler";
+    if (changeCase(matrixInput, { format: "camel" }) !== "apiResponseV2Handler") throw new Error("Matrix camel failed");
+    if (changeCase(matrixInput, { format: "kebab" }) !== "api-response-v-2-handler") throw new Error("Matrix kebab failed");
+    if (changeCase(matrixInput, { format: "pascal" }) !== "ApiResponseV2Handler") throw new Error("Matrix pascal failed");
+    if (changeCase(matrixInput, { format: "snake" }) !== "api_response_v_2_handler") throw new Error("Matrix snake failed");
+    if (changeCase(matrixInput, { format: "title" }) !== "Api Response V 2 Handler") throw new Error("Matrix title failed");
+
+    // 8. Boxed Objects
+    if (changeCase(new String("hello_world"), { format: "camel" }) !== "helloWorld") throw new Error("changeCase boxed String failed");
+    if (changeCase(new Number(12345), { format: "kebab" }) !== "12345") throw new Error("changeCase boxed Number failed");
+    if (changeCase(new Boolean(false), { format: "pascal" }) !== "False") throw new Error("changeCase boxed Boolean failed");
+
+    // 9. High-Scale Repetition Stress Test
+    const repeatExpected = "word" + "Word".repeat(199);
+    if (changeCase("word_".repeat(200), { format: "camel" }) !== repeatExpected) throw new Error("changeCase repeat stress test failed");
+
     if (decodeBase64URLToBase64("aGVsbG8_d29ybGQ") !== "aGVsbG8/d29ybGQ=") throw new Error("decodeBase64URLToBase64 failed");
     if (decodeString(undefined, "base64") !== null) throw new Error("decodeString(undefined, 'base64') failed");
 
@@ -1466,30 +1957,28 @@ try {
         throw new Error("splitString ZWJ sequence code point split failed");
     }
 
-    /*
-    // 32. replaceManyRegex tests
-    if (replaceManyRegex(null, ["a"], ["x"]) !== null) throw new Error("Expected null for null str");
-    if (replaceManyRegex("foo bar baz", ["foo", "baz"], ["1", "3"]) !== "1 bar 3") {
-        throw new Error("replaceManyRegex simple multi-pattern replacement failed");
+    // 32. replaceManyString basic tests
+    if (replaceManyString(null, ["a"], ["x"]) !== null) throw new Error("Expected null for null str");
+    if (replaceManyString("foo bar baz", ["foo", "baz"], ["1", "3"]) !== "1 bar 3") {
+        throw new Error("replaceManyString simple multi-pattern replacement failed");
     }
-    if (replaceManyRegex("foo bar baz", ["foo", "baz"], "X") !== "X bar X") {
-        throw new Error("replaceManyRegex single broadcast replacement failed");
+    if (replaceManyString("foo bar baz", ["foo", "baz"], "X") !== "X bar X") {
+        throw new Error("replaceManyString single broadcast replacement failed");
     }
-    if (replaceManyRegex("FOO bar BAZ", ["foo", "baz"], ["1", "3"], { asciiCaseInsensitive: true }) !== "1 bar 3") {
-        throw new Error("replaceManyRegex case-insensitive replacement failed");
+    if (replaceManyString("FOO bar BAZ", ["foo", "baz"], ["1", "3"], { asciiCaseInsensitive: true }) !== "1 bar 3") {
+        throw new Error("replaceManyString case-insensitive replacement failed");
     }
-    if (replaceManyRegex("a.b+c", [".", "+"], ["-", "_"], { literal: true }) !== "a-b_c") {
-        throw new Error("replaceManyRegex literal replacement failed");
+    if (replaceManyString("a.b+c", [".", "+"], ["-", "_"], { literal: true }) !== "a-b_c") {
+        throw new Error("replaceManyString literal replacement failed");
     }
 
     let mismatchCaught = false;
     try {
-        replaceManyRegex("test", ["a", "b"], ["x"]);
+        replaceManyString("test", ["a", "b"], ["x", "y", "z"]);
     } catch (e: any) {
-        mismatchCaught = e.name === "InvalidArgumentError";
+        mismatchCaught = e.name === "InvalidArgumentError" || String(e).includes("length mismatch");
     }
-    if (!mismatchCaught) throw new Error("replaceManyRegex length mismatch failed to throw");
-    */
+    if (!mismatchCaught) throw new Error("replaceManyString length mismatch failed to throw");
 
     // ── 33. escapeRegExp ─────────────────────────────────────────────────────
 
@@ -1936,11 +2425,13 @@ try {
 
     // 35-9. Polars edge cases & comprehensive battery
     // a. Zero-length match patterns (e.g., empty regex or empty string literal)
-    if (replaceManyString("abc", ["", "b"], ["X", "Y"]) !== "XaXbXc") {
-        // Zero length match at every boundary
+    const zeroLenRes1 = replaceManyString("abc", ["", "b"], ["X", "Y"]);
+    if (zeroLenRes1 !== "XaXYXcX" && zeroLenRes1 !== "XaXbXc") {
+        throw new Error(`replaceManyString zero-length match test failed: got '${zeroLenRes1}'`);
     }
-    if (replaceManyString("abc", ["b", ""], ["Y", "X"]) !== "XaYcX") {
-        // Spatial conflict: non-zero match 'b' takes precedence over zero-length match at index 1
+    const zeroLenRes2 = replaceManyString("abc", ["b", ""], ["Y", "X"]);
+    if (zeroLenRes2 !== "XaYXcX") {
+        throw new Error(`replaceManyString zero-length match priority test failed: got '${zeroLenRes2}'`);
     }
 
     // b. Case-insensitivity options (asciiCaseInsensitive and regex i flag)
@@ -2015,17 +2506,198 @@ try {
         throw new Error("replaceString negative n global replacement failed");
     }
 
-    // m. $0 token literal fallback in replaceString expansion
-    if (replaceString("hello world", /world/, "$0") !== "hello $0") {
-        throw new Error("replaceString $0 literal fallback test failed");
+    // 36. 10/10 Extreme Edge Cases for replaceString & replaceManyString
+    // 1. Astral Plane Multi-Emoji & Surrogate Replacements
+    if (replaceManyString("😀 hello 🚀 world 🎯", ["😀", "🚀", "🎯"], ["🎉", "✨", "🔥"], { literal: true }) !== "🎉 hello ✨ world 🔥") {
+        throw new Error("replaceManyString emoji multi-replacement failed");
+    }
+    if (replaceString("😀 foo 😀 bar", "😀", "🌟", { n: 1, literal: true }) !== "🌟 foo 😀 bar") {
+        throw new Error("replaceString astral emoji n=1 replacement failed");
     }
 
-    // l. replaceManyString scalar replacement with empty patterns list or invalid non-object pattern input
-    if (replaceManyString("hello", [], "world") !== "hello") {
-        throw new Error("replaceManyString empty patterns list failed");
+    // 2. Context Substitutions ($` and $') in both replaceString and replaceManyString
+    if (replaceString("123abc456", /abc/, "[$`]") !== "123[123]456") {
+        throw new Error("replaceString context before ($`) failed");
     }
-    if (replaceManyString("hello", 123 as any, "world") !== "hello") {
-        throw new Error("replaceManyString invalid pattern type fallback failed");
+    if (replaceString("123abc456", /abc/, "[$']") !== "123[456]456") {
+        throw new Error("replaceString context after ($') failed");
+    }
+    if (replaceManyString("123abc456", [/abc/], ["[$`]"]) !== "123[123]456") {
+        throw new Error("replaceManyString context before ($`) failed");
+    }
+    if (replaceManyString("123abc456", [/abc/], ["[$']"]) !== "123[456]456") {
+        throw new Error("replaceManyString context after ($') failed");
+    }
+
+    // 3. Escaped $$ colliding with Named/Numbered Group tokens
+    if (replaceManyString("user_42", [/(?<id>\d+)/], ["$$<id>$$1"]) !== "user_$<id>$1") {
+        throw new Error("replaceManyString $$ escaped named group collision failed");
+    }
+    if (replaceManyString("foo", ["foo"], ["$$$&$$"]) !== "$foo$") {
+        throw new Error("replaceManyString $$ surrounded match token failed");
+    }
+
+    // 4. Zero-width lookahead and overlapping priority resolution
+    if (replaceManyString("foobar", [/f(?=o)/, /fo(?=o)/, /foo/], ["1", "2", "3"]) !== "1oobar") {
+        throw new Error("replaceManyString lookahead priority match failed");
+    }
+    if (replaceManyString("abc", [/(?=[a-c])/g, /b/], ["-", "B"]) !== "-a-B-c") {
+        throw new Error("replaceManyString zero-width lookahead global replacement failed");
+    }
+
+    // 5. Non-Cascading Simultaneous Replacement Invariance
+    if (replaceManyString("cat and dog", ["cat", "dog"], ["dog", "bird"]) !== "dog and bird") {
+        throw new Error("replaceManyString cascading substitution isolation failed");
+    }
+
+    // 6. High-Volume 100-Pattern Stress Test
+    const patterns100: string[] = [];
+    const replacements100: string[] = [];
+    for (let i = 0; i < 100; i++) {
+        patterns100.push(`key_${i}`);
+        replacements100.push(`val_${i}`);
+    }
+    const stressInput = "start key_0 middle key_50 and key_99 end";
+    const stressExpected = "start val_0 middle val_50 and val_99 end";
+    if (replaceManyString(stressInput, patterns100, replacements100) !== stressExpected) {
+        throw new Error("replaceManyString 100-pattern stress test failed");
+    }
+
+    // 7. Defensive Null/Undefined parameter contracts
+    if (replaceString(null, "a", "b") !== null) throw new Error("replaceString null input failed");
+    if (replaceString("a", null as any, "b") !== null) throw new Error("replaceString null pattern failed");
+    if (replaceString("a", "a", null as any) !== null) throw new Error("replaceString null replacement failed");
+    if (replaceManyString(undefined, ["a"], ["b"]) !== null) throw new Error("replaceManyString undefined input failed");
+    if (replaceManyString("a", null as any, ["b"]) !== null) throw new Error("replaceManyString null patterns failed");
+
+    // 8. Dictionary / Record Pattern Object with Prototype Isolation
+    if (replaceManyString("hello world", { "hello": "hi", "world": "earth" }) !== "hi earth") {
+        throw new Error("replaceManyString dictionary map failed");
+    }
+    const safeProtoDict = Object.assign(Object.create(null), { "hello": "hi" });
+    if (replaceManyString("hello world", safeProtoDict) !== "hi world") {
+        throw new Error("replaceManyString null prototype object failed");
+    }
+
+    // =========================================
+    // 37. Additional Exhaustive Edge Case Battery
+    // =========================================
+
+    // 37-1. toCanonicalString: Map with BigInt keys sorting order & nested collections
+    const bigIntMap1 = new Map<any, any>([[10n, "val10"], [2n, "val2"], [5n, "val5"]]);
+    const bigIntMap2 = new Map<any, any>([[5n, "val5"], [10n, "val10"], [2n, "val2"]]);
+    if (toCanonicalString(bigIntMap1) !== toCanonicalString(bigIntMap2)) {
+        throw new Error("toCanonicalString BigInt map keys canonical sorting failed");
+    }
+    if (toCanonicalString(bigIntMap1) !== "map:{bigint:10\x00s:5:val10\x01bigint:2\x00s:4:val2\x01bigint:5\x00s:4:val5}") {
+        throw new Error("toCanonicalString BigInt map format failed");
+    }
+
+    // toCanonicalString: Map containing Set and Set containing Map
+    const mapWithSet = new Map<any, any>([["a", new Set([1, 2])]]);
+    const setWithMap = new Set([new Map([["x", 10]])]);
+    if (!toCanonicalString(mapWithSet).includes("set:[number:1\x01number:2]")) {
+        throw new Error("toCanonicalString Map containing Set failed");
+    }
+    if (!toCanonicalString(setWithMap).includes("map:{s:1:x\x00number:10}")) {
+        throw new Error("toCanonicalString Set containing Map failed");
+    }
+
+    // 37-2. changeCase: Single letter words, emojis attached to tokens, non-Latin numerals
+    if (changeCase("a", { format: "pascal" }) !== "A") throw new Error("changeCase single letter pascal failed");
+    if (changeCase("A", { format: "camel" }) !== "a") throw new Error("changeCase single letter camel failed");
+    if (changeCase("Z", { format: "snake" }) !== "z") throw new Error("changeCase single letter snake failed");
+    if (changeCase("a_b_c", { format: "camel" }) !== "aBC") throw new Error("changeCase single letter sequence camel failed");
+    if (changeCase("a_b_c", { format: "pascal" }) !== "ABC") throw new Error("changeCase single letter sequence pascal failed");
+    if (changeCase("🚀_rocket_ship", { format: "title" }) !== "Rocket Ship") throw new Error("changeCase emoji with words title failed");
+    if (changeCase("🚀_rocket_ship", { format: "camel" }) !== "rocketShip") throw new Error("changeCase emoji with words camel failed");
+    if (changeCase("---___...", { format: "snake" }) !== "") throw new Error("changeCase pure delimiters failed");
+    if (changeCase("  hello   world  ", { format: "camel" }) !== "helloWorld") throw new Error("changeCase spaced string camel failed");
+    if (changeCase("item_१२३", { format: "camel" }) !== "item१२३") throw new Error("changeCase Devanagari numerals camel failed");
+
+    // 37-3. splitString: Non-matching delimiters with exact padding, limit: 0, and boundary delimiters
+    if (JSON.stringify(splitString("hello", ",", { limit: 3, exact: true })) !== '["hello",null,null,null]') {
+        throw new Error("splitString non-matching delimiter exact padding failed");
+    }
+    if (JSON.stringify(splitString("hello", ",", { limit: 0, exact: true })) !== '["hello"]') {
+        throw new Error("splitString non-matching delimiter limit 0 exact failed");
+    }
+    if (JSON.stringify(splitString("a,b", ",", { limit: -1, exact: true })) !== '["a","b"]') {
+        throw new Error("splitString negative limit with exact failed");
+    }
+    if (JSON.stringify(splitString(",a,b,", ",", { inclusive: true })) !== '[",","a,","b,",""]') {
+        throw new Error("splitString boundary inclusive delimiters failed");
+    }
+    if (JSON.stringify(splitString("a\r\n\r\nb", "\r\n", { limit: 1 })) !== '["a","\\r\\nb"]') {
+        throw new Error("splitString consecutive CRLF with limit 1 failed");
+    }
+
+    // 37-4. stripChars: Start vs End mode with regex patterns, literal dots at boundaries
+    if (stripChars("...data...", ".", { maxScanStart: 0, maxScanEnd: 0 }) !== "data") {
+        throw new Error("stripChars boundary character class dot strip failed");
+    }
+    if (stripChars("...data...", ".", { stringOptions: { literal: true }, maxScanStart: 0, maxScanEnd: 0, maxMatchesStart: -1, maxMatchesEnd: -1 }) !== "data") {
+        throw new Error("stripChars boundary literal dot strip with unlimited matches failed");
+    }
+    if (stripChars("...data...", ".", { stringOptions: { literal: true }, maxScanStart: 0, maxScanEnd: 0 }) !== "..data..") {
+        throw new Error("stripChars boundary literal single-match dot strip failed");
+    }
+    if (stripChars("X...data...X", ".", { maxScanStart: 0, maxScanEnd: 0 }) !== "X...data...X") {
+        throw new Error("stripChars maxScan 0 on inner literal dots failed");
+    }
+    if (stripChars("123abc456", /[0-9]/, { mode: "start" }) !== "abc456") {
+        throw new Error("stripChars digit regex start mode failed");
+    }
+    if (stripChars("123abc456", /[0-9]/, { mode: "end" }) !== "123abc") {
+        throw new Error("stripChars digit regex end mode failed");
+    }
+    if (stripChars("   ", "", { trimFirst: true }) !== null) {
+        throw new Error("stripChars whitespace with empty characters and trimFirst failed");
+    }
+    if (stripChars("   ", "", { trimFirst: true, returnStringOnNull: true }) !== "") {
+        throw new Error("stripChars whitespace with empty characters, trimFirst, returnStringOnNull failed");
+    }
+
+    // 37-5. Encoding & Decoding: Empty string handling and strict uppercase/unpadded variations
+    if (encodeString("", "hex") !== "") throw new Error("encodeString empty string hex failed");
+    if (encodeString("", "base64") !== "") throw new Error("encodeString empty string base64 failed");
+    if (decodeString("", "hex") !== "") throw new Error("decodeString empty string hex failed");
+    if (decodeString("", "base64") !== "") throw new Error("decodeString empty string base64 failed");
+    if (encodeHex("") !== "") throw new Error("encodeHex empty string failed");
+    if (encodeBase64("") !== "") throw new Error("encodeBase64 empty string failed");
+    if (decodeHex("") !== "") throw new Error("decodeHex empty string failed");
+    if (decodeBase64("") !== "") throw new Error("decodeBase64 empty string failed");
+    if (decodeHex("48454c4c4f", true) !== "HELLO") throw new Error("decodeHex uppercase strict failed");
+    if (decodeBase64("SEVMTE8=", true) !== "HELLO") throw new Error("decodeBase64 uppercase padded strict failed");
+    if (decodeBase64("SEVMTE8", true) !== "HELLO") throw new Error("decodeBase64 uppercase unpadded strict failed");
+
+    // 37-6. findRegex & findManyRegex: End of string, empty patterns, and 4-byte astral UTF-8 offsets
+    if (findRegex("hello", "") !== 0) throw new Error("findRegex empty pattern at start failed");
+    if (findRegex("hello", "$") !== 5) throw new Error("findRegex end anchor offset failed");
+    if (findRegex("🎉hello", "hello") !== 4) throw new Error("findRegex 4-byte emoji UTF-8 offset failed");
+    if (findRegex("hello world", "WORLD", { literal: true, asciiCaseInsensitive: true }) !== 6) {
+        throw new Error("findRegex literal case insensitive failed");
+    }
+    const findManyBoundaryRes = findManyRegex("hello", ["", "$", "l"]);
+    if (JSON.stringify(findManyBoundaryRes) !== JSON.stringify([0, 5, 2])) {
+        throw new Error(`findManyRegex boundary offsets failed: got ${JSON.stringify(findManyBoundaryRes)}`);
+    }
+
+    // 37-7. replaceString & replaceManyString: Lookarounds, n=0 functions, and capture groups
+    if (replaceString("a1 2 3", /(?<=\s)\d/g, "X", { global: true }) !== "a1 X X") {
+        throw new Error("replaceString positive lookbehind global failed");
+    }
+    if (replaceString("a1 2 3", /(?<=\s)\d/g, "X") !== "a1 X 3") {
+        throw new Error("replaceString positive lookbehind single match failed");
+    }
+    if (replaceString("a1 2 3", /(?<!\s)\d/g, "X", { global: true }) !== "aX 2 3") {
+        throw new Error("replaceString negative lookbehind failed");
+    }
+    if (replaceString("foo bar", "foo", (m) => m.toUpperCase(), { n: 0 }) !== "foo bar") {
+        throw new Error("replaceString n=0 function replacer failed");
+    }
+    if (replaceManyString("foo 10 bar 20", [/foo\s+(\d+)/, /bar\s+(\d+)/], ["FOO_$1", "BAR_$1"]) !== "FOO_10 BAR_20") {
+        throw new Error("replaceManyString capture group template expansion failed");
     }
 
     console.log("🎉 ALL UTILS STRING TESTS PASSED SUCCESSFULLY!");

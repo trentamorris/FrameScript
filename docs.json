@@ -295,7 +295,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).all(...)",
       "signature": "$df.col(<column_name>).all()",
-      "lineStart": 58
+      "lineStart": 57
     },
     "all_null": {
       "desc": "Aggregation: Checks if all values in the group are null.",
@@ -307,7 +307,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).all_null(...)",
       "signature": "$df.col(<column_name>).all_null()",
-      "lineStart": 75
+      "lineStart": 74
     },
     "any": {
       "desc": "Aggregation: Checks if any value in the group is truthy.",
@@ -319,7 +319,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).any(...)",
       "signature": "$df.col(<column_name>).any()",
-      "lineStart": 93
+      "lineStart": 92
     },
     "any_null": {
       "desc": "Aggregation: Checks if any value in the group is null.",
@@ -331,7 +331,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).any_null(...)",
       "signature": "$df.col(<column_name>).any_null()",
-      "lineStart": 110
+      "lineStart": 109
     },
     "arg_max": {
       "desc": "Aggregation: Finds the index of the maximum value in the group.",
@@ -343,7 +343,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arg_max(...)",
       "signature": "$df.col(<column_name>).arg_max()",
-      "lineStart": 127
+      "lineStart": 126
     },
     "arg_min": {
       "desc": "Aggregation: Finds the index of the minimum value in the group.",
@@ -355,7 +355,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arg_min(...)",
       "signature": "$df.col(<column_name>).arg_min()",
-      "lineStart": 144
+      "lineStart": 143
     },
     "avg": {
       "desc": "Aggregation: Computes the arithmetic mean of the group.",
@@ -367,7 +367,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).avg(...)",
       "signature": "$df.col(<column_name>).avg()",
-      "lineStart": 161
+      "lineStart": 160
     },
     "bitwise_and": {
       "desc": "Aggregation: Computes bitwise AND across all elements in the group.",
@@ -379,7 +379,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).bitwise_and(...)",
       "signature": "$df.col(<column_name>).bitwise_and()",
-      "lineStart": 178
+      "lineStart": 177
     },
     "bitwise_or": {
       "desc": "Aggregation: Computes bitwise OR across all elements in the group.",
@@ -391,7 +391,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).bitwise_or(...)",
       "signature": "$df.col(<column_name>).bitwise_or()",
-      "lineStart": 195
+      "lineStart": 194
     },
     "bitwise_xor": {
       "desc": "Aggregation: Computes bitwise XOR across all elements in the group.",
@@ -403,7 +403,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).bitwise_xor(...)",
       "signature": "$df.col(<column_name>).bitwise_xor()",
-      "lineStart": 212
+      "lineStart": 211
     },
     "corr": {
       "desc": "Aggregation: Computes the Pearson correlation coefficient between two columns.",
@@ -421,7 +421,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).corr(...)",
       "signature": "$df.col(<column_name>).corr(\n  other: any\n)",
-      "lineStart": 230
+      "lineStart": 229
     },
     "count": {
       "desc": "Aggregation: Returns the count of records inside the group.",
@@ -439,7 +439,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).count(...)",
       "signature": "$df.col(<column_name>).count(\n  options: { includeNulls?: boolean } = {}\n)",
-      "lineStart": 248
+      "lineStart": 247
     },
     "cov": {
       "desc": "Aggregation: Computes the covariance between two columns.",
@@ -457,7 +457,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).cov(...)",
       "signature": "$df.col(<column_name>).cov(\n  other: any\n)",
-      "lineStart": 267
+      "lineStart": 266
     },
     "dot": {
       "desc": "Aggregation: Computes the dot product with another column.",
@@ -475,7 +475,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dot(...)",
       "signature": "$df.col(<column_name>).dot(\n  other: any\n)",
-      "lineStart": 285
+      "lineStart": 284
     },
     "entropy": {
       "desc": "Aggregation: Computes the Shannon entropy of a column or group.",
@@ -493,7 +493,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).entropy(...)",
       "signature": "$df.col(<column_name>).entropy(\n  options: EntropyOptions = { base: Math.E, normalize: true }\n)",
-      "lineStart": 303
+      "lineStart": 302
     },
     "first": {
       "desc": "Aggregation: Finds the first value in the group.",
@@ -505,7 +505,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).first(...)",
       "signature": "$df.col(<column_name>).first()",
-      "lineStart": 320
+      "lineStart": 319
     },
     "implode": {
       "desc": "Aggregation: Combines all values in the group into a single array/list cell.",
@@ -517,7 +517,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).implode(...)",
       "signature": "$df.col(<column_name>).implode()",
-      "lineStart": 337
+      "lineStart": 336
     },
     "kurtosis": {
       "desc": "Aggregation: Computes the kurtosis (peakedness/tailedness) of a numeric column.",
@@ -535,7 +535,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).kurtosis(...)",
       "signature": "$df.col(<column_name>).kurtosis(\n  options: KurtosisOptions = {}\n)",
-      "lineStart": 355
+      "lineStart": 354
     },
     "last": {
       "desc": "Aggregation: Finds the last value in the group.",
@@ -547,7 +547,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).last(...)",
       "signature": "$df.col(<column_name>).last()",
-      "lineStart": 372
+      "lineStart": 371
     },
     "max": {
       "desc": "Aggregation: Finds the maximum value in the group.",
@@ -559,7 +559,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).max(...)",
       "signature": "$df.col(<column_name>).max()",
-      "lineStart": 389
+      "lineStart": 388
     },
     "max_by": {
       "desc": "Aggregation: Finds the value in this column corresponding to the maximum value in the `by` expression.",
@@ -577,7 +577,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).max_by(...)",
       "signature": "$df.col(<column_name>).max_by(\n  by: any\n)",
-      "lineStart": 407
+      "lineStart": 406
     },
     "mean": {
       "desc": "Aggregation: Computes the arithmetic mean of elements in the group.",
@@ -589,7 +589,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).mean(...)",
       "signature": "$df.col(<column_name>).mean()",
-      "lineStart": 424
+      "lineStart": 423
     },
     "median": {
       "desc": "Aggregation: Computes the 50th percentile median.",
@@ -601,7 +601,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).median(...)",
       "signature": "$df.col(<column_name>).median()",
-      "lineStart": 441
+      "lineStart": 440
     },
     "min": {
       "desc": "Aggregation: Finds the minimum value in the group.",
@@ -613,7 +613,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).min(...)",
       "signature": "$df.col(<column_name>).min()",
-      "lineStart": 458
+      "lineStart": 457
     },
     "min_by": {
       "desc": "Aggregation: Finds the value in this column corresponding to the minimum value in the `by` expression.",
@@ -631,7 +631,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).min_by(...)",
       "signature": "$df.col(<column_name>).min_by(\n  by: any\n)",
-      "lineStart": 476
+      "lineStart": 475
     },
     "mode": {
       "desc": "Aggregation: Finds the statistical mode (most frequent value).",
@@ -643,7 +643,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).mode(...)",
       "signature": "$df.col(<column_name>).mode()",
-      "lineStart": 493
+      "lineStart": 492
     },
     "n_unique": {
       "desc": "Aggregation: Computes number of unique elements.",
@@ -661,7 +661,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).n_unique(...)",
       "signature": "$df.col(<column_name>).n_unique(\n  options: UniqueArrayStatsOptions = {}\n)",
-      "lineStart": 511
+      "lineStart": 510
     },
     "nan_max": {
       "desc": "Aggregation: Finds the maximum value in the group, taking NaN values into account (NaN propagates).",
@@ -673,7 +673,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).nan_max(...)",
       "signature": "$df.col(<column_name>).nan_max()",
-      "lineStart": 528
+      "lineStart": 527
     },
     "nan_min": {
       "desc": "Aggregation: Finds the minimum value in the group, taking NaN values into account (NaN propagates).",
@@ -685,7 +685,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).nan_min(...)",
       "signature": "$df.col(<column_name>).nan_min()",
-      "lineStart": 545
+      "lineStart": 544
     },
     "null_count": {
       "desc": "Aggregation: Counts the number of null or missing records.",
@@ -697,7 +697,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).null_count(...)",
       "signature": "$df.col(<column_name>).null_count()",
-      "lineStart": 562
+      "lineStart": 561
     },
     "quantile": {
       "desc": "Aggregation: Computes the specific quantile values (0.0 to 1.0).",
@@ -715,7 +715,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).quantile(...)",
       "signature": "$df.col(<column_name>).quantile(\n  q: number\n)",
-      "lineStart": 580
+      "lineStart": 579
     },
     "product": {
       "desc": "Aggregation: Computes the product of all elements in the group.",
@@ -727,7 +727,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).product(...)",
       "signature": "$df.col(<column_name>).product()",
-      "lineStart": 598
+      "lineStart": 597
     },
     "skew": {
       "desc": "Aggregation: Computes the sample skewness as the Fisher-Pearson coefficient of skewness.",
@@ -745,7 +745,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).skew(...)",
       "signature": "$df.col(<column_name>).skew(\n  options: SkewOptions = {}\n)",
-      "lineStart": 616
+      "lineStart": 615
     },
     "spearman_corr": {
       "desc": "Aggregation: Computes the Spearman rank correlation coefficient.",
@@ -763,7 +763,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).spearman_corr(...)",
       "signature": "$df.col(<column_name>).spearman_corr(\n  other: any\n)",
-      "lineStart": 636
+      "lineStart": 635
     },
     "std": {
       "desc": "Aggregation: Computes sample standard deviation.",
@@ -775,7 +775,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).std(...)",
       "signature": "$df.col(<column_name>).std()",
-      "lineStart": 653
+      "lineStart": 652
     },
     "sum": {
       "desc": "Aggregation: Computes the sum of elements in the group.",
@@ -787,7 +787,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).sum(...)",
       "signature": "$df.col(<column_name>).sum()",
-      "lineStart": 670
+      "lineStart": 669
     },
     "variance": {
       "desc": "Aggregation: Computes sample variance.",
@@ -799,7 +799,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).variance(...)",
       "signature": "$df.col(<column_name>).variance()",
-      "lineStart": 687
+      "lineStart": 686
     },
     "w_avg": {
       "desc": "Aggregation: Computes weighted average.",
@@ -817,7 +817,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).w_avg(...)",
       "signature": "$df.col(<column_name>).w_avg(\n  weights: any\n)",
-      "lineStart": 705
+      "lineStart": 704
     }
   },
   "columnExpressions/mixins/ArithmeticExpr.ts": {
@@ -3595,7 +3595,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.DateTimeExprNamespace(...)",
       "signature": "$df.col(<column_name>).dt.DateTimeExprNamespace",
-      "lineStart": 51
+      "lineStart": 50
     },
     "cast_time_unit": {
       "desc": "Casts the schema time unit of a Datetime column (`\"ms\"`, `\"us\"`, `\"ns\"`). This is a metadata-only operation — underlying millisecond Date timestamps are preserved.",
@@ -3613,7 +3613,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.cast_time_unit(...)",
       "signature": "$df.col(<column_name>).dt.cast_time_unit(\n  unit: DatetimeTimeUnit\n)",
-      "lineStart": 89
+      "lineStart": 88
     },
     "century": {
       "desc": "Extracts the 1-indexed century component (e.g. 21 for 2026) from a Datetime column.",
@@ -3625,7 +3625,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.century(...)",
       "signature": "$df.col(<column_name>).dt.century()",
-      "lineStart": 106
+      "lineStart": 105
     },
     "convert_time_zone": {
       "desc": "Converts a Datetime column to a different IANA timezone. Preserves the exact UTC epoch instant while changing the timezone label, affecting how local wall-clock component extractors (`hour()`, `day()`, etc.) and `strftime` interpret values. Requires the column to already be timezone-aware; use `replace({ timeZone })` to assign a timezone to a naive column first.",
@@ -3643,7 +3643,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.convert_time_zone(...)",
       "signature": "$df.col(<column_name>).dt.convert_time_zone(\n  timeZone: string\n)",
-      "lineStart": 128
+      "lineStart": 127
     },
     "date": {
       "desc": "Extracts the Date object component from a Datetime column, truncating time to 00:00:00.000 UTC.",
@@ -3655,7 +3655,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.date(...)",
       "signature": "$df.col(<column_name>).dt.date()",
-      "lineStart": 152
+      "lineStart": 151
     },
     "day": {
       "desc": "Extracts the calendar day component (1-31) from a Datetime column.",
@@ -3673,7 +3673,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.day(...)",
       "signature": "$df.col(<column_name>).dt.day(\n  timeZone?: string\n)",
-      "lineStart": 170
+      "lineStart": 169
     },
     "days_in_month": {
       "desc": "Extracts the total number of days in the month (28-31) for each Datetime value.",
@@ -3691,7 +3691,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.days_in_month(...)",
       "signature": "$df.col(<column_name>).dt.days_in_month(\n  timeZone?: string\n)",
-      "lineStart": 189
+      "lineStart": 188
     },
     "epoch": {
       "desc": "Returns the epoch duration timestamp offset in the specified time resolution unit.",
@@ -3709,7 +3709,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.epoch(...)",
       "signature": "$df.col(<column_name>).dt.epoch(\n  unit: TimeUnit = \"ms\"\n)",
-      "lineStart": 212
+      "lineStart": 211
     },
     "hour": {
       "desc": "Extracts the local hour component (0-23) from a Datetime column.",
@@ -3727,7 +3727,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.hour(...)",
       "signature": "$df.col(<column_name>).dt.hour(\n  timeZone?: string\n)",
-      "lineStart": 230
+      "lineStart": 229
     },
     "is_business_day": {
       "desc": "Evaluates whether each Datetime value falls on a business day. Supports custom weekend day definitions and holiday arrays or timestamp sets.",
@@ -3745,7 +3745,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.is_business_day(...)",
       "signature": "$df.col(<column_name>).dt.is_business_day(\n  options: IsBusinessDayOptions = {}\n)",
-      "lineStart": 250
+      "lineStart": 249
     },
     "is_leap_year": {
       "desc": "Checks if the calendar year of a Datetime value is a leap year (366 days).",
@@ -3757,7 +3757,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.is_leap_year(...)",
       "signature": "$df.col(<column_name>).dt.is_leap_year()",
-      "lineStart": 268
+      "lineStart": 267
     },
     "iso_week": {
       "desc": "Extracts the ISO 8601 week number (1-53) from a Datetime column.",
@@ -3769,7 +3769,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.iso_week(...)",
       "signature": "$df.col(<column_name>).dt.iso_week()",
-      "lineStart": 285
+      "lineStart": 284
     },
     "iso_year": {
       "desc": "Extracts the ISO 8601 week-numbering year from a Datetime column.",
@@ -3781,7 +3781,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.iso_year(...)",
       "signature": "$df.col(<column_name>).dt.iso_year()",
-      "lineStart": 302
+      "lineStart": 301
     },
     "microsecond": {
       "desc": "Extracts the microsecond component (0-999,000) scaled from Datetime millisecond precision.",
@@ -3793,7 +3793,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.microsecond(...)",
       "signature": "$df.col(<column_name>).dt.microsecond()",
-      "lineStart": 319
+      "lineStart": 318
     },
     "millennium": {
       "desc": "Extracts the 1-indexed millennium component index (e.g. 3 for the year 2026) from a Datetime column.",
@@ -3805,7 +3805,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.millennium(...)",
       "signature": "$df.col(<column_name>).dt.millennium()",
-      "lineStart": 336
+      "lineStart": 335
     },
     "millisecond": {
       "desc": "Extracts the millisecond component (0-999) from a Datetime column.",
@@ -3817,7 +3817,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.millisecond(...)",
       "signature": "$df.col(<column_name>).dt.millisecond()",
-      "lineStart": 353
+      "lineStart": 352
     },
     "minute": {
       "desc": "Extracts the minute component (0-59) from a Datetime column.",
@@ -3835,7 +3835,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.minute(...)",
       "signature": "$df.col(<column_name>).dt.minute(\n  timeZone?: string\n)",
-      "lineStart": 371
+      "lineStart": 370
     },
     "month": {
       "desc": "Extracts the calendar month component (1-12) from a Datetime column.",
@@ -3853,7 +3853,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.month(...)",
       "signature": "$df.col(<column_name>).dt.month(\n  timeZone?: string\n)",
-      "lineStart": 390
+      "lineStart": 389
     },
     "month_end": {
       "desc": "Returns a Datetime column shifted to the last calendar day of the month at 00:00:00.000 UTC.",
@@ -3865,7 +3865,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.month_end(...)",
       "signature": "$df.col(<column_name>).dt.month_end()",
-      "lineStart": 408
+      "lineStart": 407
     },
     "month_start": {
       "desc": "Returns a Datetime column shifted to the first calendar day of the month at 00:00:00.000 UTC.",
@@ -3877,7 +3877,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.month_start(...)",
       "signature": "$df.col(<column_name>).dt.month_start()",
-      "lineStart": 425
+      "lineStart": 424
     },
     "nanosecond": {
       "desc": "Extracts the nanosecond component (0-999,000,000) scaled from Datetime millisecond precision.",
@@ -3889,7 +3889,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.nanosecond(...)",
       "signature": "$df.col(<column_name>).dt.nanosecond()",
-      "lineStart": 442
+      "lineStart": 441
     },
     "offset_day": {
       "desc": "Offsets a Datetime column by N calendar days (numeric constant, column reference, or expression). Reuses $df.duration({ days: n }) and expression addition math under the hood.",
@@ -3911,7 +3911,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.offset_day(...)",
       "signature": "$df.col(<column_name>).dt.offset_day(\n  n: number | any,\n  options: DayOffsetOptions = {}\n)",
-      "lineStart": 462
+      "lineStart": 461
     },
     "ordinal_day": {
       "desc": "Extracts the day of the year (1-366) from a Datetime column.",
@@ -3923,7 +3923,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.ordinal_day(...)",
       "signature": "$df.col(<column_name>).dt.ordinal_day()",
-      "lineStart": 487
+      "lineStart": 486
     },
     "quarter": {
       "desc": "Extracts the calendar quarter of the year (1-4) from a Datetime column.",
@@ -3935,7 +3935,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.quarter(...)",
       "signature": "$df.col(<column_name>).dt.quarter()",
-      "lineStart": 504
+      "lineStart": 503
     },
     "replace": {
       "desc": "Replaces specific date and time components (`year`, `month`, `day`, `hour`, `minute`, `second`, `ms`, `timeZone`) of a Datetime column. Unspecified components are preserved from the original value. When `timeZone` is provided in options, components are interpreted in that timezone. Note: `month` is 1-indexed (1 = January, 12 = December); `day` is 1-indexed (1-31).",
@@ -3953,7 +3953,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.replace(...)",
       "signature": "$df.col(<column_name>).dt.replace(\n  options: ReplaceDateOptions\n)",
-      "lineStart": 525
+      "lineStart": 524
     },
     "second": {
       "desc": "Extracts the second component (0-59) from a Datetime column.",
@@ -3965,7 +3965,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.second(...)",
       "signature": "$df.col(<column_name>).dt.second()",
-      "lineStart": 545
+      "lineStart": 544
     },
     "strftime": {
       "desc": "Formats Datetime values into custom formatted strings using strftime directive pattern tokens. Automatically applies the column's assigned timezone unless explicitly overridden in options.",
@@ -3983,7 +3983,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.strftime(...)",
       "signature": "$df.col(<column_name>).dt.strftime(\n  options: StrftimeOptions\n)",
-      "lineStart": 564
+      "lineStart": 563
     },
     "time": {
       "desc": "Extracts the time component formatted string (`\"HH:MM:SS.mmm\"`) from a Datetime column.",
@@ -3995,7 +3995,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.time(...)",
       "signature": "$df.col(<column_name>).dt.time()",
-      "lineStart": 585
+      "lineStart": 584
     },
     "timestamp": {
       "desc": "Returns numeric timestamp relative to Epoch. Alias for epoch.",
@@ -4013,7 +4013,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.timestamp(...)",
       "signature": "$df.col(<column_name>).dt.timestamp(\n  unit: TimeUnit = \"ms\"\n)",
-      "lineStart": 603
+      "lineStart": 602
     },
     "total_days": {
       "desc": "Converts a Duration value (in milliseconds) to total days count.",
@@ -4025,7 +4025,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.total_days(...)",
       "signature": "$df.col(<column_name>).dt.total_days()",
-      "lineStart": 621
+      "lineStart": 620
     },
     "total_hours": {
       "desc": "Converts a Duration value (in milliseconds) to total hours count.",
@@ -4037,7 +4037,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.total_hours(...)",
       "signature": "$df.col(<column_name>).dt.total_hours()",
-      "lineStart": 638
+      "lineStart": 637
     },
     "total_microseconds": {
       "desc": "Converts Duration to microsecond count.",
@@ -4049,7 +4049,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.total_microseconds(...)",
       "signature": "$df.col(<column_name>).dt.total_microseconds()",
-      "lineStart": 655
+      "lineStart": 654
     },
     "total_milliseconds": {
       "desc": "Converts Duration to millisecond count.",
@@ -4061,7 +4061,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.total_milliseconds(...)",
       "signature": "$df.col(<column_name>).dt.total_milliseconds()",
-      "lineStart": 672
+      "lineStart": 671
     },
     "total_minutes": {
       "desc": "Converts Duration to floating point minutes.",
@@ -4073,7 +4073,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.total_minutes(...)",
       "signature": "$df.col(<column_name>).dt.total_minutes()",
-      "lineStart": 689
+      "lineStart": 688
     },
     "total_nanoseconds": {
       "desc": "Converts Duration to nanosecond count.",
@@ -4085,7 +4085,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.total_nanoseconds(...)",
       "signature": "$df.col(<column_name>).dt.total_nanoseconds()",
-      "lineStart": 706
+      "lineStart": 705
     },
     "total_seconds": {
       "desc": "Converts Duration to floating point seconds.",
@@ -4097,7 +4097,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.total_seconds(...)",
       "signature": "$df.col(<column_name>).dt.total_seconds()",
-      "lineStart": 723
+      "lineStart": 722
     },
     "utc_offset": {
       "desc": "Returns the UTC offset of a timezone for a given Datetime value. Supports returning the total offset, the standard (base) offset, or just the daylight saving time component, in multiple output formats. (`\"total\"` | `\"standardTime\"` | `\"daylightSavingTime\"`), and `format` controls the output unit (`\"milliseconds\"` | `\"minutes\"` | `\"hours\"` | `\"iso\"` | `\"basic\"`).",
@@ -4119,7 +4119,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.utc_offset(...)",
       "signature": "$df.col(<column_name>).dt.utc_offset(\n  timeZone?: string,\n  options: UtcOffsetOptions = {}\n)",
-      "lineStart": 746
+      "lineStart": 745
     },
     "week": {
       "desc": "Extracts ISO week index. Alias for iso_week.",
@@ -4131,7 +4131,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.week(...)",
       "signature": "$df.col(<column_name>).dt.week()",
-      "lineStart": 766
+      "lineStart": 765
     },
     "weekday": {
       "desc": "Extracts weekday component (1=Monday, 7=Sunday).",
@@ -4149,7 +4149,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.weekday(...)",
       "signature": "$df.col(<column_name>).dt.weekday(\n  timeZone?: string\n)",
-      "lineStart": 784
+      "lineStart": 783
     },
     "year": {
       "desc": "Extracts the year component from a Datetime column.",
@@ -4167,7 +4167,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.year(...)",
       "signature": "$df.col(<column_name>).dt.year(\n  timeZone?: string\n)",
-      "lineStart": 803
+      "lineStart": 802
     },
     "dt": {
       "desc": "Datetime namespace accessor for date, time, and duration operations.",
@@ -4179,7 +4179,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt",
       "signature": "$df.col(<column_name>).get dt()",
-      "lineStart": 819
+      "lineStart": 818
     }
   },
   "columnExpressions/mixins/WindowExpr.ts": {
@@ -4395,7 +4395,7 @@
       "signature": "$df.col(<column_name>).rolling_mean(\n  windowSize: number\n)",
       "lineStart": 352
     },
-    "rolling_median": {
+    "rollingMedian": {
       "desc": "Window: Computes rolling window median value.",
       "examples": [
         ">>> const df = $df.data({ val: [10, 30, 20] })\r\n>>> df.with_columns($df.col(\"val\").rolling_median(2).alias(\"r_med\"))\r\nshape: (3, 2)\r\n┌─────┬───────┐\r\n│ val │ r_med │\r\n├─────┼───────┤\r\n│ 10  │ 10    │\r\n│ 30  │ 20    │\r\n│ 20  │ 25    │\r\n└─────┴───────┘"
@@ -4409,8 +4409,8 @@
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
-      "syntax": "$df.col(<column_name>).rolling_median(...)",
-      "signature": "$df.col(<column_name>).rolling_median(\n  windowSize: number\n)",
+      "syntax": "$df.col(<column_name>).rollingMedian(...)",
+      "signature": "$df.col(<column_name>).rollingMedian(\n  windowSize: number\n)",
       "lineStart": 372
     },
     "rolling_min": {
@@ -4579,7 +4579,7 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).const(...)",
       "signature": "$df.col(<column_name>).constCONTROL_UNESCAPE_MAP: Readonly<Record<string, string>> = Object.freeze(\n  { b: \"\\b\", 0: \"\\0\", ...Object.fromEntries( Object.entries(NAMED_CONTROL_ESCAPES).map(([code, esc]) => [ esc.slice(1), String.fromCharCode(Number(code)) ]) ) }\n)",
-      "lineStart": 69
+      "lineStart": 76
     }
   },
   "dataframe/dataframe.ts": {
@@ -4589,7 +4589,7 @@
       "category": "DataFrame",
       "syntax": "df.DataFrame(...)",
       "signature": "df.DataFrame<T extends RowRecord = any>",
-      "lineStart": 27
+      "lineStart": 30
     },
     "columns": {
       "desc": "Gets array of column names in the DataFrame.",
@@ -4601,7 +4601,7 @@
       "category": "DataFrame",
       "syntax": "df.columns(...)",
       "signature": "df.get columns(): string[]",
-      "lineStart": 126
+      "lineStart": 129
     },
     "concat": {
       "desc": "Concatenates items vertically, horizontally, or diagonally.",
@@ -4637,7 +4637,7 @@
       "category": "DataFrame",
       "syntax": "df.concat(...)",
       "signature": "df.concat<U extends RowRecord = any>(\n  items: ConcatItem | ConcatItem[],\n  options?: {\n    how?: ConcatHow,\n    horizontal.strict?: boolean\n  }\n): DataFrame<U>",
-      "lineStart": 185
+      "lineStart": 188
     },
     "drop": {
       "desc": "Drops specified columns from the DataFrame.",
@@ -4656,7 +4656,7 @@
       "category": "DataFrame",
       "syntax": "df.drop(...)",
       "signature": "df.drop<K extends keyof T>(\n  ...args: (K | K[])[]\n): DataFrame<Omit<T, K>>",
-      "lineStart": 216
+      "lineStart": 219
     },
     "drop_nulls": {
       "desc": "Drops rows containing null or undefined values in specified subset columns.",
@@ -4675,7 +4675,7 @@
       "category": "DataFrame",
       "syntax": "df.drop_nulls(...)",
       "signature": "df.drop_nulls(\n  subset?: string | string[]\n): DataFrame<T>",
-      "lineStart": 254
+      "lineStart": 257
     },
     "dtypes": {
       "desc": "Gets array of registered column DataTypes matching current schema order.",
@@ -4687,7 +4687,7 @@
       "category": "DataFrame",
       "syntax": "df.dtypes(...)",
       "signature": "df.get dtypes(): RegisteredDataType[]",
-      "lineStart": 274
+      "lineStart": 277
     },
     "explode": {
       "desc": "Explodes an array column into multiple rows, replicating non-target row attributes.",
@@ -4721,7 +4721,7 @@
       "category": "DataFrame",
       "syntax": "df.explode(...)",
       "signature": "df.explode(\n  columns: IntoExpr | IntoExpr[],\n  options?: {\n    empty_as_null?: boolean,\n    keep_nulls?: boolean\n  }\n): DataFrame<any>",
-      "lineStart": 309
+      "lineStart": 312
     },
     "fill_null": {
       "desc": "Fills null values across columns using scalar values or statistical strategies.",
@@ -4755,7 +4755,7 @@
       "category": "DataFrame",
       "syntax": "df.fill_null(...)",
       "signature": "df.fill_null(\n  options?: {\n    value?: any,\n    strategy?: FillNullStrategy,\n    limit?: number\n  }\n): DataFrame<T>",
-      "lineStart": 376
+      "lineStart": 379
     },
     "filter": {
       "desc": "Filters rows matching boolean column expressions or predicate callbacks.",
@@ -4774,7 +4774,7 @@
       "category": "DataFrame",
       "syntax": "df.filter(...)",
       "signature": "df.filter(\n  ...exprs: (IExpr | ((row: T) => any))[]\n): DataFrame<T>",
-      "lineStart": 405
+      "lineStart": 408
     },
     "groupby": {
       "desc": "Groups rows by key columns to prepare for aggregations.",
@@ -4793,7 +4793,7 @@
       "category": "DataFrame",
       "syntax": "df.groupby(...)",
       "signature": "df.groupby<K extends keyof T>(\n  keys: K | K[]\n): GroupedData<T, K>",
-      "lineStart": 510
+      "lineStart": 513
     },
     "head": {
       "desc": "Returns the first N rows as a new DataFrame.",
@@ -4811,7 +4811,7 @@
       "category": "DataFrame",
       "syntax": "df.head(...)",
       "signature": "df.head(\n  n: number = 10\n): DataFrame<T>",
-      "lineStart": 559
+      "lineStart": 551
     },
     "clone": {
       "desc": "Creates a deep copy of the current DataFrame instance, duplicating all underlying column data arrays and schema metadata. Modifying columns or values in the cloned DataFrame will not mutate the original.",
@@ -4823,7 +4823,7 @@
       "category": "DataFrame",
       "syntax": "df.clone(...)",
       "signature": "df.clone(): DataFrame<T>",
-      "lineStart": 591
+      "lineStart": 583
     },
     "height": {
       "desc": "Gets height (total row count) of the DataFrame.",
@@ -4835,7 +4835,7 @@
       "category": "DataFrame",
       "syntax": "df.height(...)",
       "signature": "df.get height(): number",
-      "lineStart": 621
+      "lineStart": 613
     },
     "hstack": {
       "desc": "Concatenates columns horizontally to the current DataFrame.",
@@ -4864,7 +4864,7 @@
       "category": "DataFrame",
       "syntax": "df.hstack(...)",
       "signature": "df.hstack<U extends RowRecord = any>(\n  other: ConcatItem | ConcatItem[],\n  options?: {\n    strict?: boolean\n  }\n): DataFrame<U>",
-      "lineStart": 651
+      "lineStart": 643
     },
     "insert_column": {
       "desc": "Inserts a new column at a specific ordinal index position.",
@@ -4893,7 +4893,7 @@
       "category": "DataFrame",
       "syntax": "df.insert_column(...)",
       "signature": "df.insert_column(\n  index: number,\n  name: string,\n  expr: IntoExpr\n): DataFrame<any>",
-      "lineStart": 681
+      "lineStart": 673
     },
     "item": {
       "desc": "Retrieves a single scalar cell value by row and column position or name.",
@@ -4917,7 +4917,7 @@
       "category": "DataFrame",
       "syntax": "df.item(...)",
       "signature": "df.item(\n  row?: number,\n  column?: number | string\n): any",
-      "lineStart": 719
+      "lineStart": 711
     },
     "iter_columns": {
       "desc": "Yields a generator iterating over raw column arrays.",
@@ -4929,7 +4929,7 @@
       "category": "DataFrame",
       "syntax": "df.iter_columns(...)",
       "signature": "df.iter_columns(): Generator<ColumnData>",
-      "lineStart": 772
+      "lineStart": 764
     },
     "iter_rows": {
       "desc": "Yields a generator iterating over rows as tuples or named objects.",
@@ -4951,7 +4951,7 @@
       "category": "DataFrame",
       "syntax": "df.iter_rows(...)",
       "signature": "df.iter_rows(\n  { named = false }: { named?: boolean } = {}\n): Generator<any[] | Record<string, any>>",
-      "lineStart": 800
+      "lineStart": 792
     },
     "join": {
       "desc": "Joins two DataFrames on key columns using a specified join strategy. - `\"inner\"` — Only rows with matching keys in both DataFrames. - `\"left\"` — All left rows; unmatched right values are `null`. - `\"right\"` — All right rows; unmatched left values are `null`. - `\"outer\"` — All rows from both sides; unmatched values are `null`. - `\"semi\"` — Left rows that have a match in the right DataFrame (only left columns retained). - `\"anti\"` — Left rows that have **no** match in the right DataFrame (only left columns retained). - `\"cross\"` — Cartesian product pairing every left row with every right row (keyless). non-key column names (default `[\"\", \"_right\"]`). Ignored for `\"semi\"` and `\"anti\"` joins. across DataFrames. Default `false` (SQL-standard: `NULL != NULL`). - `\"none\"` (or `false`) — No specific ordering is desired. - `\"left\"` (or `true`) — Preserves the order of the left DataFrame. - `\"right\"` — Preserves the order of the right DataFrame. - `\"left_right\"` — Preserves the order of the left DataFrame first, then the right. - `\"right_left\"` — Preserves the order of the right DataFrame first, then the left.",
@@ -5015,7 +5015,7 @@
       "category": "DataFrame",
       "syntax": "df.join(...)",
       "signature": "df.join<U extends RowRecord = any, R extends RowRecord = any>(\n  config: {\n    other: DataFrame,\n    on?: string | string[],\n    leftOn?: string | string[],\n    rightOn?: string | string[],\n    how?: JoinType,\n    suffixes?: [string, string],\n    join_nulls?: boolean,\n    coalesce?: boolean,\n    maintain_order?: JoinMaintainOrder | boolean\n  }\n): DataFrame<R>",
-      "lineStart": 877
+      "lineStart": 865
     },
     "join_asof": {
       "desc": "Performs an asof (as-of) join for inexact matching on ordered numeric or temporal key columns.\n\nSimilar to a left join, but instead of exact key equality, matches the nearest key row from the right DataFrame according to the selected `strategy` (\"backward\", \"forward\", or \"nearest\") and optional `tolerance`. Both DataFrames must be sorted in ascending order on their respective `on` / `leftOn` / `rightOn` join keys.\n\n- `\"backward\"` — Matches the latest right row where `rightKey <= leftKey`. - `\"forward\"` — Matches the earliest right row where `rightKey >= leftKey`. - `\"nearest\"` — Matches the right row with the absolute nearest key value to `leftKey`.\n\ndf.join_asof({ other, on, leftOn, rightOn, by, leftBy, rightBy, strategy, tolerance, allow_exact_matches, suffixes, coalesce, check_sorted })",
@@ -5099,7 +5099,7 @@
       "category": "DataFrame",
       "syntax": "* df.join_asof({",
       "signature": "* df.join_asof<U extends RowRecord = any, R extends RowRecord = any>(\n  options: {\n    other: DataFrame,\n    on?: string,\n    leftOn?: string,\n    rightOn?: string,\n    by?: string | string[],\n    leftBy?: string | string[],\n    rightBy?: string | string[],\n    strategy?: AsofJoinStrategy,\n    tolerance?: number | string,\n    allow_exact_matches?: boolean,\n    suffixes?: [string, string],\n    coalesce?: boolean,\n    check_sorted?: boolean\n  }\n): DataFrame<R>",
-      "lineStart": 1039
+      "lineStart": 1027
     },
     "limit": {
       "desc": "Limits the output to N rows starting from offset.",
@@ -5133,7 +5133,7 @@
       "category": "DataFrame",
       "syntax": "df.limit(...)",
       "signature": "df.limit(\n  n: number,\n  {\n    offset = 0,\n    from = \"start\"\n  }: LimitOptions = {}\n): DataFrame<T>",
-      "lineStart": 1150
+      "lineStart": 1133
     },
     "pivot": {
       "desc": "Pivots columns from long format to a wide datagrid structure.",
@@ -5171,7 +5171,7 @@
       "category": "DataFrame",
       "syntax": "df.pivot(...)",
       "signature": "df.pivot<U extends RowRecord = any>(\n  config: {\n    index: string | string[],\n    columns: string,\n    values: string,\n    agg?: AggFn | string\n  }\n): DataFrame<U>",
-      "lineStart": 1209
+      "lineStart": 1192
     },
     "rename": {
       "desc": "Renames columns based on a key-value mapping dictionary.",
@@ -5190,7 +5190,7 @@
       "category": "DataFrame",
       "syntax": "df.rename(...)",
       "signature": "df.rename(\n  mapping?: Partial<Record<keyof T, string>>\n): DataFrame<any>",
-      "lineStart": 1293
+      "lineStart": 1276
     },
     "reverse": {
       "desc": "Reverses the row ordering of the DataFrame.",
@@ -5202,7 +5202,7 @@
       "category": "DataFrame",
       "syntax": "df.reverse(...)",
       "signature": "df.reverse(): DataFrame<T>",
-      "lineStart": 1337
+      "lineStart": 1320
     },
     "schema": {
       "desc": "Gets current DataFrameSchema dictionary mapping column names to DataType.",
@@ -5214,7 +5214,7 @@
       "category": "DataFrame",
       "syntax": "df.schema(...)",
       "signature": "df.get schema(): DataFrameSchema",
-      "lineStart": 1367
+      "lineStart": 1350
     },
     "select": {
       "desc": "Selects specific columns or evaluates column expressions.",
@@ -5233,7 +5233,7 @@
       "category": "DataFrame",
       "syntax": "df.select(...)",
       "signature": "df.select<U extends RowRecord = any>(\n  ...args: (string | IExpr | Record<string, any> | (string | IExpr | Record<string, any>)[])[]\n): DataFrame<U>",
-      "lineStart": 1394
+      "lineStart": 1377
     },
     "shape": {
       "desc": "Gets DataFrame dimensions as [height, width] tuple.",
@@ -5245,7 +5245,7 @@
       "category": "DataFrame",
       "syntax": "df.shape(...)",
       "signature": "df.get shape(): [number, number]",
-      "lineStart": 1530
+      "lineStart": 1500
     },
     "slice": {
       "desc": "Slices a subset range of rows between start and end index.",
@@ -5269,7 +5269,7 @@
       "category": "DataFrame",
       "syntax": "df.slice(...)",
       "signature": "df.slice(\n  start: number,\n  end?: number\n): DataFrame<T>",
-      "lineStart": 1560
+      "lineStart": 1530
     },
     "sort": {
       "desc": "Sorts DataFrame rows by one or more column expressions or custom sorters.",
@@ -5308,7 +5308,7 @@
       "category": "DataFrame",
       "syntax": "df.sort(...)",
       "signature": "df.sort(\n  config?: {\n    by: keyof T | (keyof T)[] | IExpr | IExpr[],\n    descending?: boolean | boolean[],\n    nullsLast?: boolean,\n    custom?: Partial<Record<keyof T, (a: any, b: any) => number>>\n  }\n): DataFrame<T>",
-      "lineStart": 1602
+      "lineStart": 1570
     },
     "tail": {
       "desc": "Returns the last N rows as a new DataFrame.",
@@ -5326,7 +5326,7 @@
       "category": "DataFrame",
       "syntax": "df.tail(...)",
       "signature": "df.tail(\n  n: number = 10\n): DataFrame<T>",
-      "lineStart": 1697
+      "lineStart": 1665
     },
     "to_dict": {
       "desc": "Converts columns into a JavaScript dictionary mapping column keys to raw arrays.",
@@ -5338,7 +5338,7 @@
       "category": "DataFrame",
       "syntax": "df.to_dict(...)",
       "signature": "df.to_dict(): DataFrameColumns<T>",
-      "lineStart": 1717
+      "lineStart": 1685
     },
     "to_dicts": {
       "desc": "Converts rows into an array of JavaScript objects.",
@@ -5350,7 +5350,7 @@
       "category": "DataFrame",
       "syntax": "df.to_dicts(...)",
       "signature": "df.to_dicts(): T[]",
-      "lineStart": 1736
+      "lineStart": 1704
     },
     "to_array": {
       "desc": "Evaluates a column expression or retrieves column values as a raw JavaScript array.",
@@ -5369,7 +5369,7 @@
       "category": "DataFrame",
       "syntax": "df.to_array(...)",
       "signature": "df.to_array<K extends keyof T>(\n  nameOrExpr: K | IExpr\n): any[]",
-      "lineStart": 1757
+      "lineStart": 1725
     },
     "transpose": {
       "desc": "Transposes rows into columns and columns into rows.",
@@ -5403,7 +5403,7 @@
       "category": "DataFrame",
       "syntax": "df.transpose(...)",
       "signature": "df.transpose(\n  {\n    include_header: includeHeader = false,\n    header_name: headerName = \"column\",\n    column_names: colNamesOpt\n  }: TransposeOptions = {}\n): DataFrame<any>",
-      "lineStart": 1794
+      "lineStart": 1762
     },
     "unique": {
       "desc": "Filters distinct unique rows matching target key columns.",
@@ -5422,7 +5422,7 @@
       "category": "DataFrame",
       "syntax": "df.unique(...)",
       "signature": "df.unique<K extends keyof T>(\n  columns?: K | K[]\n): DataFrame<T>",
-      "lineStart": 1902
+      "lineStart": 1870
     },
     "unpivot": {
       "desc": "Unpivots a wide DataFrame into a long format structure.",
@@ -5461,7 +5461,7 @@
       "category": "DataFrame",
       "syntax": "df.unpivot(...)",
       "signature": "df.unpivot<U extends RowRecord = any>(\n  config: {\n    idVars: keyof T | (keyof T)[],\n    valueVars: keyof T | (keyof T)[],\n    varName?: string,\n    valueName?: string\n  }\n): DataFrame<U>",
-      "lineStart": 1959
+      "lineStart": 1926
     },
     "vstack": {
       "desc": "Concatenates DataFrames vertically. Alias for concat({ how: \"vertical\" }).",
@@ -5480,7 +5480,7 @@
       "category": "DataFrame",
       "syntax": "df.vstack(...)",
       "signature": "df.vstack<U extends RowRecord = any>(\n  other: ConcatItem | ConcatItem[]\n): DataFrame<U>",
-      "lineStart": 2031
+      "lineStart": 1998
     },
     "width": {
       "desc": "Gets width (total column count) of the DataFrame.",
@@ -5492,7 +5492,7 @@
       "category": "DataFrame",
       "syntax": "df.width(...)",
       "signature": "df.get width(): number",
-      "lineStart": 2052
+      "lineStart": 2019
     },
     "with_columns": {
       "desc": "Adds new columns or updates existing ones using column expressions.",
@@ -5511,7 +5511,7 @@
       "category": "DataFrame",
       "syntax": "df.with_columns(...)",
       "signature": "df.with_columns(\n  ...args: (string | IExpr | Record<string, any> | (string | IExpr | Record<string, any>)[])[]\n): DataFrame<any>",
-      "lineStart": 2106
+      "lineStart": 2073
     },
     "with_row_index": {
       "desc": "Appends an incremental index column.",
@@ -5535,7 +5535,7 @@
       "category": "DataFrame",
       "syntax": "df.with_row_index(...)",
       "signature": "df.with_row_index(\n  name: string = \"index\",\n  offset: number = 0\n): DataFrame<any>",
-      "lineStart": 2163
+      "lineStart": 2130
     },
     "write_json": {
       "desc": "Writes DataFrame rows to JSON format string or file/stream target.",
@@ -5669,7 +5669,7 @@
       "category": "DataFrame",
       "syntax": "df.write_json(...)",
       "signature": "df.write_json(\n  file?: string | { write: (str: string) => void },\n  {\n    format = \"json\",\n    replacerOptions\n  }: WriteJSONOptions = {}\n): string",
-      "lineStart": 2214
+      "lineStart": 2181
     },
     "write_csv": {
       "desc": "Writes DataFrame to CSV format string or file/stream target.",
@@ -5708,7 +5708,7 @@
       "category": "DataFrame",
       "syntax": "df.write_csv(...)",
       "signature": "df.write_csv(\n  file?: string | { write: (str: string) => void },\n  options?: {\n    delimiter?: string,\n    header?: boolean,\n    quoteChar?: string\n  }\n): string",
-      "lineStart": 2263
+      "lineStart": 2230
     }
   },
   "dataframe/grouped/grouped.ts": {

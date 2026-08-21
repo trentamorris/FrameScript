@@ -1,4 +1,5 @@
-import { getArrayStats, computeMedian, computeQuantile, computeMode, sortArray } from "../../src/utils/array";
+declare const process: any;
+import { getArrayStats, computeQuantile, computeMode, sortArray } from "../../src/utils/array";
 
 console.log("=========================================");
 console.log("STARTING ARRAY UTILS ROBUSTNESS TESTS...");
@@ -46,12 +47,12 @@ try {
     }
     console.log("✓ getArrayStats Infinity/non-finite boundaries retention passed");
 
-    // 2. Test coercion in computeMedian and computeQuantile
+    // 2. Test coercion in computeQuantile
     const mixedNumericArray = ["10", true, 20, new Date(30000), false];
     // coerced values: 10, 1, 20, 30000, 0
     // sorted coerced values: 0, 1, 10, 20, 30000
     // median (middle element of 5 elements) = index 2 = 10
-    const median = computeMedian(mixedNumericArray);
+    const median = computeQuantile(mixedNumericArray, 0.5);
     if (median !== 10) {
         throw new Error(`Expected median to be 10, got ${median}`);
     }
@@ -60,9 +61,9 @@ try {
     // index = 0.75 * 4 = 3 -> value at index 3 is 20
     const q75 = computeQuantile(mixedNumericArray, 0.75);
     if (q75 !== 20) {
-        throw new Error(`Expected 0.75 quantile to be 20, got ${q75}`);
+        throw new Error(`Expected quantile 0.75 to be 20, got ${q75}`);
     }
-    console.log("✓ computeMedian and computeQuantile type coercion passed");
+    console.log("✓ computeQuantile type coercion passed");
 
     // 3. Test computeMode skipping NaN
     const modesWithNaN = computeMode([NaN, 5, 5, NaN, NaN, 2, 2]);

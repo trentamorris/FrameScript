@@ -9,7 +9,7 @@ import {
 
 const STRICT_SCIENTIFIC_REGEX = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
 const NON_BASE10_INJECTION_REGEX = /0[xobXOB]/;
-const WHITESPACE_UNDERSCORE_REGEX = /[\s_]/g;
+const WHITESPACE_UNDERSCORE_REGEX = /[\s_\u200B-\u200D\uFEFF]/g;
 const EXPONENT_INDICATOR_REGEX = /[eE]/;
 
 // ============================================================================
@@ -292,16 +292,25 @@ export interface IntOptions {
     coerce?: IntCoerceType;
 }
 
+function _resolveRangeLimits<T extends number | bigint>(
+    range: string | { min: T; max: T } | undefined,
+    predefined: Record<string, { min: T; max: T }>,
+    expectedType: "number" | "bigint"
+): { min: T; max: T } | null {
+    if (!range) return null;
+    const limits = typeof range === "string" ? predefined[range] : range;
+    return limits && typeof limits.min === expectedType && typeof limits.max === expectedType ? limits : null;
+}
+
 export function isValidInt(
     v: unknown,
     {
         range = "Int32"
     }: IntOptions = {}
 ): v is number {
-    if (!isValidNumber(v)) return false;
-    if (!Number.isInteger(v)) return false;
-    const limits = typeof range === "string" ? INT_RANGES[range] : range;
-    return v >= limits.min && v <= limits.max;
+    if (!isValidNumber(v) || !Number.isInteger(v)) return false;
+    const limits = _resolveRangeLimits(range, INT_RANGES, "number");
+    return limits != null && v >= limits.min && v <= limits.max;
 }
 
 export function toValidInt(
@@ -321,8 +330,8 @@ export function toValidInt(
         case "truncate": num = Math.trunc(num); break;
     }
 
-    const limits = typeof range === "string" ? INT_RANGES[range] : range;
-    return clamp(num, { min: limits.min, max: limits.max });
+    const limits = _resolveRangeLimits(range, INT_RANGES, "number");
+    return limits != null ? clamp(num, { min: limits.min, max: limits.max }) : null;
 }
 
 // ============================================================================
@@ -352,8 +361,8 @@ export function isValidBigInt(
     const unboxed = unboxPrimitiveObj(v);
     if (typeof unboxed !== "bigint") return false;
 
-    const limits = typeof range === "string" ? BIGINT_RANGES[range] : range;
-    return unboxed >= limits.min && unboxed <= limits.max;
+    const limits = _resolveRangeLimits(range, BIGINT_RANGES, "bigint");
+    return limits != null && unboxed >= limits.min && unboxed <= limits.max;
 }
 
 export function toValidBigInt(
@@ -436,8 +445,8 @@ export function toValidBigInt(
         bigintVal = BigInt(Math.trunc(num));
     }
 
-    const limits = typeof range === "string" ? BIGINT_RANGES[range] : range;
-    if (bigintVal < limits.min || bigintVal > limits.max) return null;
+    const limits = _resolveRangeLimits(range, BIGINT_RANGES, "bigint");
+    if (!limits || bigintVal < limits.min || bigintVal > limits.max) return null;
     return bigintVal;
 }
 
@@ -463,6 +472,7 @@ function getDecimalMaxVal(precision: number, scale: number): number | null {
 }
 
 export function roundToScale(v: number, scale: number): number {
+    if (!Number.isFinite(v)) return v;
     const str = v.toString();
     if (str.includes("e")) {
         const factor = Math.pow(10, scale);

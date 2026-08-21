@@ -1,6 +1,6 @@
 import type { IExpr } from "../../types"
 import { ExprBase, derive } from "../ExprBase"
-import { getArrayStats, computeMedian, computeQuantile, sortArray } from "../../utils"
+import { getArrayStats, computeQuantile, sortArray } from "../../utils"
 
 function computeRank(
     arr: any[],
@@ -369,8 +369,8 @@ export class WindowExpr extends ExprBase {
      * │ 20  │ 25    │
      * └─────┴───────┘
      */
-    rolling_median(windowSize: number) {
-        return this._rolling(windowSize, v => computeMedian(v));
+    rollingMedian(windowSize: number) {
+        return this._rolling(windowSize, v => computeQuantile(v, 0.5));
     }
 
     /**

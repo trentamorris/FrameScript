@@ -5,7 +5,6 @@ import { kleeneBinary } from "../utils"
 import { ComputeError } from "../../exceptions"
 import {
     getArrayStats,
-    computeMedian,
     computeQuantile,
     getUniqueArrayStats,
     computeMode,
@@ -439,7 +438,7 @@ export class AggregationExpr extends ExprBase {
      * └───────┴─────┘
      */
     median() {
-        return this._deriveAgg(v => computeMedian(v));
+        return this._deriveAgg(v => computeQuantile(v, 0.5));
     }
 
     /**

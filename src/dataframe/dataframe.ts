@@ -3,7 +3,7 @@ import { GroupedData } from "./grouped/grouped"
 import { NEWLINE } from "../constants"
 import { createSafeJsonReplacer } from "../utils/json"
 import type { IExpr, ColumnData, ColumnDict, DataFrameColumns, ConcatOptions, ConcatItem, HorizontalConcatOptions, RowRecord, DataFrameSchema, RegisteredDataType, ExplodeOptions, IntoExpr, FillNullOptions } from "../types"
-import type { GroupMap, LimitOptions, SortOptions, PivotOptions, JoinOptions, JoinMaintainOrder, AsofJoinOptions, UnpivotOptions, TransposeOptions, WriteJSONOptions, WriteCSVOptions } from "./types"
+import type { LimitOptions, SortOptions, PivotOptions, JoinOptions, JoinMaintainOrder, AsofJoinOptions, UnpivotOptions, TransposeOptions, WriteJSONOptions, WriteCSVOptions } from "./types"
 import { DataTypeRegistry } from "../datatypes"
 import { isArrayOrTypedArray, toValidArray, toArrayOfType, isObj, isArrayOfType, clamp, isTypedArray, stringifyCSV } from "../utils"
 import { assertColumnExists, assertHeight, DataFrameError, ShapeError, ColumnNotFoundError, InvalidArgumentError, IOStreamError } from "../exceptions"
@@ -11,9 +11,12 @@ import { concat } from "../functions/concat"
 import {
     rowsToColumns,
     columnsToRows,
+    getRowFromColumns,
     inferColumnType,
     gatherColumnsByIndices,
+    gatherColumnByIndices,
     computeRowHash,
+    buildGroupMap,
     coerceColumn,
     alignKeyIndices,
     alignAsofIndices,
@@ -214,7 +217,7 @@ export class DataFrame<T extends RowRecord = any> {
      * └───┘
      */
     drop<K extends keyof T>(...args: (K | K[])[]): DataFrame<Omit<T, K>> {
-        const columnsToDrop = new Set(args.flat() as string[]);
+        const columnsToDrop = new Set(toArrayOfType<string>(args.flat() as any, "string"));
         const newColumns: ColumnDict = {};
         const outSchema: DataFrameSchema = {};
         for (const key of Object.keys(this._columns)) {
@@ -509,24 +512,13 @@ export class DataFrame<T extends RowRecord = any> {
      */
     groupby<K extends keyof T>(keys: K | K[]): GroupedData<T, K> {
         const keysArr = toValidArray(keys);
-        const groups: GroupMap = new Map();
-        const len = this._height;
         const keysStr = toArrayOfType<string>(keys, "string");
 
         for (let j = 0; j < keysStr.length; j++) {
             assertColumnExists(keysStr[j], this._columns, "Grouping key");
         }
 
-        for (let i = 0; i < len; i++) {
-            const hash = computeRowHash(this._columns, keysStr, i);
-
-            let group = groups.get(hash);
-            if (group === undefined) {
-                groups.set(hash, group = []);
-            }
-            group.push(i);
-        }
-
+        const groups = buildGroupMap(this._columns, keysStr, this._height);
         const allKeys = Object.keys(this._columns) as (keyof T)[];
         return new GroupedData(groups, keysArr, allKeys, this._columns, this._height, this._schema);
     }
@@ -810,11 +802,7 @@ export class DataFrame<T extends RowRecord = any> {
 
         if (named) {
             for (let i = 0; i < height; i++) {
-                const row: Record<string, any> = {};
-                for (let j = 0; j < keysLen; j++) {
-                    row[keys[j]] = colArrays[j][i];
-                }
-                yield row;
+                yield getRowFromColumns(columns, i, keys);
             }
         } else {
             for (let i = 0; i < height; i++) {
@@ -1064,13 +1052,8 @@ export class DataFrame<T extends RowRecord = any> {
             throw new InvalidArgumentError('join_asof() requires join key specified via "on", or "leftOn" and "rightOn".');
         }
 
-        const normalizeKeys = (keys?: any): string[] => {
-            if (!keys) return [];
-            return Array.isArray(keys) ? keys.map(String) : [String(keys)];
-        };
-
-        const leftByKeys = normalizeKeys(leftBy ?? by);
-        const rightByKeys = normalizeKeys(rightBy ?? by);
+        const leftByKeys = toArrayOfType<string>(leftBy ?? by, "string");
+        const rightByKeys = toArrayOfType<string>(rightBy ?? by, "string");
 
         if (leftByKeys.length !== rightByKeys.length) {
             throw new InvalidArgumentError('join_asof() "by" (or "leftBy" / "rightBy") key lists must have equal lengths.');
@@ -1153,14 +1136,14 @@ export class DataFrame<T extends RowRecord = any> {
         const safeOffset = clamp(Math.floor(offset), { min: 0, max: len });
 
         let actualStart = safeOffset;
-        let actualEnd = Math.min(safeOffset + safeN, len);
+        let actualEnd = clamp(safeOffset + safeN, { min: 0, max: len });
 
         if (from === "end") {
-            actualEnd = len - safeOffset;
-            actualStart = Math.max(actualEnd - safeN, 0);
+            actualEnd = clamp(len - safeOffset, { min: 0, max: len });
+            actualStart = clamp(actualEnd - safeN, { min: 0, max: len });
         }
 
-        const newHeight = actualEnd - actualStart;
+        const newHeight = clamp(actualEnd - actualStart, { min: 0 });
         const newColumns: ColumnDict = {};
 
         const keys = Object.keys(this._columns);
@@ -1475,20 +1458,7 @@ export class DataFrame<T extends RowRecord = any> {
             }
 
             if (activeRowMap && !hasRowMap) {
-                const mapLen = activeRowMap.length;
-                if (isTypedArray(col)) {
-                    const newCol = new colObj.constructor(mapLen);
-                    for (let j = 0; j < mapLen; j++) {
-                        newCol[j] = colObj[activeRowMap[j]];
-                    }
-                    col = newCol;
-                } else {
-                    const newCol = new Array(mapLen);
-                    for (let j = 0; j < mapLen; j++) {
-                        newCol[j] = colObj[activeRowMap[j]];
-                    }
-                    col = newCol;
-                }
+                col = gatherColumnByIndices(col, activeRowMap as any);
             }
 
             evaluatedCols[i] = col;
@@ -1900,10 +1870,9 @@ export class DataFrame<T extends RowRecord = any> {
     unique<K extends keyof T>(columns?: K | K[]): DataFrame<T> {
         if (this._height === 0) return DataFrame._createDirect<T>({}, this._schema, 0);
 
-        const colsArr = toValidArray(columns);
-        const colsStr = colsArr.length === 0
-            ? Object.keys(this._columns)
-            : colsArr.map(String);
+        const colsStr = columns !== undefined
+            ? toArrayOfType<string>(columns, "string")
+            : Object.keys(this._columns);
 
         for (const colKey of colsStr) {
             assertColumnExists(colKey, this._columns, "Unique column key");
