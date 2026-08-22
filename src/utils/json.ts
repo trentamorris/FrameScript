@@ -392,10 +392,10 @@ export interface JsonToken {
 
 const WILDCARD = "*";
 
-const unescapeQuotes = (str: string): string =>
+const _unescapeQuotes = (str: string): string =>
     str.replace(/\\(.)/g, (_, c) => CONTROL_UNESCAPE_MAP[c] ?? c);
 
-const isSafeKey = (key?: string): key is string =>
+const _isSafeKey = (key?: string): key is string =>
     key !== undefined && key !== "__proto__" && key !== "constructor" && key !== "prototype";
 
 /**
@@ -421,7 +421,7 @@ export function tokenizeJsonPath(path: string): JsonToken[] | null {
         const prop = sqProp ?? dqProp;
 
         if (recProp !== undefined) {
-            tokens.push({ type: "rec", key: unescapeQuotes(recProp) });
+            tokens.push({ type: "rec", key: _unescapeQuotes(recProp) });
         } else if (recStar !== undefined) {
             tokens.push({ type: "rec", key: WILDCARD });
         } else if (recKey !== undefined) {
@@ -429,7 +429,7 @@ export function tokenizeJsonPath(path: string): JsonToken[] | null {
         } else if (dotProp !== undefined) {
             tokens.push(dotProp === WILDCARD ? { type: "wildcard" } : { type: "prop", key: dotProp });
         } else if (prop !== undefined) {
-            tokens.push({ type: "prop", key: unescapeQuotes(prop) });
+            tokens.push({ type: "prop", key: _unescapeQuotes(prop) });
         } else if (wildcard !== undefined) {
             tokens.push({ type: "wildcard" });
         } else if (numOrSlice !== undefined) {
@@ -453,7 +453,8 @@ export function tokenizeJsonPath(path: string): JsonToken[] | null {
 }
 
 function _collectJsonRecursive(val: any, tok: JsonToken, results: any[], visited = new Set<object>()): void {
-    if (val == null || !isSafeKey(tok.key) || typeof val !== "object" || visited.has(val)) return;
+    if (val == null || !_isSafeKey(tok.key) || typeof val !== "object" || visited.has(val)) return;
+
     visited.add(val);
 
     const isArr = Array.isArray(val);
@@ -476,7 +477,7 @@ export function evaluateJsonToken(item: any, tok: JsonToken, next: any[]): void 
 
     switch (tok.type) {
         case "prop":
-            if (isObj(item) && isSafeKey(tok.key) && Object.prototype.hasOwnProperty.call(item, tok.key!)) {
+            if (isObj(item) && _isSafeKey(tok.key) && Object.prototype.hasOwnProperty.call(item, tok.key!)) {
                 next.push(item[tok.key!]);
             }
             break;

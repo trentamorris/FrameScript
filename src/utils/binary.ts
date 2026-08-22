@@ -28,7 +28,7 @@ export function isBinaryObj(
 }
 
 const UINT8_INT_OPTS: IntOptions = { range: "UInt8" };
-const isUInt8 = (n: unknown): n is number => isValidInt(n, UINT8_INT_OPTS);
+const _isUInt8 = (n: unknown): n is number => isValidInt(n, UINT8_INT_OPTS);
 
 export function isValidBinary(
     v: unknown,
@@ -40,7 +40,7 @@ export function isValidBinary(
         if (options?.strict) return false;
         if (typeof v === "string") return true;
         if (ArrayBuffer.isView(v)) return !isDetachedBuffer(v);
-        if (Array.isArray(v)) return isArrayOfType(v, isUInt8);
+        if (Array.isArray(v)) return isArrayOfType(v, _isUInt8);
     } catch {
         return false;
     }
@@ -63,7 +63,7 @@ export function toValidBinary(v: unknown, options?: BinaryValidationOptions): Ui
         if (typeof v === "string") {
             return TEXT_ENCODER.encode(v);
         }
-        if (Array.isArray(v) && isArrayOfType(v, isUInt8)) {
+        if (Array.isArray(v) && isArrayOfType(v, _isUInt8)) {
             return Uint8Array.from(v);
         }
     } catch {

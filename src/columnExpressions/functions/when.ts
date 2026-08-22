@@ -3,39 +3,22 @@ import type { IExpr, ValidScalarTypes } from "../../types";
 import { evaluateArg, isEvaluatedColumn } from "../utils";
 import { WHEN_MARKER } from "../constants";
 
-type WhenArg = IExpr | ValidScalarTypes | any[];
+type WhenArg = IExpr | ValidScalarTypes | any[] | Record<string, any>;
 
 export class WhenThenChain {
-    private _predicates: WhenArg[];
-    private _values: WhenArg[];
-
-    constructor(predicates: WhenArg[], values: WhenArg[]) {
-        this._predicates = predicates;
-        this._values = values;
-    }
+    constructor(
+        private _predicates: WhenArg[],
+        private _values: WhenArg[] = []
+    ) { }
 
     then(value: WhenArg): WhenThen {
-        return new WhenThen(this._predicates, this._values.concat(value));
+        return new WhenThen(this._predicates, [...this._values, value]);
     }
 }
 
-export class When {
-    private _predicates: WhenArg[];
-
-    constructor(predicate: WhenArg) {
-        this._predicates = [predicate];
-    }
-
-    then(value: WhenArg): WhenThen {
-        return new WhenThen(this._predicates, [value]);
-    }
-}
+export { WhenThenChain as When };
 
 export class WhenThen extends ColumnExpr<any> {
-    public _predicates: WhenArg[];
-    public _values: WhenArg[];
-    public _otherwise: WhenArg;
-
     get _otherwiseValue(): WhenArg {
         return this._otherwise;
     }
@@ -44,11 +27,12 @@ export class WhenThen extends ColumnExpr<any> {
         return this._otherwise != null ? [...this._values, this._otherwise] : this._values;
     }
 
-    constructor(predicates: WhenArg[] = [], values: WhenArg[] = [], otherwise: WhenArg = null) {
+    constructor(
+        public _predicates: WhenArg[] = [],
+        public _values: WhenArg[] = [],
+        public _otherwise: WhenArg = null
+    ) {
         super(WHEN_MARKER);
-        this._predicates = Array.isArray(predicates) ? predicates : [];
-        this._values = values || [];
-        this._otherwise = otherwise;
 
         this._ops = [(_, columns) => {
             const height = _.length;
@@ -98,7 +82,7 @@ export class WhenThen extends ColumnExpr<any> {
     }
 
     when(predicate: WhenArg): WhenThenChain {
-        return new WhenThenChain(this._predicates.concat(predicate), this._values);
+        return new WhenThenChain([...this._predicates, predicate], this._values);
     }
 
     otherwise(value: WhenArg): WhenThen {
@@ -110,7 +94,7 @@ export class WhenThen extends ColumnExpr<any> {
  * Provides conditional branch evaluations inside column expressions.
  *
  * @param {WhenArg} predicate The boolean condition or expression.
- * @returns {When} A When object builder to chain `.then()` and `.otherwise()`/`.when()`.
+ * @returns {WhenThenChain} A When object builder to chain `.then()` and `.otherwise()`/`.when()`.
  * @namespace $df
  * @category ColumnExpression
  * @syntax $df.{symbol}(...)
@@ -136,6 +120,6 @@ export class WhenThen extends ColumnExpr<any> {
  * │ A     │
  * └───────┘
  */
-export function when(predicate: WhenArg): When {
-    return new When(predicate);
+export function when(predicate: WhenArg): WhenThenChain {
+    return new WhenThenChain([predicate]);
 }

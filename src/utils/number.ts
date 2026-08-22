@@ -43,7 +43,7 @@ export interface ParseNumberOptions extends NumericValidationOptions {
     floatScientific?: boolean;
 }
 
-function validateGroupLengths(parts: string[]): boolean {
+function _validateGroupLengths(parts: string[]): boolean {
     for (let i = 1; i < parts.length; i++) {
         if (parts[i].length !== 3) return false;
     }
@@ -54,7 +54,8 @@ const LEADING_SIGN_REGEX = /^[+-]/;
 const ALL_DOTS_REGEX = /\./g;
 const ALL_COMMAS_REGEX = /,/g;
 
-function cleanNumericString(str: string, strict: boolean): string | null {
+function _cleanNumericString(str: string, strict: boolean): string | null {
+
     if (NON_BASE10_INJECTION_REGEX.test(str)) return null;
 
     let clean = str.trim();
@@ -85,7 +86,7 @@ function cleanNumericString(str: string, strict: boolean): string | null {
         const limitIdx = isCommaDecimal ? lastComma : lastDot;
 
         const parts = clean.slice(0, limitIdx).split(splitChar);
-        if (parts.length > 1 && !validateGroupLengths(parts)) return null;
+        if (parts.length > 1 && !_validateGroupLengths(parts)) return null;
         if (parts[0].replace(LEADING_SIGN_REGEX, "").length > 3) return null;
 
         return isCommaDecimal
@@ -105,7 +106,7 @@ function cleanNumericString(str: string, strict: boolean): string | null {
             } else if (leadLength > 3) {
                 return null;
             } else {
-                if (!validateGroupLengths(parts)) return null;
+                if (!_validateGroupLengths(parts)) return null;
                 return clean.replace(hasComma ? ALL_COMMAS_REGEX : ALL_DOTS_REGEX, "");
             }
         }
@@ -146,7 +147,7 @@ export function toValidNumber(
             return null;
         }
         case "string": {
-            const clean = cleanNumericString(v, strictNumericString);
+            const clean = _cleanNumericString(v, strictNumericString);
             if (clean === null) return null;
 
             if (allowNonFiniteNumbers) {
@@ -381,7 +382,7 @@ export function toValidBigInt(
     if (typeof v === "bigint") {
         bigintVal = v;
     } else if (typeof v === "string") {
-        let clean = cleanNumericString(v, false);
+        let clean = _cleanNumericString(v, false);
         if (clean === null || !STRICT_SCIENTIFIC_REGEX.test(clean)) return null;
 
         if (EXPONENT_INDICATOR_REGEX.test(clean)) {
@@ -459,7 +460,7 @@ export interface DecimalOptions {
     scale?: number;
 }
 
-function getDecimalMaxVal(precision: number, scale: number): number | null {
+function _getDecimalMaxVal(precision: number, scale: number): number | null {
     const integerDigits = precision - scale;
     if (integerDigits < 0 || scale < 0) return null;
     if (integerDigits > 15) {
@@ -496,7 +497,7 @@ export function toValidDecimal(
 
     if (precision !== undefined) {
         const scaleVal = scale ?? 0;
-        const maxVal = getDecimalMaxVal(precision, scaleVal);
+        const maxVal = _getDecimalMaxVal(precision, scaleVal);
         if (maxVal !== null) {
             n = clamp(n, { min: -maxVal, max: maxVal });
         }

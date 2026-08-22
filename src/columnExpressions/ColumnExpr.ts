@@ -70,9 +70,9 @@ export interface ColumnExpr<T> extends
     TemporalExpr,
     ArrayExpr,
     StructExpr,
-    ManipulationExpr {}
+    ManipulationExpr { }
 
-function applyMixins(derivedCtor: any, constructors: any[]) {
+function _applyMixins(derivedCtor: any, constructors: any[]) {
     for (const baseCtor of constructors) {
         for (const name of Object.getOwnPropertyNames(baseCtor.prototype)) {
             if (name !== 'constructor') {
@@ -86,7 +86,7 @@ function applyMixins(derivedCtor: any, constructors: any[]) {
     }
 }
 
-applyMixins(ColumnExpr, [
+_applyMixins(ColumnExpr, [
     ArithmeticExpr,
     ComparisonExpr,
     AggregationExpr,
@@ -104,7 +104,7 @@ applyMixins(ColumnExpr, [
  * Determines which concrete keys a column selector matches.
  * Returns null if the expression is not a multi-column selector.
  */
-function getTargetKeys(
+function _getTargetKeys(
     expr: any,
     allKeys: string[],
     excludeSet: Set<string>,
@@ -230,7 +230,7 @@ export function resolveColumnSelectors(
             }
         }
 
-        const targets = getTargetKeys(expr, allKeys, excludeSet, schema);
+        const targets = _getTargetKeys(expr, allKeys, excludeSet, schema);
         if (targets !== null) {
             for (let j = 0; j < targets.length; j++) {
                 const concrete = new ColumnExpr(targets[j]);

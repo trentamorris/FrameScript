@@ -2,7 +2,7 @@ import type { IExpr } from "../../types"
 import { ExprBase, derive } from "../ExprBase"
 import { getArrayStats, computeQuantile, sortArray } from "../../utils"
 
-function computeRank(
+function _computeRank(
     arr: any[],
     value: any,
     options: { ignoreNulls?: boolean; dense?: boolean } = {}
@@ -39,6 +39,7 @@ function computeRank(
 
     return valueToRank.get(value) ?? null;
 }
+
 
 
 /**
@@ -210,7 +211,7 @@ export class WindowExpr extends ExprBase {
      */
     dense_rank() {
         return this._window(function (this: IExpr, groupPreValues: any[], _partitionIndices: number[], currentIndex: number) {
-            return computeRank(groupPreValues, groupPreValues[currentIndex], { dense: true });
+            return _computeRank(groupPreValues, groupPreValues[currentIndex], { dense: true });
         });
     }
 
@@ -308,7 +309,7 @@ export class WindowExpr extends ExprBase {
      */
     rank() {
         return this._window(function (this: IExpr, groupPreValues: any[], _partitionIndices: number[], currentIndex: number) {
-            return computeRank(groupPreValues, groupPreValues[currentIndex]);
+            return _computeRank(groupPreValues, groupPreValues[currentIndex]);
         });
     }
 
@@ -432,7 +433,7 @@ export class WindowExpr extends ExprBase {
      */
     rolling_rank(windowSize: number) {
         return this._rolling(windowSize, (vals) => {
-            return computeRank(vals, vals[vals.length - 1], { ignoreNulls: true });
+            return _computeRank(vals, vals[vals.length - 1], { ignoreNulls: true });
         });
     }
 

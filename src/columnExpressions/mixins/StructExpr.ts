@@ -2,13 +2,13 @@ import { ExprBase, derive } from "../ExprBase";
 import type { IntoExpr } from "../../types";
 import { assertNotNull, InvalidArgumentError } from "../../exceptions";
 
-let ColumnExprClass: any = null;
-function toColExpr(col: any): any {
+let _ColumnExprClass: any = null;
+function _toColExpr(col: any): any {
     assertNotNull(col, "Column reference cannot be null or undefined.");
-    if (!ColumnExprClass) {
-        ColumnExprClass = require("../ColumnExpr").ColumnExpr;
+    if (!_ColumnExprClass) {
+        _ColumnExprClass = require("../ColumnExpr").ColumnExpr;
     }
-    return ColumnExprClass.isColExpr(col) ? col : new ColumnExprClass(col);
+    return _ColumnExprClass.isColExpr(col) ? col : new _ColumnExprClass(col);
 }
 
 /**
@@ -80,14 +80,14 @@ export class StructExprNamespace {
             const result = new Array(height);
             const keys = Object.keys(mapping);
             const keysLen = keys.length;
-            
+
             for (let i = 0; i < height; i++) {
                 const v = vArray[i];
                 if (v == null || typeof v !== "object") {
                     result[i] = null;
                     continue;
                 }
-                
+
                 const newObj: any = {};
                 const origKeys = Object.keys(v);
                 const origLen = origKeys.length;
@@ -95,7 +95,7 @@ export class StructExprNamespace {
                     const key = origKeys[k];
                     newObj[key] = (v as any)[key];
                 }
-                
+
                 for (let j = 0; j < keysLen; j++) {
                     const oldKey = keys[j];
                     if (oldKey in newObj) {
@@ -129,13 +129,13 @@ export class StructExprNamespace {
         return derive(this.expr, (vArray, columns) => {
             const height = vArray.length;
             const result = new Array(height);
-            
+
             const resolved: { name: string, expr: any }[] = [];
             if (Array.isArray(fields)) {
                 const fieldsLen = fields.length;
                 for (let j = 0; j < fieldsLen; j++) {
                     const f = fields[j];
-                    const expr = toColExpr(f);
+                    const expr = _toColExpr(f);
                     const name = expr._outputName || expr._colName;
                     if (!name) {
                         throw new InvalidArgumentError("Expressions passed to struct.with_fields must have a name/alias.");
@@ -147,7 +147,7 @@ export class StructExprNamespace {
                 const keysLen = keys.length;
                 for (let j = 0; j < keysLen; j++) {
                     const name = keys[j];
-                    const expr = toColExpr(fields[name]);
+                    const expr = _toColExpr(fields[name]);
                     resolved.push({ name, expr });
                 }
             }
@@ -164,7 +164,7 @@ export class StructExprNamespace {
                     result[i] = null;
                     continue;
                 }
-                
+
                 const newObj: any = {};
                 const origKeys = Object.keys(v);
                 const origLen = origKeys.length;
@@ -172,7 +172,7 @@ export class StructExprNamespace {
                     const key = origKeys[k];
                     newObj[key] = (v as any)[key];
                 }
-                
+
                 for (let j = 0; j < resolvedLen; j++) {
                     newObj[resolved[j].name] = fieldValues[j][i];
                 }

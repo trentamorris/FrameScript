@@ -1,5 +1,5 @@
 declare const process: any;
-import { $df } from "../../src/index";
+import { $df, ColumnExpr } from "../../src/index";
 
 console.log("=========================================");
 console.log("STARTING COLUMN EXPRESSION WHEN-THEN-OTHERWISE TESTS...");
@@ -184,7 +184,7 @@ try {
     // 11. TypedArray and Array outputs in then/otherwise
     const res11 = $df.data({ flag: [true, false] }).with_columns(
         $df.when($df.col("flag")).then(new Uint8Array([1, 2])).otherwise(new Uint8Array([3, 4])).alias("bin_data"),
-        $df.when($df.col("flag")).then([10, 20]).otherwise([30, 40]).alias("list_data")
+        $df.when($df.col("flag")).then($df.lit([10, 20])).otherwise($df.lit([30, 40])).alias("list_data")
     ).to_dicts() as any[];
 
     if (!(res11[0].bin_data instanceof Uint8Array) || res11[0].bin_data[0] !== 1) throw new Error("res11[0].bin_data failed");
@@ -192,9 +192,56 @@ try {
     if (!Array.isArray(res11[0].list_data) || res11[0].list_data[0] !== 10) throw new Error("res11[0].list_data failed");
     if (!Array.isArray(res11[1].list_data) || res11[1].list_data[0] !== 30) throw new Error("res11[1].list_data failed");
 
+    // 12. Direct When class and WhenThen export checks
+    const whenChain = $df.when(true);
+    if (typeof whenChain.then !== "function") throw new Error("whenChain.then should be a function");
+    const whenThenObj = whenChain.then("val");
+    if (!(whenThenObj instanceof ColumnExpr)) throw new Error("whenThenObj should be an instance of ColumnExpr");
+    if (whenThenObj._branchOperands.length !== 1 || whenThenObj._branchOperands[0] !== "val") throw new Error("whenThenObj._branchOperands mismatch");
+
+    // 13. Literal / scalar boolean predicate without column expressions
+    const res12 = df.with_columns(
+        $df.when(true).then("ALWAYS_TRUE").otherwise("NEVER").alias("const_true"),
+        $df.when(false).then("NEVER").otherwise("ALWAYS_FALSE").alias("const_false")
+    ).to_dicts() as any[];
+
+    if (res12[0].const_true !== "ALWAYS_TRUE" || res12[1].const_true !== "ALWAYS_TRUE") throw new Error("res12 const_true failed");
+    if (res12[0].const_false !== "ALWAYS_FALSE" || res12[1].const_false !== "ALWAYS_FALSE") throw new Error("res12 const_false failed");
+
+    // 14. Null and undefined predicate handling (should evaluate to false and hit otherwise)
+    const res13 = df.with_columns(
+        $df.when(null as any).then("HIT_NULL").otherwise("MISSED_NULL").alias("null_pred"),
+        $df.when(undefined as any).then("HIT_UNDEF").otherwise("MISSED_UNDEF").alias("undef_pred")
+    ).to_dicts() as any[];
+
+    if (res13[0].null_pred !== "MISSED_NULL") throw new Error("res13 null_pred failed");
+    if (res13[0].undef_pred !== "MISSED_UNDEF") throw new Error("res13 undef_pred failed");
+
+    // 15. Complex nested object and null values in then/otherwise branches
+    const objA = { key: "A" };
+    const objB = { key: "B" };
+    const res14 = df.with_columns(
+        $df.when($df.col("id").eq(1)).then(objA).otherwise(objB).alias("obj_branch"),
+        $df.when($df.col("id").eq(1)).then(null).otherwise("not_null").alias("null_then_branch")
+    ).to_dicts() as any[];
+
+    if (res14[0].obj_branch !== objA || res14[1].obj_branch !== objB) throw new Error("res14 obj_branch failed");
+    if (res14[0].null_then_branch !== null || res14[1].null_then_branch !== "not_null") throw new Error("res14 null_then_branch failed");
+
+    // 16. _branchOperands with otherwise vs without otherwise
+    const withOtherwise = $df.when($df.col("id").eq(1)).then("A").when($df.col("id").eq(2)).then("B").otherwise("C");
+    if (withOtherwise._branchOperands.length !== 3 || withOtherwise._branchOperands[2] !== "C") {
+        throw new Error("withOtherwise._branchOperands failed");
+    }
+    const withoutOtherwise = $df.when($df.col("id").eq(1)).then("A").when($df.col("id").eq(2)).then("B");
+    if (withoutOtherwise._branchOperands.length !== 2 || withoutOtherwise._branchOperands[1] !== "B") {
+        throw new Error("withoutOtherwise._branchOperands failed");
+    }
+
     console.log("\n🎉 ALL WHEN-THEN-OTHERWISE TESTS PASSED SUCCESSFULLY!");
 } catch (err) {
     console.error("\n❌ WHEN-THEN-OTHERWISE TESTS FAILED:", err);
     process.exit(1);
 }
+
 

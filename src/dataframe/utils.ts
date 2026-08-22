@@ -7,7 +7,7 @@ import { KEY_SEPARATOR, UNMATCHED_ROW_INDEX } from "../constants"
 import { isObj, isTypedArray, toCanonicalString, isArrayOrTypedArray, isValidDateObj, computeCartesianProduct, toValidNumber, isValidNumber, binarySearch } from "../utils"
 import { assertColumnExists, IOStreamError, InvalidArgumentError } from "../exceptions"
 
-function partition_by_columns(
+function _partitionByColumns(
     columns: ColumnDict,
     height: number,
     partitionKeys: (string | IExpr)[]
@@ -37,7 +37,8 @@ export function resolveWindowExpr(expr: IExpr, columns: ColumnDict, height: numb
     if (height === 0) return results;
 
     const partitionKeys = expr._partitionBy || [];
-    const partitionGroups = partition_by_columns(columns, height, partitionKeys);
+    const partitionGroups = _partitionByColumns(columns, height, partitionKeys);
+
 
     const prePartitionArray = expr._evaluatePre(expr._partitionOpsIndex, columns, height);
 
@@ -506,7 +507,7 @@ export function alignAsofIndices(
             const pos = binarySearch(candidates, leftVal, { side: allowExactMatches ? "left" : "right", getValue: getVal });
             return pos < len ? candidates[pos] : null;
         }
-        
+
         // strategy === "nearest"
         const pos = binarySearch(candidates, leftVal, { side: "right", getValue: getVal });
         let bIdx = pos - 1, fIdx = pos;

@@ -3,18 +3,28 @@ import { DataTypeRegistry } from "../datatypes"
 import { isTypedArray, isPlainObj, isArrayOfType, isArrayOrTypedArray } from "../utils"
 import type { ColumnDict, ConcatOptions, ConcatItem, RowRecord, DataFrameSchema, RegisteredDataType } from "../types"
 import { DataFrameError, SchemaError, ShapeError } from "../exceptions"
-function normalizeToDataFrames(item: any, context: string, index: number): DataFrame<any>[] {
+
+function _copyElements(src: ArrayLike<any>, dest: ArrayLike<any> | any[], offset: number, count: number): void {
+    if (isTypedArray(src) && isTypedArray(dest)) {
+        (dest as Uint8Array).set(src as ArrayLike<number>, offset);
+        return;
+    }
+    const destArr = dest as any[];
+    for (let i = 0; i < count; i++) {
+        destArr[offset + i] = src[i];
+    }
+}
+
+function _normalizeToDataFrames(item: any, context: string, index: number): DataFrame<any>[] {
     if (item == null) {
         throw new DataFrameError(`Invalid input to ${context} at index ${index}: item cannot be null or undefined.`);
     }
     if (item instanceof DataFrame) {
         return [item];
     }
-
     if (isPlainObj(item)) {
         return [new DataFrame(item as ColumnDict)];
     }
-
     if (isArrayOrTypedArray(item)) {
         if (isArrayOfType(item, DataFrame, { mode: "every" })) {
             return item as DataFrame<any>[];
@@ -32,8 +42,50 @@ function normalizeToDataFrames(item: any, context: string, index: number): DataF
             }
         }
     }
-
     throw new DataFrameError(`Invalid input to ${context} at index ${index}: expected DataFrame, row array, or column dictionary.`);
+}
+
+function _blitStackedColumns<U extends RowRecord>(
+    items: DataFrame<any>[],
+    columns: string[],
+    outSchema: DataFrameSchema,
+    totalHeight: number,
+    allowTyped: boolean = false
+): DataFrame<U> {
+    const newColumns: Record<string, ArrayLike<any>> = {};
+
+    for (let c = 0; c < columns.length; c++) {
+        const key = columns[c];
+        const type = outSchema[key];
+        let allTyped = Boolean(allowTyped && type);
+        if (allTyped) {
+            for (let i = 0; i < items.length; i++) {
+                if (!isTypedArray(items[i]._columns[key])) {
+                    allTyped = false;
+                    break;
+                }
+            }
+        }
+        newColumns[key] = allTyped ? type!.allocate(totalHeight) : new Array(totalHeight).fill(null);
+    }
+
+    let offset = 0;
+    for (let i = 0; i < items.length; i++) {
+        const df = items[i];
+        const h = df.height;
+        if (h === 0) continue;
+
+        for (let c = 0; c < columns.length; c++) {
+            const key = columns[c];
+            const src = df._columns[key];
+            if (src !== undefined) {
+                _copyElements(src, newColumns[key], offset, h);
+            }
+        }
+        offset += h;
+    }
+
+    return DataFrame._createDirect<U>(newColumns as ColumnDict, outSchema, totalHeight);
 }
 
 /**
@@ -96,163 +148,81 @@ export function concat<U extends RowRecord = any>(
     const itemsArray = Array.isArray(rawItems) ? rawItems : [rawItems];
     const items: DataFrame<any>[] = [];
     for (let i = 0; i < itemsArray.length; i++) {
-        items.push(...normalizeToDataFrames(itemsArray[i], "concat", i));
+        items.push(..._normalizeToDataFrames(itemsArray[i], "concat", i));
     }
-
-    const strict = horizontal?.strict ?? true;
 
     if (items.length === 0) return DataFrame._createDirect<U>({}, {}, 0);
     if (items.length === 1 && how !== 'horizontal') return items[0] as DataFrame<U>;
 
     switch (how) {
         case 'vertical': {
-            const validItems: DataFrame<any>[] = [];
+            let firstDF: DataFrame<any> | null = null;
+            let totalHeight = 0;
             for (let i = 0; i < items.length; i++) {
-                if (items[i].height > 0) {
-                    validItems.push(items[i]);
-                }
+                totalHeight += items[i].height;
+                if (!firstDF && items[i].height > 0) firstDF = items[i];
             }
-            if (validItems.length === 0) return DataFrame._createDirect<U>({}, {}, 0);
+            if (!firstDF) return DataFrame._createDirect<U>({}, {}, 0);
 
-            const firstDF = validItems[0];
             const firstKeys = Object.keys(firstDF._columns);
 
             for (let i = 0; i < items.length; i++) {
-                const currentDF = items[i];
-                if (currentDF.height === 0) continue;
+                const df = items[i];
+                if (df.height === 0) continue;
 
-                const currentKeys = Object.keys(currentDF._columns);
-
-                if (firstKeys.length !== currentKeys.length) {
+                const keys = Object.keys(df._columns);
+                if (firstKeys.length !== keys.length) {
                     throw new DataFrameError(`[Strict Vertical] Column count mismatch at index ${i}.`);
                 }
                 for (let j = 0; j < firstKeys.length; j++) {
-                    if (firstKeys[j] !== currentKeys[j]) {
-                        throw new DataFrameError(
-                            `[Strict Vertical] Schema mismatch at position ${j} in DF ${i}. ` +
-                            `Expected column "${firstKeys[j]}", but found "${currentKeys[j]}".`
-                        );
+                    const key = firstKeys[j];
+                    if (key !== keys[j]) {
+                        throw new DataFrameError(`[Strict Vertical] Schema mismatch at position ${j} in DF ${i}. Expected column "${key}", but found "${keys[j]}".`);
                     }
-                    const typeA = firstDF.schema[firstKeys[j]];
-                    const typeB = currentDF.schema[firstKeys[j]];
+                    const typeA = firstDF.schema[key];
+                    const typeB = df.schema[key];
                     if (typeA && typeB && !typeA.equals(typeB)) {
-                        throw new SchemaError(`[Strict Type Check] Schema type mismatch for column "${firstKeys[j]}": expected ${typeA.name}, found ${typeB.name}.`);
+                        throw new SchemaError(`[Strict Type Check] Schema type mismatch for column "${key}": expected ${typeA.name}, found ${typeB.name}.`);
                     }
                 }
             }
 
-            let newHeight = 0;
-            for (const item of items) {
-                newHeight += item.height;
-            }
-
-            let outSchema: DataFrameSchema = {};
-            const itemsLen = items.length;
-            for (let i = 0; i < itemsLen; i++) {
-                if (items[i].height > 0) {
-                    outSchema = items[i].schema;
-                    break;
-                }
-            }
-            if (Object.keys(outSchema).length === 0 && itemsLen > 0) {
-                outSchema = items[0].schema;
-            }
-            const newColumns: Record<string, ArrayLike<any>> = {};
-
-            for (const key of firstKeys) {
-                const type = outSchema[key];
-                let hasNulls = false;
-                for (const item of items) {
-                    const colArr = item._columns[key];
-                    if (!colArr) {
-                        hasNulls = true;
-                        break;
-                    }
-                    if (!isTypedArray(colArr)) {
-                        for (let i = 0; i < colArr.length; i++) {
-                            if (colArr[i] == null) {
-                                hasNulls = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (hasNulls) break;
-                }
-
-                let dest = type && type.allocate ? type.allocate(newHeight) : new Array(newHeight).fill(null);
-                if (hasNulls && isTypedArray(dest)) {
-                    dest = new Array(newHeight).fill(null);
-                }
-                newColumns[key] = dest;
-            }
-
-            let offset = 0;
-            for (const item of items) {
-                const h = item.height;
-                if (h === 0) continue;
-                for (const key of firstKeys) {
-                    const colArr = item._columns[key] || new Array(h).fill(null);
-                    const dest = newColumns[key];
-                    if (isTypedArray(dest) && isTypedArray(colArr)) {
-                        (dest as Uint8Array).set(colArr as ArrayLike<number>, offset);
-                    } else {
-                        const destArr = dest as any[];
-                        for (let i = 0; i < h; i++) {
-                            destArr[offset + i] = colArr[i];
-                        }
-                    }
-                }
-                offset += h;
-            }
-            return DataFrame._createDirect<U>(newColumns as ColumnDict, outSchema, newHeight);
+            return _blitStackedColumns<U>(items, firstKeys, firstDF.schema, totalHeight, true);
         }
 
         case 'horizontal': {
-            let maxHeight = items[0].height;
-            for (let i = 1; i < items.length; i++) {
-                if (items[i].height > maxHeight) {
-                    maxHeight = items[i].height;
-                }
+            const strict = horizontal?.strict ?? true;
+            let maxHeight = 0;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].height > maxHeight) maxHeight = items[i].height;
             }
 
             const allColNames = new Set<string>();
+            const newColumns: Record<string, ArrayLike<any>> = {};
+            const outSchema: DataFrameSchema = {};
 
-            for (let idx = 0; idx < items.length; idx++) {
-                const df = items[idx];
-                if (strict && df.height !== maxHeight) {
-                    throw new ShapeError(`[Horizontal] Row count mismatch at index ${idx}. Expected ${maxHeight}, got ${df.height}. Set strict=false to allow padding.`);
+            for (let i = 0; i < items.length; i++) {
+                const df = items[i];
+                const h = df.height;
+                if (strict && h !== maxHeight) {
+                    throw new ShapeError(`[Horizontal] Row count mismatch at index ${i}. Expected ${maxHeight}, got ${h}. Set strict=false to allow padding.`);
                 }
+                Object.assign(outSchema, df.schema);
 
-                for (const key of Object.keys(df._columns)) {
+                const keys = Object.keys(df._columns);
+                for (let k = 0; k < keys.length; k++) {
+                    const key = keys[k];
                     if (allColNames.has(key)) {
                         throw new DataFrameError(`[Horizontal] Duplicate column name "${key}" detected. Horizontal concat requires unique names.`);
                     }
                     allColNames.add(key);
-                }
-            }
 
-            const newColumns: Record<string, ArrayLike<any>> = {};
-            const outSchema: DataFrameSchema = {};
-
-            for (const df of items) {
-                const h = df.height;
-                Object.assign(outSchema, df.schema);
-
-                const keys = Object.keys(df._columns);
-                const numKeys = keys.length;
-                for (let idxKey = 0; idxKey < numKeys; idxKey++) {
-                    const key = keys[idxKey];
                     const col = df._columns[key];
                     if (h === maxHeight) {
                         newColumns[key] = isTypedArray(col) ? Array.from(col as any) : col;
                     } else {
-                        const padded = new Array(maxHeight);
-                        for (let i = 0; i < h; i++) {
-                            padded[i] = col[i];
-                        }
-                        for (let i = h; i < maxHeight; i++) {
-                            padded[i] = null;
-                        }
+                        const padded = new Array(maxHeight).fill(null);
+                        _copyElements(col, padded, 0, h);
                         newColumns[key] = padded;
                     }
                 }
@@ -263,70 +233,34 @@ export function concat<U extends RowRecord = any>(
 
         case 'diagonal': {
             const allColumnsSet = new Set<string>();
-            for (const df of items) {
-                for (const key of Object.keys(df._columns)) {
+            let totalHeight = 0;
+            for (let i = 0; i < items.length; i++) {
+                totalHeight += items[i].height;
+                for (const key of Object.keys(items[i]._columns)) {
                     allColumnsSet.add(key);
                 }
             }
 
             const allColumns = Array.from(allColumnsSet);
-            let newHeight = 0;
-            for (let i = 0; i < items.length; i++) {
-                newHeight += items[i].height;
-            }
-
             const outSchema: DataFrameSchema = {};
-            for (const key of allColumns) {
+
+            for (let c = 0; c < allColumns.length; c++) {
+                const key = allColumns[c];
                 let colType: RegisteredDataType | null = null;
-                for (const item of items) {
-                    const itemType = item.schema[key];
+                for (let i = 0; i < items.length; i++) {
+                    const itemType = items[i].schema[key];
                     if (itemType) {
                         if (colType === null) {
                             colType = itemType;
-                        } else {
-                            if (!colType.equals(itemType)) {
-                                throw new SchemaError(`[Strict Type Check] Schema type mismatch for column "${key}": expected ${colType.name}, found ${itemType.name}.`);
-                            }
+                        } else if (!colType.equals(itemType)) {
+                            throw new SchemaError(`[Strict Type Check] Schema type mismatch for column "${key}": expected ${colType.name}, found ${itemType.name}.`);
                         }
                     }
                 }
                 outSchema[key] = colType || DataTypeRegistry.Utf8;
             }
 
-            const newColumns: Record<string, ArrayLike<any>> = {};
-            for (let j = 0; j < allColumns.length; j++) {
-                newColumns[allColumns[j]] = new Array(newHeight).fill(null);
-            }
-
-            let offset = 0;
-            for (let i = 0; i < items.length; i++) {
-                const df = items[i];
-                const h = df.height;
-                if (h === 0) continue;
-                for (let j = 0; j < allColumns.length; j++) {
-                    const col = allColumns[j];
-                    const dest = newColumns[col];
-                    const src = df._columns[col];
-                    if (src !== undefined) {
-                        if (isTypedArray(src) && isTypedArray(dest)) {
-                            (dest as Uint8Array).set(src as ArrayLike<number>, offset);
-                        } else {
-                            const destArr = dest as any[];
-                            for (let k = 0; k < h; k++) {
-                                destArr[offset + k] = src[k];
-                            }
-                        }
-                    } else {
-                        const destArr = dest as any[];
-                        for (let k = 0; k < h; k++) {
-                            destArr[offset + k] = null;
-                        }
-                    }
-                }
-                offset += h;
-            }
-
-            return DataFrame._createDirect<U>(newColumns as ColumnDict, outSchema, newHeight);
+            return _blitStackedColumns<U>(items, allColumns, outSchema, totalHeight, false);
         }
     }
 }

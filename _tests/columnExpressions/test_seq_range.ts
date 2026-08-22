@@ -108,8 +108,66 @@ try {
         throw new Error("r9 dtype coercion/renaming failed: " + JSON.stringify(r9));
     }
 
+    // 10. Complex 10/10 Edge Cases
+    // 10.1 Negative Indexing Slice with Floating Steps and Float64 Typed Allocation
+    const df6 = $df.data([{ a: 1 }, { a: 2 }, { a: 3 }, { a: 4 }, { a: 5 }, { a: 6 }]);
+    const r10 = df6.select([
+        $df.seq_range(0.25, {
+            strict: false,
+            startIndex: -4, // index 2
+            endIndex: -1,   // index 5 -> width 3
+            step: 0.5,
+            padValue: -99.9,
+            dtype: $df.DataType.Float64,
+            mode: "cumulative"
+        }).alias("seq")
+    ]).to_dicts() as any[];
+    if (r10.length !== 6) throw new Error("r10 length mismatch");
+    if (r10[0].seq !== -99.9 || r10[1].seq !== -99.9 || r10[2].seq !== 0.25 || r10[3].seq !== 0.75 || r10[4].seq !== 1.25 || r10[5].seq !== -99.9) {
+        throw new Error("r10 negative slice with float typed allocation failed: " + JSON.stringify(r10));
+    }
+
+    // 10.2 State-Accumulator Function with Geometric Decay and Int32 Cast
+    const r11 = df.select([
+        $df.seq_range(1000, {
+            step: ({ prev }: { prev: number }) => Math.floor(prev / 2),
+            dtype: $df.DataType.Int32,
+            mode: "cumulative"
+        }).alias("decay")
+    ]).to_dicts() as any[];
+    if (r11[0].decay !== 1000 || r11[1].decay !== 500 || r11[2].decay !== 250 || r11[3].decay !== 125) {
+        throw new Error("r11 geometric decay sequence failed: " + JSON.stringify(r11));
+    }
+
+    // 10.3 Empty / Out-of-Bounds Slices (startIndex >= endIndex)
+    const r12 = df.select([
+        $df.seq_range(100, {
+            strict: false,
+            startIndex: 3,
+            endIndex: 1, // slice width = 0
+            padValue: 0,
+            mode: "constant"
+        }).alias("zero_slice")
+    ]).to_dicts() as any[];
+    if (r12.some((row: any) => row.zero_slice !== 0)) {
+        throw new Error("r12 empty slice should be filled with padValue");
+    }
+
+    // 10.4 String Sequences with Cumulative Concatenation
+    const r13 = df.select([
+        $df.seq_range("A", {
+            step: ({ prev }: { prev: string }) => prev + "A",
+            mode: "cumulative"
+        }).alias("str_seq")
+    ]).to_dicts() as any[];
+    if (r13[0].str_seq !== "A" || r13[1].str_seq !== "AA" || r13[2].str_seq !== "AAA" || r13[3].str_seq !== "AAAA") {
+        throw new Error("r13 string sequence generation failed: " + JSON.stringify(r13));
+    }
+
     console.log("\n🎉 ALL COLUMN EXPRESSION SEQ_RANGE TESTS PASSED SUCCESSFULLY!");
 } catch (err) {
     console.error("\n❌ Column Expression SEQ_RANGE TESTS FAILED:", err);
-    process.exit(1);
+    throw err;
 }
+
+

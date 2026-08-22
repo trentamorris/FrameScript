@@ -60,7 +60,7 @@ export type IsArrayOfTypeOptionsParams = {
 /**
  * Shared Type Validator & Coercer Factory
  */
-function getTypeValidators(type: ArrayItemType): {
+function _getTypeValidators(type: ArrayItemType): {
     check: (v: unknown) => boolean;
     coerce: (v: unknown) => any;
 } {
@@ -121,7 +121,7 @@ export function isArrayOfType(
 
     if (len === 0) return allowEmpty ? mode === "every" : false;
 
-    const { check } = getTypeValidators(type);
+    const { check } = _getTypeValidators(type);
 
     if (mode === "every") {
         for (let i = 0; i < len; i++) {
@@ -159,7 +159,8 @@ export function toArrayOfType<T = any>(
         return [];
     }
 
-    const { check, coerce } = getTypeValidators(type);
+    const { check, coerce } = _getTypeValidators(type);
+
     const res: T[] = new Array(len);
     let matchCount = 0;
 
@@ -785,7 +786,7 @@ export function fillSequence(
     }
 }
 
-function getSortedValidNumbers(values: ArrayLike<any>): Float64Array | null {
+function _getSortedValidNumbers(values: ArrayLike<any>): Float64Array | null {
     const len = values.length;
     let validCount = 0;
     const nums = new Float64Array(len);
@@ -808,7 +809,7 @@ function getSortedValidNumbers(values: ArrayLike<any>): Float64Array | null {
  */
 export function computeQuantile(values: ArrayLike<any>, q: number): number | null {
     if (q < 0 || q > 1) return null;
-    const validNums = getSortedValidNumbers(values);
+    const validNums = _getSortedValidNumbers(values);
     if (!validNums) return null;
     const len = validNums.length;
     const idx = q * (len - 1);
@@ -817,7 +818,6 @@ export function computeQuantile(values: ArrayLike<any>, q: number): number | nul
     if (low === high) return validNums[low];
     return validNums[low] + (idx - low) * (validNums[high] - validNums[low]);
 }
-
 
 /**
  * Computes the mode(s) of an array, filtering out null/undefined values.

@@ -2,86 +2,44 @@ import { ExprBase, derive } from "../ExprBase"
 import { kleeneUnary, kleeneBinary } from "../utils"
 import { isArrayOrTypedArray, isArrayOfType, isValidNumber, toCanonicalString, getUniqueArrayStats } from "../../utils"
 
-function computeIsIn(vArray: ArrayLike<any>, columns: any, values: any, invert: boolean): any[] {
+function _buildSet(vals: any): Set<string> {
+    const set = new Set<string>();
+    const arr = isArrayOrTypedArray(vals) ? vals : [vals];
+    for (let j = 0; j < arr.length; j++) set.add(toCanonicalString(arr[j]));
+    return set;
+}
+
+function _computeIsIn(vArray: ArrayLike<any>, columns: any, values: any): any[] {
     const height = vArray.length;
+    const isExpr = values && typeof values === "object" && "evaluate" in values;
+    const resolved = isExpr ? values.evaluate(columns, height) : null;
+    const staticSet = isExpr ? null : _buildSet(values);
     const result = new Array(height);
-    if (values && typeof values === 'object' && 'evaluate' in values) {
-        const resolved = values.evaluate(columns, height);
-        for (let i = 0; i < height; i++) {
-            const v = vArray[i];
-            if (v == null) {
-                result[i] = null;
-            } else {
-                const candidates = resolved[i];
-                const set = new Set();
-                if (isArrayOrTypedArray(candidates)) {
-                    const cLen = candidates.length;
-                    for (let j = 0; j < cLen; j++) {
-                        set.add(toCanonicalString(candidates[j]));
-                    }
-                } else {
-                    set.add(toCanonicalString(candidates));
-                }
-                const hasVal = set.has(toCanonicalString(v));
-                result[i] = invert ? !hasVal : hasVal;
-            }
+
+    for (let i = 0; i < height; i++) {
+        const v = vArray[i];
+        if (v == null) {
+            result[i] = null;
+            continue;
         }
-    } else {
-        const arr = isArrayOrTypedArray(values) ? values : [];
-        const set = new Set();
-        const arrLen = arr.length;
-        for (let j = 0; j < arrLen; j++) {
-            set.add(toCanonicalString(arr[j]));
-        }
-        for (let i = 0; i < height; i++) {
-            const v = vArray[i];
-            if (v == null) {
-                result[i] = null;
-            } else {
-                const hasVal = set.has(toCanonicalString(v));
-                result[i] = invert ? !hasVal : hasVal;
-            }
-        }
+        const set = staticSet ?? _buildSet(resolved[i]);
+        result[i] = set.has(toCanonicalString(v));
     }
+
     return result;
 }
 
-function evaluateDuplication(vArray: ArrayLike<any>, checkDuplicate: boolean): boolean[] {
-    const { frequencies } = getUniqueArrayStats(vArray, { strict: true });
+function _compareMissing(vArray: ArrayLike<any>, rResolved: any): boolean[] {
     const height = vArray.length;
+    const isRArray = isArrayOrTypedArray(rResolved);
     const result = new Array(height);
     for (let i = 0; i < height; i++) {
-        const count = frequencies.get(vArray[i]) || 0;
-        result[i] = checkDuplicate ? count > 1 : count === 1;
-    }
-    return result;
-}
-
-function compareMissing(vArray: ArrayLike<any>, rResolved: any, invert: boolean): boolean[] {
-    const height = vArray.length;
-    const result = new Array(height);
-    if (isArrayOrTypedArray(rResolved)) {
-        for (let i = 0; i < height; i++) {
-            const v = vArray[i];
-            const r = rResolved[i];
-            if (v == null && r == null) {
-                result[i] = !invert;
-            } else if (v == null || r == null) {
-                result[i] = invert;
-            } else {
-                result[i] = invert ? v !== r : v === r;
-            }
-        }
-    } else {
-        for (let i = 0; i < height; i++) {
-            const v = vArray[i];
-            if (v == null && rResolved == null) {
-                result[i] = !invert;
-            } else if (v == null || rResolved == null) {
-                result[i] = invert;
-            } else {
-                result[i] = invert ? v !== rResolved : v === rResolved;
-            }
+        const v = vArray[i];
+        const r = isRArray ? rResolved[i] : rResolved;
+        if (v == null || r == null) {
+            result[i] = v == null && r == null;
+        } else {
+            result[i] = v === r;
         }
     }
     return result;
@@ -112,30 +70,13 @@ export class ComparisonExpr extends ExprBase {
      * └───┴───┴──────────┘
      */
     between(lower: any, upper: any, closed: "both" | "left" | "right" | "none" = "both") {
-        return derive(this, (vArray, columns) => {
-            const height = vArray.length;
-            const lResolved = (this as any)._resolve(lower, columns, height);
-            const uResolved = (this as any)._resolve(upper, columns, height);
-            const result = new Array(height);
+        const isLeftClosed = closed === "both" || closed === "left";
+        const isRightClosed = closed === "both" || closed === "right";
 
-            const isLArray = isArrayOrTypedArray(lResolved);
-            const isUArray = isArrayOrTypedArray(uResolved);
+        const lowerBound = isLeftClosed ? this.ge(lower) : this.gt(lower);
+        const upperBound = isRightClosed ? this.le(upper) : this.lt(upper);
 
-            for (let i = 0; i < height; i++) {
-                const v = vArray[i];
-                const l = isLArray ? lResolved[i] : lResolved;
-                const u = isUArray ? uResolved[i] : uResolved;
-
-                if (v == null || l == null || u == null) {
-                    result[i] = null;
-                } else {
-                    const geLower = closed === "both" || closed === "left" ? v >= l : v > l;
-                    const leUpper = closed === "both" || closed === "right" ? v <= u : v < u;
-                    result[i] = geLower && leUpper;
-                }
-            }
-            return result;
-        });
+        return (lowerBound as any).and(upperBound);
     }
 
     /**
@@ -188,7 +129,7 @@ export class ComparisonExpr extends ExprBase {
     eq_missing(val: any) {
         return derive(this, (vArray, columns) => {
             const rResolved = this._resolve(val, columns, vArray.length);
-            return compareMissing(vArray, rResolved, false);
+            return _compareMissing(vArray, rResolved);
         });
     }
 
@@ -246,12 +187,7 @@ export class ComparisonExpr extends ExprBase {
      * └───────┴───────────┘
      */
     has_nulls() {
-        return (this as any)._deriveAgg((v: any[]) => {
-            for (let i = 0; i < v.length; i++) {
-                if (v[i] == null) return true;
-            }
-            return false;
-        });
+        return (this as any).any_null();
     }
 
     /**
@@ -322,7 +258,15 @@ export class ComparisonExpr extends ExprBase {
      * └───┴───────┘
      */
     is_duplicated() {
-        return derive(this, (vArray) => evaluateDuplication(vArray, true));
+        return derive(this, (vArray) => {
+            const { frequencies } = getUniqueArrayStats(vArray, { strict: true });
+            const height = vArray.length;
+            const result = new Array(height);
+            for (let i = 0; i < height; i++) {
+                result[i] = (frequencies.get(vArray[i]) || 0) > 1;
+            }
+            return result;
+        });
     }
 
     /**
@@ -348,9 +292,7 @@ export class ComparisonExpr extends ExprBase {
             }
             if (isArrayOrTypedArray(v)) {
                 if (ignoreNulls) {
-                    return isArrayOfType(v, "nullish", {
-                        mode: "every"
-                    });
+                    return isArrayOfType(v, "nullish", { mode: "every" });
                 }
                 return (v as any).length === 0;
             }
@@ -395,7 +337,7 @@ export class ComparisonExpr extends ExprBase {
      * └──────────┴─────────┘
      */
     is_in(values: any[] | any) {
-        return derive(this, (vArray, columns) => computeIsIn(vArray, columns, values, false));
+        return derive(this, (vArray, columns) => _computeIsIn(vArray, columns, values));
     }
 
     /**
@@ -451,7 +393,7 @@ export class ComparisonExpr extends ExprBase {
      * └─────┴─────────┘
      */
     is_not_nan() {
-        return derive(this, kleeneUnary((v) => !Number.isNaN(v)));
+        return (this as any).is_nan().not();
     }
 
     /**
@@ -469,14 +411,7 @@ export class ComparisonExpr extends ExprBase {
      * └───────────────────┴───────┘
      */
     is_not_null() {
-        return derive(this, (vArray) => {
-            const height = vArray.length;
-            const result = new Array(height);
-            for (let i = 0; i < height; i++) {
-                result[i] = vArray[i] != null;
-            }
-            return result;
-        });
+        return (this as any).is_null().not();
     }
 
     /**
@@ -494,14 +429,7 @@ export class ComparisonExpr extends ExprBase {
      * └───────────────────┴─────────┘
      */
     is_null() {
-        return derive(this, (vArray) => {
-            const height = vArray.length;
-            const result = new Array(height);
-            for (let i = 0; i < height; i++) {
-                result[i] = vArray[i] == null;
-            }
-            return result;
-        });
+        return this.eq_missing(null);
     }
 
     /**
@@ -520,7 +448,7 @@ export class ComparisonExpr extends ExprBase {
      * └───┴───────┘
      */
     is_unique() {
-        return derive(this, (vArray) => evaluateDuplication(vArray, false));
+        return (this as any).is_duplicated().not();
     }
 
     /**
@@ -599,10 +527,7 @@ export class ComparisonExpr extends ExprBase {
      * └──────┴─────────────┘
      */
     ne_missing(val: any) {
-        return derive(this, (vArray, columns) => {
-            const rResolved = this._resolve(val, columns, vArray.length);
-            return compareMissing(vArray, rResolved, true);
-        });
+        return (this as any).eq_missing(val).not();
     }
 
     /**
@@ -622,7 +547,7 @@ export class ComparisonExpr extends ExprBase {
      * └──────────┴────────┘
      */
     not_in(values: any[] | any) {
-        return derive(this, (vArray, columns) => computeIsIn(vArray, columns, values, true));
+        return (this as any).is_in(values).not();
     }
 
 }
