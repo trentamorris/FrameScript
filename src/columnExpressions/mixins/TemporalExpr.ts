@@ -30,21 +30,21 @@ import {
  * as `microsecond()` and `nanosecond()` always scale from milliseconds. Migrating to
  * raw `BigInt` arrays would be required for true sub-ms storage.
  *
- * _Timezone enforcement_: `convert_time_zone` can only validate that the column is
+ * _Timezone enforcement_: `convertTimeZone` can only validate that the column is
  * timezone-aware when `_castType` is explicitly set within the expression chain
- * (e.g. after `cast_time_unit`). Enforcement against a column whose type is unknown
+ * (e.g. after `castTimeUnit`). Enforcement against a column whose type is unknown
  * at expression-build time requires schema-level checks in DataFrame operations.
  */
 export class DateTimeExprNamespace {
     constructor(public expr: any) { }
 
-    /** Returns the column's schema timezone from a prior convert_time_zone call, or null. */
+    /** Returns the column's schema timezone from a prior convertTimeZone call, or null. */
     _colTz(): string | null {
         const ct = this.expr._castType;
         return (ct instanceof DatetimeType) ? ct.timeZone : null;
     }
 
-    /** Returns the column's schema time unit from a prior cast_time_unit call, or null. */
+    /** Returns the column's schema time unit from a prior castTimeUnit call, or null. */
     _colTu(): DatetimeTimeUnit | null {
         const ct = this.expr._castType;
         return (ct instanceof DatetimeType) ? ct.timeUnit : null;
@@ -65,7 +65,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ ts: ["2026-05-20T10:00:00.123Z"] })
-     * >>> df.with_columns($df.col("ts").dt.cast_time_unit("us").alias("ts_us"))
+     * >>> df.withColumns($df.col("ts").dt.castTimeUnit("us").alias("ts_us"))
      * shape: (1, 2)
      * ┌──────────────────────────┬──────────────────────────┐
      * │ ts                       │ ts_us                    │
@@ -73,7 +73,7 @@ export class DateTimeExprNamespace {
      * │ 2026-05-20T10:00:00.123Z │ 2026-05-20T10:00:00.123Z │
      * └──────────────────────────┴──────────────────────────┘
      */
-    cast_time_unit(unit: DatetimeTimeUnit) {
+    castTimeUnit(unit: DatetimeTimeUnit) {
         return this.expr.cast(new DatetimeType(unit, this._colTz()));
     }
 
@@ -82,7 +82,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-20"] })
-     * >>> df.with_columns($df.col("d").dt.century().alias("century"))
+     * >>> df.withColumns($df.col("d").dt.century().alias("century"))
      * shape: (1, 2)
      * ┌────────────┬─────────┐
      * │ d          │ century │
@@ -104,7 +104,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ ts: ["2026-06-01T00:00:00.000Z"] })
-     * >>> df.with_columns($df.col("ts").dt.convert_time_zone("America/New_York").alias("ts_ny"))
+     * >>> df.withColumns($df.col("ts").dt.convertTimeZone("America/New_York").alias("ts_ny"))
      * shape: (1, 2)
      * ┌──────────────────────────┬───────────────────────────────┐
      * │ ts                       │ ts_ny                         │
@@ -112,11 +112,11 @@ export class DateTimeExprNamespace {
      * │ 2026-06-01T00:00:00.000Z │ 2026-05-31 20:00:00.000 EDT   │
      * └──────────────────────────┴───────────────────────────────┘
      */
-    convert_time_zone(timeZone: string) {
+    convertTimeZone(timeZone: string) {
         const colTz = this._colTz();
         if (this.expr._castType instanceof DatetimeType && colTz === null) {
             throw new InvalidArgumentError(
-                `convert_time_zone() requires a timezone-aware Datetime column. ` +
+                `convertTimeZone() requires a timezone-aware Datetime column. ` +
                 `Use .dt.replace({ timeZone: "..." }) to assign a timezone first.`
             );
         }
@@ -128,7 +128,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ ts: ["2026-05-20T10:30:00Z"] })
-     * >>> df.with_columns($df.col("ts").dt.date().alias("date_only"))
+     * >>> df.withColumns($df.col("ts").dt.date().alias("date_only"))
      * shape: (1, 2)
      * ┌──────────────────────┬──────────────────────────┐
      * │ ts                   │ date_only                │
@@ -146,7 +146,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-20"] })
-     * >>> df.with_columns($df.col("d").dt.day().alias("day"))
+     * >>> df.withColumns($df.col("d").dt.day().alias("day"))
      * shape: (1, 2)
      * ┌────────────┬─────┐
      * │ d          │ day │
@@ -164,7 +164,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2024-02-15"] })
-     * >>> df.with_columns($df.col("d").dt.days_in_month().alias("dim"))
+     * >>> df.withColumns($df.col("d").dt.daysInMonth().alias("dim"))
      * shape: (1, 2)
      * ┌────────────┬─────┐
      * │ d          │ dim │
@@ -172,7 +172,7 @@ export class DateTimeExprNamespace {
      * │ 2024-02-15 │ 29  │
      * └────────────┴─────┘
      */
-    days_in_month(timeZone?: string) {
+    daysInMonth(timeZone?: string) {
         return this.month_end().dt.day(timeZone);
     }
 
@@ -182,7 +182,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-01-01T00:00:00Z"] })
-     * >>> df.with_columns($df.col("d").dt.epoch("s").alias("epoch_s"))
+     * >>> df.withColumns($df.col("d").dt.epoch("s").alias("epoch_s"))
      * shape: (1, 2)
      * ┌──────────────────────┬────────────┐
      * │ d                    │ epoch_s    │
@@ -200,7 +200,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ ts: ["2026-05-20T14:30:00Z"] })
-     * >>> df.with_columns($df.col("ts").dt.hour().alias("hr"))
+     * >>> df.withColumns($df.col("ts").dt.hour().alias("hr"))
      * shape: (1, 2)
      * ┌──────────────────────┬────┐
      * │ ts                   │ hr │
@@ -219,7 +219,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-18"] })
-     * >>> df.with_columns($df.col("d").dt.is_business_day().alias("is_bday"))
+     * >>> df.withColumns($df.col("d").dt.isBusinessDay().alias("is_bday"))
      * shape: (1, 2)
      * ┌────────────┬─────────┐
      * │ d          │ is_bday │
@@ -227,7 +227,7 @@ export class DateTimeExprNamespace {
      * │ 2026-05-18 │ true    │
      * └────────────┴─────────┘
      */
-    is_business_day(options: IsBusinessDayOptions = {}) {
+    isBusinessDay(options: IsBusinessDayOptions = {}) {
         return this._deriveDate((d) => isBusinessDay(d, options));
     }
 
@@ -237,7 +237,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2024-01-01", "2026-01-01"] })
-     * >>> df.with_columns($df.col("d").dt.is_leap_year().alias("leap"))
+     * >>> df.withColumns($df.col("d").dt.is_leap_year().alias("leap"))
      * shape: (2, 2)
      * ┌────────────┬───────┐
      * │ d          │ leap  │
@@ -257,7 +257,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-20"] })
-     * >>> df.with_columns($df.col("d").dt.iso_week().alias("week"))
+     * >>> df.withColumns($df.col("d").dt.iso_week().alias("week"))
      * shape: (1, 2)
      * ┌────────────┬──────┐
      * │ d          │ week │
@@ -275,7 +275,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-20"] })
-     * >>> df.with_columns($df.col("d").dt.iso_year().alias("iso_yr"))
+     * >>> df.withColumns($df.col("d").dt.iso_year().alias("iso_yr"))
      * shape: (1, 2)
      * ┌────────────┬────────┐
      * │ d          │ iso_yr │
@@ -293,7 +293,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ ts: ["2026-05-20T10:00:00.123Z"] })
-     * >>> df.with_columns($df.col("ts").dt.microsecond().alias("us"))
+     * >>> df.withColumns($df.col("ts").dt.microsecond().alias("us"))
      * shape: (1, 2)
      * ┌──────────────────────────┬────────┐
      * │ ts                       │ us     │
@@ -310,7 +310,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-20"] })
-     * >>> df.with_columns($df.col("d").dt.millennium().alias("mil"))
+     * >>> df.withColumns($df.col("d").dt.millennium().alias("mil"))
      * shape: (1, 2)
      * ┌────────────┬─────┐
      * │ d          │ mil │
@@ -328,7 +328,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ ts: ["2026-05-20T10:00:00.456Z"] })
-     * >>> df.with_columns($df.col("ts").dt.millisecond().alias("ms"))
+     * >>> df.withColumns($df.col("ts").dt.millisecond().alias("ms"))
      * shape: (1, 2)
      * ┌──────────────────────────┬─────┐
      * │ ts                       │ ms  │
@@ -346,7 +346,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ ts: ["2026-05-20T10:45:00Z"] })
-     * >>> df.with_columns($df.col("ts").dt.minute().alias("min"))
+     * >>> df.withColumns($df.col("ts").dt.minute().alias("min"))
      * shape: (1, 2)
      * ┌──────────────────────┬─────┐
      * │ ts                   │ min │
@@ -364,7 +364,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-20"] })
-     * >>> df.with_columns($df.col("d").dt.month().alias("m"))
+     * >>> df.withColumns($df.col("d").dt.month().alias("m"))
      * shape: (1, 2)
      * ┌────────────┬───┐
      * │ d          │ m │
@@ -381,7 +381,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-20"] })
-     * >>> df.with_columns($df.col("d").dt.month_end().alias("m_end"))
+     * >>> df.withColumns($df.col("d").dt.month_end().alias("m_end"))
      * shape: (1, 2)
      * ┌────────────┬──────────────────────────┐
      * │ d          │ m_end                    │
@@ -398,7 +398,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-20"] })
-     * >>> df.with_columns($df.col("d").dt.month_start().alias("m_start"))
+     * >>> df.withColumns($df.col("d").dt.month_start().alias("m_start"))
      * shape: (1, 2)
      * ┌────────────┬──────────────────────────┐
      * │ d          │ m_start                  │
@@ -416,7 +416,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ ts: ["2026-05-20T10:00:00.001Z"] })
-     * >>> df.with_columns($df.col("ts").dt.nanosecond().alias("ns"))
+     * >>> df.withColumns($df.col("ts").dt.nanosecond().alias("ns"))
      * shape: (1, 2)
      * ┌──────────────────────────┬─────────┐
      * │ ts                       │ ns      │
@@ -436,7 +436,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-20"] })
-     * >>> df.with_columns($df.col("d").dt.offset_day(5).alias("later"))
+     * >>> df.withColumns($df.col("d").dt.offsetDay(5).alias("later"))
      * shape: (1, 2)
      * ┌────────────┬──────────────────────────┐
      * │ d          │ later                    │
@@ -444,7 +444,7 @@ export class DateTimeExprNamespace {
      * │ 2026-05-20 │ 2026-05-25T00:00:00.000Z │
      * └────────────┴──────────────────────────┘
      */
-    offset_day(n: number | any, options: DayOffsetOptions = {}) {
+    offsetDay(n: number | any, options: DayOffsetOptions = {}) {
         const hasExclusionOptions = options?.excludeWeekdays?.length || options?.holidays || options?.roll;
         const normalizedDays = hasExclusionOptions
             ? derive(this.expr, kleeneBinary(this.expr, n, (v, nVal) => {
@@ -462,7 +462,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-02-01"] })
-     * >>> df.with_columns($df.col("d").dt.ordinal_day().alias("doy"))
+     * >>> df.withColumns($df.col("d").dt.ordinal_day().alias("doy"))
      * shape: (1, 2)
      * ┌────────────┬─────┐
      * │ d          │ doy │
@@ -480,7 +480,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-20"] })
-     * >>> df.with_columns($df.col("d").dt.quarter().alias("qtr"))
+     * >>> df.withColumns($df.col("d").dt.quarter().alias("qtr"))
      * shape: (1, 2)
      * ┌────────────┬─────┐
      * │ d          │ qtr │
@@ -501,7 +501,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ ts: ["2026-05-20T14:30:00Z"] })
-     * >>> df.with_columns($df.col("ts").dt.replace({ year: 2030, month: 1, day: 1 }).alias("replaced"))
+     * >>> df.withColumns($df.col("ts").dt.replace({ year: 2030, month: 1, day: 1 }).alias("replaced"))
      * shape: (1, 2)
      * ┌──────────────────────┬──────────────────────────┐
      * │ ts                   │ replaced                 │
@@ -521,7 +521,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ ts: ["2026-05-20T10:00:45Z"] })
-     * >>> df.with_columns($df.col("ts").dt.second().alias("sec"))
+     * >>> df.withColumns($df.col("ts").dt.second().alias("sec"))
      * shape: (1, 2)
      * ┌──────────────────────┬─────┐
      * │ ts                   │ sec │
@@ -540,7 +540,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-20"] })
-     * >>> df.with_columns($df.col("d").dt.strftime("%Y/%m/%d").alias("formatted"))
+     * >>> df.withColumns($df.col("d").dt.strftime("%Y/%m/%d").alias("formatted"))
      * shape: (1, 2)
      * ┌────────────┬────────────┐
      * │ d          │ formatted  │
@@ -561,7 +561,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ ts: ["2026-05-20T10:30:00Z"] })
-     * >>> df.with_columns($df.col("ts").dt.time().alias("time"))
+     * >>> df.withColumns($df.col("ts").dt.time().alias("time"))
      * shape: (1, 2)
      * ┌──────────────────────┬──────────────┐
      * │ ts                   │ time         │
@@ -579,7 +579,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-01-01T00:00:00Z"] })
-     * >>> df.with_columns($df.col("d").dt.timestamp("s").alias("ts"))
+     * >>> df.withColumns($df.col("d").dt.timestamp("s").alias("ts"))
      * shape: (1, 2)
      * ┌──────────────────────┬────────────┐
      * │ d                    │ ts         │
@@ -597,7 +597,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ dur: [86400000] })
-     * >>> df.with_columns($df.col("dur").dt.total_days().alias("days"))
+     * >>> df.withColumns($df.col("dur").dt.totalDays().alias("days"))
      * shape: (1, 2)
      * ┌──────────┬──────┐
      * │ dur      │ days │
@@ -605,8 +605,8 @@ export class DateTimeExprNamespace {
      * │ 86400000 │ 1    │
      * └──────────┴──────┘
      */
-    total_days() {
-        return this.total_hours().div(24);
+    totalDays() {
+        return this.totalHours().div(24);
     }
 
     /**
@@ -614,7 +614,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ dur: [3600000] })
-     * >>> df.with_columns($df.col("dur").dt.total_hours().alias("hrs"))
+     * >>> df.withColumns($df.col("dur").dt.totalHours().alias("hrs"))
      * shape: (1, 2)
      * ┌─────────┬─────┐
      * │ dur     │ hrs │
@@ -622,8 +622,8 @@ export class DateTimeExprNamespace {
      * │ 3600000 │ 1   │
      * └─────────┴─────┘
      */
-    total_hours() {
-        return this.total_minutes().div(60);
+    totalHours() {
+        return this.totalMinutes().div(60);
     }
 
     /**
@@ -631,7 +631,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ dur: [10] })
-     * >>> df.with_columns($df.col("dur").dt.total_microseconds().alias("us"))
+     * >>> df.withColumns($df.col("dur").dt.totalMicroseconds().alias("us"))
      * shape: (1, 2)
      * ┌─────┬───────┐
      * │ dur │ us    │
@@ -639,8 +639,8 @@ export class DateTimeExprNamespace {
      * │ 10  │ 10000 │
      * └─────┴───────┘
      */
-    total_microseconds() {
-        return this.total_milliseconds().mul(US_PER_MS);
+    totalMicroseconds() {
+        return this.totalMilliseconds().mul(US_PER_MS);
     }
 
     /**
@@ -648,7 +648,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ dur: [500] })
-     * >>> df.with_columns($df.col("dur").dt.total_milliseconds().alias("ms"))
+     * >>> df.withColumns($df.col("dur").dt.totalMilliseconds().alias("ms"))
      * shape: (1, 2)
      * ┌─────┬─────┐
      * │ dur │ ms  │
@@ -656,7 +656,7 @@ export class DateTimeExprNamespace {
      * │ 500 │ 500 │
      * └─────┴─────┘
      */
-    total_milliseconds() {
+    totalMilliseconds() {
         return this.expr;
     }
 
@@ -665,7 +665,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ dur: [60000] })
-     * >>> df.with_columns($df.col("dur").dt.total_minutes().alias("mins"))
+     * >>> df.withColumns($df.col("dur").dt.totalMinutes().alias("mins"))
      * shape: (1, 2)
      * ┌───────┬──────┐
      * │ dur   │ mins │
@@ -673,8 +673,8 @@ export class DateTimeExprNamespace {
      * │ 60000 │ 1    │
      * └───────┴──────┘
      */
-    total_minutes() {
-        return this.total_seconds().div(60);
+    totalMinutes() {
+        return this.totalSeconds().div(60);
     }
 
     /**
@@ -682,7 +682,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ dur: [1] })
-     * >>> df.with_columns($df.col("dur").dt.total_nanoseconds().alias("ns"))
+     * >>> df.withColumns($df.col("dur").dt.totalNanoseconds().alias("ns"))
      * shape: (1, 2)
      * ┌─────┬─────────┐
      * │ dur │ ns      │
@@ -690,8 +690,8 @@ export class DateTimeExprNamespace {
      * │ 1   │ 1000000 │
      * └─────┴─────────┘
      */
-    total_nanoseconds() {
-        return this.total_milliseconds().mul(NS_PER_MS);
+    totalNanoseconds() {
+        return this.totalMilliseconds().mul(NS_PER_MS);
     }
 
     /**
@@ -699,7 +699,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ dur: [1000] })
-     * >>> df.with_columns($df.col("dur").dt.total_seconds().alias("secs"))
+     * >>> df.withColumns($df.col("dur").dt.totalSeconds().alias("secs"))
      * shape: (1, 2)
      * ┌──────┬──────┐
      * │ dur  │ secs │
@@ -707,8 +707,8 @@ export class DateTimeExprNamespace {
      * │ 1000 │ 1    │
      * └──────┴──────┘
      */
-    total_seconds() {
-        return this.total_milliseconds().div(MS_PER_SECOND);
+    totalSeconds() {
+        return this.totalMilliseconds().div(MS_PER_SECOND);
     }
 
     /**
@@ -722,7 +722,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-20"] })
-     * >>> df.with_columns($df.col("d").dt.utc_offset("UTC").alias("offset"))
+     * >>> df.withColumns($df.col("d").dt.utc_offset("UTC").alias("offset"))
      * shape: (1, 2)
      * ┌────────────┬────────┐
      * │ d          │ offset │
@@ -743,7 +743,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-20"] })
-     * >>> df.with_columns($df.col("d").dt.week().alias("week"))
+     * >>> df.withColumns($df.col("d").dt.week().alias("week"))
      * shape: (1, 2)
      * ┌────────────┬──────┐
      * │ d          │ week │
@@ -761,7 +761,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-18"] })
-     * >>> df.with_columns($df.col("d").dt.weekday().alias("wd"))
+     * >>> df.withColumns($df.col("d").dt.weekday().alias("wd"))
      * shape: (1, 2)
      * ┌────────────┬────┐
      * │ d          │ wd │
@@ -779,7 +779,7 @@ export class DateTimeExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-20"] })
-     * >>> df.with_columns($df.col("d").dt.year().alias("yr"))
+     * >>> df.withColumns($df.col("d").dt.year().alias("yr"))
      * shape: (1, 2)
      * ┌────────────┬──────┐
      * │ d          │ yr   │

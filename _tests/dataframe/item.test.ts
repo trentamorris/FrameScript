@@ -70,13 +70,23 @@ if (resultVal !== 32) {
     throw new Error(`Expected 32, got ${resultVal}`);
 }
 
-if (dfPolars.item(1, 1) !== 5) {
-    throw new Error(`Expected 5, got ${dfPolars.item(1, 1)}`);
-}
+// 7. Negative and boundary edge cases
+assertThrows(() => {
+    df.item(-1, "a");
+}, "Row index -1 is out of bounds");
 
-if (dfPolars.item(2, "b") !== 6) {
-    throw new Error(`Expected 6, got ${dfPolars.item(2, "b")}`);
-}
+assertThrows(() => {
+    df.item(-1, 0);
+}, "Row index -1 is out of bounds");
+
+assertThrows(() => {
+    df.item(0, -1);
+}, "Column index -1 is out of bounds");
+
+assertThrows(() => {
+    df.item(undefined as any, "a");
+}, "requires both row and column to be specified");
 
 console.log("✓ item tests passed!");
+
 

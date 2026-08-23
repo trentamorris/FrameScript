@@ -13,13 +13,13 @@ const df = new DataFrame([
 const dfReversed = df.reverse();
 
 // Verify original DataFrame was not mutated
-const origCollected = df.to_dicts();
+const origCollected = df.toDicts();
 if (origCollected[0].id !== 1 || origCollected[2].id !== 3) {
     throw new Error("Original DataFrame was mutated by reverse()!");
 }
 
 // Verify reversed order
-const collected = dfReversed.to_dicts();
+const collected = dfReversed.toDicts();
 if (collected.length !== 3) {
     throw new Error(`Expected length 3, got ${collected.length}`);
 }
@@ -40,11 +40,11 @@ if (reversedEmpty !== emptyDf) {
     throw new Error("Reversing empty DataFrame should return the same instance");
 }
 
-// 3. Reverse using column expressions (reverse only column "name" inside with_columns)
-const dfExprReversed = df.with_columns(
+// 3. Reverse using column expressions (reverse only column "name" inside withColumns)
+const dfExprReversed = df.withColumns(
     $df.col("name").reverse().alias("reversed_name")
 );
-const exprCollected = dfExprReversed.to_dicts();
+const exprCollected = dfExprReversed.toDicts();
 if (exprCollected[0].id !== 1 || exprCollected[0].reversed_name !== "Charlie") {
     throw new Error(`Expected id=1, reversed_name=Charlie, got ${JSON.stringify(exprCollected[0])}`);
 }

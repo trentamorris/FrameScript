@@ -4,7 +4,6 @@ import {
     isArrayOrTypedArray,
     getArrayStats,
     sortArray,
-    SortArrayOptions,
     computeQuantile,
     getUniqueArrayStats,
     computeMode,
@@ -15,11 +14,9 @@ import {
     getArrayElement,
     shiftArray
 } from "../../utils";
-import type { UniqueArrayStatsOptions, JoinArrayOptions, ExplodeOptions, IExpr, AnyTypedArray, ToStructOptions } from "../../types";
+import type { UniqueArrayStatsOptions, JoinArrayOptions, SortArrayOptions, ExplodeOptions, IExpr, AnyTypedArray, ToStructOptions } from "../../types";
 import { ELEMENT_MARKER } from "../constants";
 import { ComputeError } from "../../exceptions";
-
-
 
 
 /**
@@ -42,7 +39,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 2, 3], [4, 5]] })
-     * >>> df.with_columns($df.col("a").arr.agg($df.element().sum()).alias("sum_a"))
+     * >>> df.withColumns($df.col("a").arr.agg($df.element().sum()).alias("sum_a"))
      * shape: (2, 2)
      * ┌───────────┬───────┐
      * │ a         │ sum_a │
@@ -76,7 +73,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[true, true], [true, false]] })
-     * >>> df.with_columns($df.col("a").arr.all().alias("all_true"))
+     * >>> df.withColumns($df.col("a").arr.all().alias("all_true"))
      * shape: (2, 2)
      * ┌───────────────┬──────────┐
      * │ a             │ all_true │
@@ -94,7 +91,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[true, false], [false, false]] })
-     * >>> df.with_columns($df.col("a").arr.any().alias("any_true"))
+     * >>> df.withColumns($df.col("a").arr.any().alias("any_true"))
      * shape: (2, 2)
      * ┌────────────────┬──────────┐
      * │ a              │ any_true │
@@ -112,7 +109,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 5, 2], [10, 4]] })
-     * >>> df.with_columns($df.col("a").arr.arg_max().alias("max_idx"))
+     * >>> df.withColumns($df.col("a").arr.argMax().alias("max_idx"))
      * shape: (2, 2)
      * ┌───────────┬─────────┐
      * │ a         │ max_idx │
@@ -121,7 +118,7 @@ export class ArrayExprNamespace {
      * │ [10, 4]   │ 0       │
      * └───────────┴─────────┘
      */
-    arg_max() {
+    argMax() {
         return this._deriveArray((arr) => getArrayStats(arr).maxIdx);
     }
 
@@ -130,7 +127,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[5, 1, 2], [10, 4]] })
-     * >>> df.with_columns($df.col("a").arr.arg_min().alias("min_idx"))
+     * >>> df.withColumns($df.col("a").arr.argMin().alias("min_idx"))
      * shape: (2, 2)
      * ┌───────────┬─────────┐
      * │ a         │ min_idx │
@@ -139,7 +136,7 @@ export class ArrayExprNamespace {
      * │ [10, 4]   │ 1       │
      * └───────────┴─────────┘
      */
-    arg_min() {
+    argMin() {
         return this._deriveArray((arr) => getArrayStats(arr).minIdx);
     }
 
@@ -149,7 +146,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 2, 3], [4, 5]] })
-     * >>> df.with_columns($df.col("a").arr.contains(3).alias("has_three"))
+     * >>> df.withColumns($df.col("a").arr.contains(3).alias("has_three"))
      * shape: (2, 2)
      * ┌───────────┬───────────┐
      * │ a         │ has_three │
@@ -168,7 +165,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 2, 3], [1, 5]] })
-     * >>> df.with_columns($df.col("a").arr.contains_all([1, 2]).alias("has_all"))
+     * >>> df.withColumns($df.col("a").arr.contains_all([1, 2]).alias("has_all"))
      * shape: (2, 2)
      * ┌───────────┬─────────┐
      * │ a         │ has_all │
@@ -187,7 +184,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 2], [3, 4]] })
-     * >>> df.with_columns($df.col("a").arr.contains_any([2, 3]).alias("has_any"))
+     * >>> df.withColumns($df.col("a").arr.containsAny([2, 3]).alias("has_any"))
      * shape: (2, 2)
      * ┌────────┬─────────┐
      * │ a      │ has_any │
@@ -196,7 +193,7 @@ export class ArrayExprNamespace {
      * │ [3, 4] │ true    │
      * └────────┴─────────┘
      */
-    contains_any(items: ArrayLike<any>) {
+    containsAny(items: ArrayLike<any>) {
         return this._deriveArray((arr) => isArrayOfType(items, (x) => Array.prototype.includes.call(arr, x), { mode: "some" }));
     }
 
@@ -207,7 +204,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 2, 2, 3], [4, 5]] })
-     * >>> df.with_columns($df.col("a").arr.count_matches(2).alias("twos"))
+     * >>> df.withColumns($df.col("a").arr.countMatches(2).alias("twos"))
      * shape: (2, 2)
      * ┌──────────────┬──────┐
      * │ a            │ twos │
@@ -216,7 +213,7 @@ export class ArrayExprNamespace {
      * │ [4, 5]       │ 0    │
      * └──────────────┴──────┘
      */
-    count_matches(item: any, options: UniqueArrayStatsOptions = {}) {
+    countMatches(item: any, options: UniqueArrayStatsOptions = {}) {
         return this._deriveArray((arr) => getUniqueArrayStats(arr, options).frequencies.get(item) ?? 0);
     }
 
@@ -226,7 +223,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 5, 10], [2, 8]] })
-     * >>> df.with_columns($df.col("a").arr.filter($df.element().gt(4)).alias("filtered"))
+     * >>> df.withColumns($df.col("a").arr.filter($df.element().gt(4)).alias("filtered"))
      * shape: (2, 2)
      * ┌────────────┬──────────┐
      * │ a          │ filtered │
@@ -284,14 +281,14 @@ export class ArrayExprNamespace {
      * │ 2   │ 30     │
      * └─────┴────────┘
      */
-    explode({ empty_as_null = true, keep_nulls = true }: ExplodeOptions = {}) {
+    explode({ emptyAsNull = true, keepNulls = true }: ExplodeOptions = {}) {
         return derive(this.expr, (vArray) => {
             const height = vArray.length;
             let newHeight = 0;
             for (let i = 0; i < height; i++) {
                 const val = vArray[i];
                 if (isArrayOrTypedArray(val)) {
-                    newHeight += val.length || (empty_as_null ? 1 : 0);
+                    newHeight += val.length || (emptyAsNull ? 1 : 0);
                     continue;
                 }
 
@@ -300,7 +297,7 @@ export class ArrayExprNamespace {
                     continue;
                 }
 
-                if (keep_nulls) {
+                if (keepNulls) {
                     newHeight += 1;
                 }
             }
@@ -319,7 +316,7 @@ export class ArrayExprNamespace {
                         }
                         continue;
                     }
-                    if (empty_as_null) {
+                    if (emptyAsNull) {
                         rowMap[idx] = i;
                         res[idx++] = null;
                     }
@@ -332,7 +329,7 @@ export class ArrayExprNamespace {
                     continue;
                 }
 
-                if (keep_nulls) {
+                if (keepNulls) {
                     rowMap[idx] = i;
                     res[idx++] = null;
                 }
@@ -348,7 +345,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[10, 20], [30]] })
-     * >>> df.with_columns($df.col("a").arr.first().alias("first_a"))
+     * >>> df.withColumns($df.col("a").arr.first().alias("first_a"))
      * shape: (2, 2)
      * ┌──────────┬─────────┐
      * │ a        │ first_a │
@@ -368,7 +365,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[10, 20, 30], [40, 50]] })
-     * >>> df.with_columns($df.col("a").arr.gather([0, 2]).alias("g"))
+     * >>> df.withColumns($df.col("a").arr.gather([0, 2]).alias("g"))
      * shape: (2, 2)
      * ┌──────────────┬──────────┐
      * │ a            │ g        │
@@ -398,7 +395,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 2, 3, 4], [5, 6, 7]] })
-     * >>> df.with_columns($df.col("a").arr.gather_every({ step: 2 }).alias("ge"))
+     * >>> df.withColumns($df.col("a").arr.gather_every({ step: 2 }).alias("ge"))
      * shape: (2, 2)
      * ┌──────────────┬────────┐
      * │ a            │ ge     │
@@ -418,7 +415,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[10, 20], [30]] })
-     * >>> df.with_columns($df.col("a").arr.get(1).alias("second"))
+     * >>> df.withColumns($df.col("a").arr.get(1).alias("second"))
      * shape: (2, 2)
      * ┌──────────┬────────┐
      * │ a        │ second │
@@ -438,7 +435,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [["a", "b"], ["c"]] })
-     * >>> df.with_columns($df.col("a").arr.join("-").alias("joined"))
+     * >>> df.withColumns($df.col("a").arr.join("-").alias("joined"))
      * shape: (2, 2)
      * ┌──────────┬────────┐
      * │ a        │ joined │
@@ -457,7 +454,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[10, 20], [30]] })
-     * >>> df.with_columns($df.col("a").arr.last().alias("last_a"))
+     * >>> df.withColumns($df.col("a").arr.last().alias("last_a"))
      * shape: (2, 2)
      * ┌──────────┬────────┐
      * │ a        │ last_a │
@@ -482,7 +479,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[10, 20], [30, 40, 50]] })
-     * >>> df.with_columns($df.col("a").arr.lengths().alias("len_a"))
+     * >>> df.withColumns($df.col("a").arr.lengths().alias("len_a"))
      * shape: (2, 2)
      * ┌──────────────┬───────┐
      * │ a            │ len_a │
@@ -500,7 +497,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 5, 2], [10, 4]] })
-     * >>> df.with_columns($df.col("a").arr.max().alias("max_a"))
+     * >>> df.withColumns($df.col("a").arr.max().alias("max_a"))
      * shape: (2, 2)
      * ┌───────────┬───────┐
      * │ a         │ max_a │
@@ -518,7 +515,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 5, 9], [10, 40]] })
-     * >>> df.with_columns($df.col("a").arr.mean().alias("mean_a"))
+     * >>> df.withColumns($df.col("a").arr.mean().alias("mean_a"))
      * shape: (2, 2)
      * ┌───────────┬────────┐
      * │ a         │ mean_a │
@@ -536,7 +533,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 3, 5, 7], [10, 20, 30]] })
-     * >>> df.with_columns($df.col("a").arr.median().alias("med"))
+     * >>> df.withColumns($df.col("a").arr.median().alias("med"))
      * shape: (2, 2)
      * ┌────────────────┬──────┐
      * │ a              │ med  │
@@ -554,7 +551,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 5, 2], [10, 4]] })
-     * >>> df.with_columns($df.col("a").arr.min().alias("min_a"))
+     * >>> df.withColumns($df.col("a").arr.min().alias("min_a"))
      * shape: (2, 2)
      * ┌───────────┬───────┐
      * │ a         │ min_a │
@@ -572,7 +569,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 2, 2, 3], [5, 5, 6]] })
-     * >>> df.with_columns($df.col("a").arr.mode().alias("mode_a"))
+     * >>> df.withColumns($df.col("a").arr.mode().alias("mode_a"))
      * shape: (2, 2)
      * ┌──────────────┬────────┐
      * │ a            │ mode_a │
@@ -591,7 +588,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 2, 2, 3], [4, 5]] })
-     * >>> df.with_columns($df.col("a").arr.n_unique().alias("unique_len"))
+     * >>> df.withColumns($df.col("a").arr.n_unique().alias("unique_len"))
      * shape: (2, 2)
      * ┌──────────────┬────────────┐
      * │ a            │ unique_len │
@@ -609,7 +606,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 2, 3], [4, 5]] })
-     * >>> df.with_columns($df.col("a").arr.reverse().alias("reversed"))
+     * >>> df.withColumns($df.col("a").arr.reverse().alias("reversed"))
      * shape: (2, 2)
      * ┌───────────┬───────────┐
      * │ a         │ reversed  │
@@ -628,7 +625,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 2, 3], [4, 5]] })
-     * >>> df.with_columns($df.col("a").arr.shift(1).alias("shifted"))
+     * >>> df.withColumns($df.col("a").arr.shift(1).alias("shifted"))
      * shape: (2, 2)
      * ┌───────────┬──────────────────┐
      * │ a         │ shifted          │
@@ -648,7 +645,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 2, 3, 4], [5, 6]] })
-     * >>> df.with_columns($df.col("a").arr.slice(1, 3).alias("sliced"))
+     * >>> df.withColumns($df.col("a").arr.slice(1, 3).alias("sliced"))
      * shape: (2, 2)
      * ┌──────────────┬────────┐
      * │ a            │ sliced │
@@ -669,7 +666,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 2, 3], [4, 5]] })
-     * >>> df.with_columns($df.col("a").arr.splice(1, 1, 10, 20).alias("spliced"))
+     * >>> df.withColumns($df.col("a").arr.splice(1, 1, 10, 20).alias("spliced"))
      * shape: (2, 2)
      * ┌───────────┬─────────────────┐
      * │ a         │ spliced         │
@@ -692,7 +689,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[3, 1, 2], [5, 4]] })
-     * >>> df.with_columns($df.col("a").arr.sort().alias("sorted"))
+     * >>> df.withColumns($df.col("a").arr.sort().alias("sorted"))
      * shape: (2, 2)
      * ┌───────────┬───────────┐
      * │ a         │ sorted    │
@@ -710,7 +707,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 2, 3], [10, 20]] })
-     * >>> df.with_columns($df.col("a").arr.std().alias("std_dev"))
+     * >>> df.withColumns($df.col("a").arr.std().alias("std_dev"))
      * shape: (2, 2)
      * ┌───────────┬─────────┐
      * │ a         │ std_dev │
@@ -728,7 +725,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 2, 3], [10, 20]] })
-     * >>> df.with_columns($df.col("a").arr.sum().alias("sum_a"))
+     * >>> df.withColumns($df.col("a").arr.sum().alias("sum_a"))
      * shape: (2, 2)
      * ┌───────────┬───────┐
      * │ a         │ sum_a │
@@ -747,7 +744,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 2], [3, 4]] })
-     * >>> df.with_columns($df.col("a").arr.to_struct({ fields: ["x", "y"] }).alias("struct_a"))
+     * >>> df.withColumns($df.col("a").arr.toStruct({ fields: ["x", "y"] }).alias("struct_a"))
      * shape: (2, 2)
      * ┌────────┬────────────────┐
      * │ a      │ struct_a       │
@@ -756,7 +753,7 @@ export class ArrayExprNamespace {
      * │ [3, 4] │ { x: 3, y: 4 } │
      * └────────┴────────────────┘
      */
-    to_struct({ upper_bound, fields }: ToStructOptions = {}) {
+    toStruct({ upperBound, fields }: ToStructOptions = {}) {
         return derive(this.expr, (vArray) => {
             const height = vArray.length;
             const result = new Array(height);
@@ -764,8 +761,8 @@ export class ArrayExprNamespace {
             let width = 0;
             if (Array.isArray(fields)) {
                 width = fields.length;
-            } else if (typeof upper_bound === "number") {
-                width = upper_bound;
+            } else if (typeof upperBound === "number") {
+                width = upperBound;
             } else {
                 for (let i = 0; i < height; i++) {
                     const val = vArray[i];
@@ -776,7 +773,7 @@ export class ArrayExprNamespace {
             }
 
             if (width === 0) {
-                throw new ComputeError("to_struct cannot be evaluated: struct width is 0. Provide an upper_bound, non-empty fields names, or non-empty lists.");
+                throw new ComputeError("toStruct cannot be evaluated: struct width is 0. Provide an upperBound, non-empty fields names, or non-empty lists.");
             }
 
             const names = new Array<string>(width);
@@ -810,7 +807,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 2, 2, 3], [4, 4, 5]] })
-     * >>> df.with_columns($df.col("a").arr.unique().alias("unique_a"))
+     * >>> df.withColumns($df.col("a").arr.unique().alias("unique_a"))
      * shape: (2, 2)
      * ┌──────────────┬───────────┐
      * │ a            │ unique_a  │
@@ -828,7 +825,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 2, 3], [10, 20]] })
-     * >>> df.with_columns($df.col("a").arr.variance().alias("var_a"))
+     * >>> df.withColumns($df.col("a").arr.variance().alias("var_a"))
      * shape: (2, 2)
      * ┌───────────┬───────┐
      * │ a         │ var_a │
@@ -847,7 +844,7 @@ export class ArrayExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [[1, 2], [3, 4]] })
-     * >>> df.with_columns($df.col("a").arr.eval($df.element().mul(10)).alias("multiplied"))
+     * >>> df.withColumns($df.col("a").arr.eval($df.element().mul(10)).alias("multiplied"))
      * shape: (2, 2)
      * ┌────────┬────────────┐
      * │ a      │ multiplied │

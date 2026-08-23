@@ -1,6 +1,6 @@
 import { ColumnExpr } from "../ColumnExpr";
-import { seq_range } from "./seq_range";
-import type { SeqRangeOptions } from "./seq_range";
+import { seqRange } from "./seqRange";
+import type { SeqRangeOptions } from "./seqRange";
 
 export type LitOptions = Pick<SeqRangeOptions, "dtype" | "name">;
 
@@ -34,13 +34,8 @@ export type LitOptions = Pick<SeqRangeOptions, "dtype" | "name">;
  * │ 42     │
  * └────────┘
  */
-export function lit(value: any, options?: LitOptions): ColumnExpr<any> {
-    const expr = seq_range(value, {
-        strict: true,
-        mode: "constant",
-        dtype: options?.dtype,
-        name: options?.name,
-    } as any);
+export function lit(value: any, options: LitOptions = {}): ColumnExpr<any> {
+    const expr = seqRange(value, { ...options, mode: "constant" });
     expr._isLiteral = true;
     return expr;
 }

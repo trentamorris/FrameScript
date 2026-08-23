@@ -21,7 +21,7 @@ if (schema.subject.name !== "Utf8") {
     throw new Error(`Expected subject type Utf8, got ${schema.subject.name}`);
 }
 
-const collected = dfUnpivoted.to_dicts();
+const collected = dfUnpivoted.toDicts();
 const row1math = collected.find(r => r.id === 1 && r.subject === "math");
 const row2sci = collected.find(r => r.id === 2 && r.subject === "science");
 

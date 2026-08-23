@@ -1255,7 +1255,7 @@ export function replaceManyString(
             scalarRep = replaceWith[0];
         } else if (replaceWith.length !== len) {
             throw new InvalidArgumentError(
-                `replace_many length mismatch: expected ${len} replacement strings, got ${replaceWith.length}`
+                `replaceMany length mismatch: expected ${len} replacement strings, got ${replaceWith.length}`
             );
         } else {
             repList = replaceWith;

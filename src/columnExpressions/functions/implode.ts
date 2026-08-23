@@ -20,7 +20,7 @@ import type { IntoExpr } from "../../types";
  * │ A     │ 2   │
  * │ B     │ 3   │
  * └───────┴─────┘
- * >>> df.group_by("group").agg($df.implode("val").alias("imploded"))
+ * >>> df.groupBy("group").agg($df.implode("val").alias("imploded"))
  * shape: (2, 2)
  * ┌───────┬──────────┐
  * │ group │ imploded │

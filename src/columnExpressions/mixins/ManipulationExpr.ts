@@ -17,7 +17,7 @@ export class ManipulationExpr extends ExprBase {
          * >>> const df = $df.data({
          * ...   a: [1, null, 3]
          * ... })
-         * >>> df.with_columns($df.col("a").fill_null({ value: 0 }).alias("filled"))
+         * >>> df.withColumns($df.col("a").fillNull({ value: 0 }).alias("filled"))
          * shape: (3, 2)
          * ┌──────┬────────┐
          * │ a    │ filled │
@@ -27,7 +27,7 @@ export class ManipulationExpr extends ExprBase {
          * │ 3    │ 3      │
          * └──────┴────────┘
          */
-        fill_null({
+        fillNull({
             value = undefined,
             strategy = undefined,
             limit = undefined
@@ -69,7 +69,7 @@ export class ManipulationExpr extends ExprBase {
                             }
                         }
                     } else {
-                        throw new InvalidArgumentError(`Unsupported fill_null strategy: "${strategy}"`);
+                        throw new InvalidArgumentError(`Unsupported fillNull strategy: "${strategy}"`);
                     }
                 } else {
                     const resolved = this._resolve(value, columns, height);
@@ -91,7 +91,7 @@ export class ManipulationExpr extends ExprBase {
          * >>> const df = $df.data({
          * ...   a: [1, 2, 3]
          * ... })
-         * >>> df.with_columns($df.col("a").reverse().alias("reversed"))
+         * >>> df.withColumns($df.col("a").reverse().alias("reversed"))
          * shape: (3, 2)
          * ┌───┬──────────┐
          * │ a │ reversed │

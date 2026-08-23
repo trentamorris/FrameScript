@@ -14,7 +14,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [-1, 2, -3.5] })
-     * >>> df.with_columns($df.col("a").abs().alias("abs_a"))
+     * >>> df.withColumns($df.col("a").abs().alias("abs_a"))
      * shape: (3, 2)
      * ┌──────┬───────┐
      * │ a    │ abs_a │
@@ -33,7 +33,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [0, 0.5, 1] })
-     * >>> df.with_columns($df.col("a").acos().alias("acos_a"))
+     * >>> df.withColumns($df.col("a").acos().alias("acos_a"))
      * shape: (3, 2)
      * ┌─────┬───────────┐
      * │ a   │ acos_a    │
@@ -52,7 +52,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [1, 2, 5] })
-     * >>> df.with_columns($df.col("a").acosh().alias("acosh_a"))
+     * >>> df.withColumns($df.col("a").acosh().alias("acosh_a"))
      * shape: (3, 2)
      * ┌───┬───────────┐
      * │ a │ acosh_a   │
@@ -72,7 +72,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [1, 2, 3] })
-     * >>> df.with_columns($df.col("a").add(10).alias("added"))
+     * >>> df.withColumns($df.col("a").add(10).alias("added"))
      * shape: (3, 2)
      * ┌───┬───────┐
      * │ a │ added │
@@ -91,7 +91,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [0, 0.5, 1] })
-     * >>> df.with_columns($df.col("a").asin().alias("asin_a"))
+     * >>> df.withColumns($df.col("a").asin().alias("asin_a"))
      * shape: (3, 2)
      * ┌─────┬───────────┐
      * │ a   │ asin_a    │
@@ -110,7 +110,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [0, 1, 2] })
-     * >>> df.with_columns($df.col("a").asinh().alias("asinh_a"))
+     * >>> df.withColumns($df.col("a").asinh().alias("asinh_a"))
      * shape: (3, 2)
      * ┌───┬───────────┐
      * │ a │ asinh_a   │
@@ -129,7 +129,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [0, 1, 2] })
-     * >>> df.with_columns($df.col("a").atan().alias("atan_a"))
+     * >>> df.withColumns($df.col("a").atan().alias("atan_a"))
      * shape: (3, 2)
      * ┌───┬───────────┐
      * │ a │ atan_a    │
@@ -149,7 +149,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [1, 2], b: [2, 1] })
-     * >>> df.with_columns($df.col("a").atan2($df.col("b")).alias("atan2_a"))
+     * >>> df.withColumns($df.col("a").atan2($df.col("b")).alias("atan2_a"))
      * shape: (2, 3)
      * ┌───┬───┬───────────┐
      * │ a │ b │ atan2_a   │
@@ -167,7 +167,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [0, 0.5] })
-     * >>> df.with_columns($df.col("a").atanh().alias("atanh_a"))
+     * >>> df.withColumns($df.col("a").atanh().alias("atanh_a"))
      * shape: (2, 2)
      * ┌─────┬───────────┐
      * │ a   │ atanh_a   │
@@ -185,7 +185,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [1, 8, 27] })
-     * >>> df.with_columns($df.col("a").cbrt().alias("cbrt_a"))
+     * >>> df.withColumns($df.col("a").cbrt().alias("cbrt_a"))
      * shape: (3, 2)
      * ┌────┬────────┐
      * │ a  │ cbrt_a │
@@ -204,7 +204,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [1.1, 2.8, -0.5] })
-     * >>> df.with_columns($df.col("a").ceil().alias("ceil_a"))
+     * >>> df.withColumns($df.col("a").ceil().alias("ceil_a"))
      * shape: (3, 2)
      * ┌──────┬────────┐
      * │ a    │ ceil_a │
@@ -225,7 +225,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [5, 15, 25] })
-     * >>> df.with_columns($df.col("a").clip(10, 20).alias("clipped"))
+     * >>> df.withColumns($df.col("a").clip(10, 20).alias("clipped"))
      * shape: (3, 2)
      * ┌────┬─────────┐
      * │ a  │ clipped │
@@ -245,7 +245,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [5, 10], b: [-1, 1] })
-     * >>> df.with_columns($df.col("a").copysign($df.col("b")).alias("signed"))
+     * >>> df.withColumns($df.col("a").copysign($df.col("b")).alias("signed"))
      * shape: (2, 3)
      * ┌────┬────┬────────┐
      * │ a  │ b  │ signed │
@@ -263,7 +263,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [0, Math.PI] })
-     * >>> df.with_columns($df.col("a").cos().alias("cos_a"))
+     * >>> df.withColumns($df.col("a").cos().alias("cos_a"))
      * shape: (2, 2)
      * ┌───────┬───────┐
      * │ a     │ cos_a │
@@ -281,7 +281,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [0, 1] })
-     * >>> df.with_columns($df.col("a").cosh().alias("cosh_a"))
+     * >>> df.withColumns($df.col("a").cosh().alias("cosh_a"))
      * shape: (2, 2)
      * ┌───┬───────────┐
      * │ a │ cosh_a    │
@@ -299,7 +299,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [0, Math.PI] })
-     * >>> df.with_columns($df.col("a").degrees().alias("deg"))
+     * >>> df.withColumns($df.col("a").degrees().alias("deg"))
      * shape: (2, 2)
      * ┌───────┬─────┐
      * │ a     │ deg │
@@ -318,7 +318,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [10, 20, 30] })
-     * >>> df.with_columns($df.col("a").div(2).alias("div_a"))
+     * >>> df.withColumns($df.col("a").div(2).alias("div_a"))
      * shape: (3, 2)
      * ┌────┬───────┐
      * │ a  │ div_a │
@@ -337,7 +337,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [0, 1, 2] })
-     * >>> df.with_columns($df.col("a").exp().alias("exp_a"))
+     * >>> df.withColumns($df.col("a").exp().alias("exp_a"))
      * shape: (3, 2)
      * ┌───┬──────────┐
      * │ a │ exp_a    │
@@ -356,7 +356,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [0, 1, 2] })
-     * >>> df.with_columns($df.col("a").expm1().alias("expm1_a"))
+     * >>> df.withColumns($df.col("a").expm1().alias("expm1_a"))
      * shape: (3, 2)
      * ┌───┬──────────┐
      * │ a │ expm1_a  │
@@ -375,7 +375,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [1.1, 2.8, -0.5] })
-     * >>> df.with_columns($df.col("a").floor().alias("floor_a"))
+     * >>> df.withColumns($df.col("a").floor().alias("floor_a"))
      * shape: (3, 2)
      * ┌──────┬─────────┐
      * │ a    │ floor_a │
@@ -395,7 +395,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [5, 10, 15] })
-     * >>> df.with_columns($df.col("a").floordiv(2).alias("fdiv"))
+     * >>> df.withColumns($df.col("a").floordiv(2).alias("fdiv"))
      * shape: (3, 2)
      * ┌────┬──────┐
      * │ a  │ fdiv │
@@ -415,7 +415,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [3, 5], b: [4, 12] })
-     * >>> df.with_columns($df.col("a").hypot($df.col("b")).alias("hypot_a"))
+     * >>> df.withColumns($df.col("a").hypot($df.col("b")).alias("hypot_a"))
      * shape: (2, 3)
      * ┌───┬────┬─────────┐
      * │ a │ b  │ hypot_a │
@@ -434,7 +434,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [1, 10, 100] })
-     * >>> df.with_columns($df.col("a").log(10).alias("log_a"))
+     * >>> df.withColumns($df.col("a").log(10).alias("log_a"))
      * shape: (3, 2)
      * ┌─────┬───────┐
      * │ a   │ log_a │
@@ -453,7 +453,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [0, 1, 2] })
-     * >>> df.with_columns($df.col("a").log1p().alias("log1p_a"))
+     * >>> df.withColumns($df.col("a").log1p().alias("log1p_a"))
      * shape: (3, 2)
      * ┌───┬──────────┐
      * │ a │ log1p_a  │
@@ -473,7 +473,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [10, 11, 12] })
-     * >>> df.with_columns($df.col("a").mod(2).alias("mod_a"))
+     * >>> df.withColumns($df.col("a").mod(2).alias("mod_a"))
      * shape: (3, 2)
      * ┌────┬───────┐
      * │ a  │ mod_a │
@@ -493,7 +493,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [1, 2, 3] })
-     * >>> df.with_columns($df.col("a").mul(5).alias("multiplied"))
+     * >>> df.withColumns($df.col("a").mul(5).alias("multiplied"))
      * shape: (3, 2)
      * ┌───┬────────────┐
      * │ a │ multiplied │
@@ -512,7 +512,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [1, -2, 3] })
-     * >>> df.with_columns($df.col("a").negate().alias("negated"))
+     * >>> df.withColumns($df.col("a").negate().alias("negated"))
      * shape: (3, 2)
      * ┌────┬─────────┐
      * │ a  │ negated │
@@ -532,7 +532,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [2, 3, 4] })
-     * >>> df.with_columns($df.col("a").pow(2).alias("pow_a"))
+     * >>> df.withColumns($df.col("a").pow(2).alias("pow_a"))
      * shape: (3, 2)
      * ┌───┬───────┐
      * │ a │ pow_a │
@@ -551,7 +551,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [0, 180] })
-     * >>> df.with_columns($df.col("a").radians().alias("rad"))
+     * >>> df.withColumns($df.col("a").radians().alias("rad"))
      * shape: (2, 2)
      * ┌─────┬──────────┐
      * │ a   │ rad      │
@@ -571,7 +571,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ index: [1, 2, 3] })
-     * >>> df.with_columns($df.col("index").rand(42, { min: 1, max: 10, integer: true }).alias("random"))
+     * >>> df.withColumns($df.col("index").rand(42, { min: 1, max: 10, integer: true }).alias("random"))
      * shape: (3, 2)
      * ┌───────┬────────┐
      * │ index │ random │
@@ -602,7 +602,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [1.123, 2.789] })
-     * >>> df.with_columns($df.col("a").round(2).alias("rounded"))
+     * >>> df.withColumns($df.col("a").round(2).alias("rounded"))
      * shape: (2, 2)
      * ┌───────┬─────────┐
      * │ a     │ rounded │
@@ -621,7 +621,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [123.45, 0.006789] })
-     * >>> df.with_columns($df.col("a").round_sig_figs(3).alias("sig_figs"))
+     * >>> df.withColumns($df.col("a").round_sig_figs(3).alias("sig_figs"))
      * shape: (2, 2)
      * ┌──────────┬──────────┐
      * │ a        │ sig_figs │
@@ -639,7 +639,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [-10, 0, 50] })
-     * >>> df.with_columns($df.col("a").sign().alias("sign_a"))
+     * >>> df.withColumns($df.col("a").sign().alias("sign_a"))
      * shape: (3, 2)
      * ┌─────┬────────┐
      * │ a   │ sign_a │
@@ -658,7 +658,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [0, Math.PI / 2] })
-     * >>> df.with_columns($df.col("a").sin().alias("sin_a"))
+     * >>> df.withColumns($df.col("a").sin().alias("sin_a"))
      * shape: (2, 2)
      * ┌───────┬───────┐
      * │ a     │ sin_a │
@@ -676,7 +676,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [0, 1] })
-     * >>> df.with_columns($df.col("a").sinh().alias("sinh_a"))
+     * >>> df.withColumns($df.col("a").sinh().alias("sinh_a"))
      * shape: (2, 2)
      * ┌───┬───────────┐
      * │ a │ sinh_a    │
@@ -694,7 +694,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [4, 9, 16] })
-     * >>> df.with_columns($df.col("a").sqrt().alias("sqrt_a"))
+     * >>> df.withColumns($df.col("a").sqrt().alias("sqrt_a"))
      * shape: (3, 2)
      * ┌────┬────────┐
      * │ a  │ sqrt_a │
@@ -714,7 +714,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [10, 20, 30] })
-     * >>> df.with_columns($df.col("a").sub(5).alias("sub_a"))
+     * >>> df.withColumns($df.col("a").sub(5).alias("sub_a"))
      * shape: (3, 2)
      * ┌────┬───────┐
      * │ a  │ sub_a │
@@ -733,7 +733,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [0, Math.PI / 4] })
-     * >>> df.with_columns($df.col("a").tan().alias("tan_a"))
+     * >>> df.withColumns($df.col("a").tan().alias("tan_a"))
      * shape: (2, 2)
      * ┌───────┬───────┐
      * │ a     │ tan_a │
@@ -751,7 +751,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [0, 1] })
-     * >>> df.with_columns($df.col("a").tanh().alias("tanh_a"))
+     * >>> df.withColumns($df.col("a").tanh().alias("tanh_a"))
      * shape: (2, 2)
      * ┌───┬───────────┐
      * │ a │ tanh_a    │
@@ -769,7 +769,7 @@ export class ArithmeticExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ a: [1.1, 2.9, -3.5] })
-     * >>> df.with_columns($df.col("a").trunc().alias("trunc_a"))
+     * >>> df.withColumns($df.col("a").trunc().alias("trunc_a"))
      * shape: (3, 2)
      * ┌──────┬─────────┐
      * │ a    │ trunc_a │

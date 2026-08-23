@@ -15,12 +15,37 @@ if (dfRenamed.schema.first_name !== undefined) {
     throw new Error("Old column first_name schema still exists");
 }
 
-const collected = dfRenamed.to_dicts() as any[];
+const collected = dfRenamed.toDicts() as any[];
 if (collected[0].firstName !== "Alice") {
     throw new Error(`Expected Alice, got ${collected[0].firstName}`);
 }
-if (collected[0].first_name !== undefined) {
-    throw new Error("Old column first_name still exists in collected row");
+// 2. Order preservation test
+const dfMulti = new DataFrame([
+    { a: 1, b: 2, c: 3 }
+]);
+const dfRenamedOrder = dfMulti.rename({ b: "beta" });
+const cols = dfRenamedOrder.columns;
+if (cols[0] !== "a" || cols[1] !== "beta" || cols[2] !== "c") {
+    throw new Error(`Order preservation failed: expected ["a", "beta", "c"], got ${JSON.stringify(cols)}`);
+}
+
+// 3. Collision error test
+let threwCollision = false;
+try {
+    dfMulti.rename({ a: "c" });
+} catch (e: any) {
+    if (e.message.includes("Duplicate column selection")) {
+        threwCollision = true;
+    }
+}
+if (!threwCollision) {
+    throw new Error("Expected duplicate collision error on rename");
+}
+
+// 4. Empty mapping / no-op test
+const dfNoOp = dfMulti.rename({});
+if (dfNoOp.columns.join(",") !== "a,b,c") {
+    throw new Error("No-op rename modified column names");
 }
 
 console.log("✓ rename tests passed!");

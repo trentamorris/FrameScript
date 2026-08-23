@@ -37,7 +37,9 @@ export class AggregationExpr extends ExprBase {
     }
 
     _deriveAggBinary(other: any, fn: AggFn<[any, any]>) {
-        return derive(this, kleeneBinary(this, other, (x, y) => [x, y]))._deriveAgg(fn);
+        const result = derive(this, kleeneBinary(this, other, (x, y) => [x, y]))._deriveAgg(fn);
+        result._binaryMeta = undefined;
+        return result;
     }
 
     /**
@@ -45,7 +47,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A", "B"], val: [true, true, false] })
-     * >>> df.group_by("group").agg($df.col("val").all().alias("all_true"))
+     * >>> df.groupBy("group").agg($df.col("val").all().alias("all_true"))
      * shape: (2, 2)
      * ┌───────┬──────────┐
      * │ group │ all_true │
@@ -63,15 +65,15 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A"], val: [null, null] })
-     * >>> df.group_by("group").agg($df.col("val").all_null().alias("is_null"))
+     * >>> df.groupBy("group").agg($df.col("val").allNull().alias("isNull"))
      * shape: (1, 2)
      * ┌───────┬─────────┐
-     * │ group │ is_null │
+     * │ group │ isNull │
      * ├───────┼─────────┤
      * │ "A"   │ true    │
      * └───────┴─────────┘
      */
-    all_null() {
+    allNull() {
         return this._deriveAgg(v => isArrayOfType(v, "nullish", { mode: "every" }));
     }
 
@@ -80,7 +82,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A", "B"], val: [true, false, false] })
-     * >>> df.group_by("group").agg($df.col("val").any().alias("any_true"))
+     * >>> df.groupBy("group").agg($df.col("val").any().alias("any_true"))
      * shape: (2, 2)
      * ┌───────┬──────────┐
      * │ group │ any_true │
@@ -98,7 +100,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A"], val: [10, null] })
-     * >>> df.group_by("group").agg($df.col("val").any_null().alias("has_null"))
+     * >>> df.groupBy("group").agg($df.col("val").anyNull().alias("has_null"))
      * shape: (1, 2)
      * ┌───────┬──────────┐
      * │ group │ has_null │
@@ -106,7 +108,7 @@ export class AggregationExpr extends ExprBase {
      * │ "A"   │ true     │
      * └───────┴──────────┘
      */
-    any_null() {
+    anyNull() {
         return this._deriveAgg(v => isArrayOfType(v, "nullish", { mode: "some" }));
     }
 
@@ -115,7 +117,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [10, 50, 20] })
-     * >>> df.select($df.col("val").arg_max().alias("max_idx"))
+     * >>> df.select($df.col("val").argMax().alias("max_idx"))
      * shape: (1, 1)
      * ┌─────────┐
      * │ max_idx │
@@ -123,7 +125,7 @@ export class AggregationExpr extends ExprBase {
      * │ 1       │
      * └─────────┘
      */
-    arg_max() {
+    argMax() {
         return this._deriveAgg(v => getArrayStats(v).maxIdx);
     }
 
@@ -132,7 +134,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [10, 50, 20] })
-     * >>> df.select($df.col("val").arg_min().alias("min_idx"))
+     * >>> df.select($df.col("val").argMin().alias("min_idx"))
      * shape: (1, 1)
      * ┌─────────┐
      * │ min_idx │
@@ -140,7 +142,7 @@ export class AggregationExpr extends ExprBase {
      * │ 0       │
      * └─────────┘
      */
-    arg_min() {
+    argMin() {
         return this._deriveAgg(v => getArrayStats(v).minIdx);
     }
 
@@ -149,7 +151,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A"], val: [10, 20] })
-     * >>> df.group_by("group").agg($df.col("val").avg().alias("mean"))
+     * >>> df.groupBy("group").agg($df.col("val").avg().alias("mean"))
      * shape: (1, 2)
      * ┌───────┬──────┐
      * │ group │ mean │
@@ -166,7 +168,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [0b11, 0b10] })
-     * >>> df.select($df.col("val").bitwise_and().alias("res"))
+     * >>> df.select($df.col("val").bitwiseAnd().alias("res"))
      * shape: (1, 1)
      * ┌─────┐
      * │ res │
@@ -174,7 +176,7 @@ export class AggregationExpr extends ExprBase {
      * │ 2   │
      * └─────┘
      */
-    bitwise_and() {
+    bitwiseAnd() {
         return this._deriveAgg(v => reduceBitwise(v, (a, b) => a & b));
     }
 
@@ -183,7 +185,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [0b01, 0b10] })
-     * >>> df.select($df.col("val").bitwise_or().alias("res"))
+     * >>> df.select($df.col("val").bitwiseOr().alias("res"))
      * shape: (1, 1)
      * ┌─────┐
      * │ res │
@@ -191,7 +193,7 @@ export class AggregationExpr extends ExprBase {
      * │ 3   │
      * └─────┘
      */
-    bitwise_or() {
+    bitwiseOr() {
         return this._deriveAgg(v => reduceBitwise(v, (a, b) => a | b));
     }
 
@@ -200,7 +202,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [0b11, 0b10] })
-     * >>> df.select($df.col("val").bitwise_xor().alias("res"))
+     * >>> df.select($df.col("val").bitwiseXor().alias("res"))
      * shape: (1, 1)
      * ┌─────┐
      * │ res │
@@ -208,7 +210,7 @@ export class AggregationExpr extends ExprBase {
      * │ 1   │
      * └─────┘
      */
-    bitwise_xor() {
+    bitwiseXor() {
         return this._deriveAgg(v => reduceBitwise(v, (a, b) => a ^ b));
     }
 
@@ -236,7 +238,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A"], val: [10, null] })
-     * >>> df.group_by("group").agg($df.col("val").count().alias("cnt"))
+     * >>> df.groupBy("group").agg($df.col("val").count().alias("cnt"))
      * shape: (1, 2)
      * ┌───────┬─────┐
      * │ group │ cnt │
@@ -308,7 +310,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A"], val: [10, 20] })
-     * >>> df.group_by("group").agg($df.col("val").first().alias("first_val"))
+     * >>> df.groupBy("group").agg($df.col("val").first().alias("first_val"))
      * shape: (1, 2)
      * ┌───────┬───────────┐
      * │ group │ first_val │
@@ -325,7 +327,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A"], val: [10, 20] })
-     * >>> df.group_by("group").agg($df.col("val").implode().alias("list_val"))
+     * >>> df.groupBy("group").agg($df.col("val").implode().alias("list_val"))
      * shape: (1, 2)
      * ┌───────┬──────────┐
      * │ group │ list_val │
@@ -360,7 +362,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A"], val: [10, 20] })
-     * >>> df.group_by("group").agg($df.col("val").last().alias("last_val"))
+     * >>> df.groupBy("group").agg($df.col("val").last().alias("last_val"))
      * shape: (1, 2)
      * ┌───────┬──────────┐
      * │ group │ last_val │
@@ -377,7 +379,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A"], val: [10, 50] })
-     * >>> df.group_by("group").agg($df.col("val").max().alias("max_val"))
+     * >>> df.groupBy("group").agg($df.col("val").max().alias("max_val"))
      * shape: (1, 2)
      * ┌───────┬─────────┐
      * │ group │ max_val │
@@ -395,7 +397,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ name: ["a", "b", "c"], score: [10, 50, 20] })
-     * >>> df.select($df.col("name").max_by($df.col("score")).alias("top_scorer"))
+     * >>> df.select($df.col("name").maxBy($df.col("score")).alias("top_scorer"))
      * shape: (1, 1)
      * ┌────────────┐
      * │ top_scorer │
@@ -403,7 +405,7 @@ export class AggregationExpr extends ExprBase {
      * │ "b"        │
      * └────────────┘
      */
-    max_by(by: any) {
+    maxBy(by: any) {
         return this._deriveAggBinary(by, p => computeBy(p, "maxIdx"));
     }
 
@@ -412,7 +414,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A"], val: [10, 30] })
-     * >>> df.group_by("group").agg($df.col("val").mean().alias("mean_val"))
+     * >>> df.groupBy("group").agg($df.col("val").mean().alias("mean_val"))
      * shape: (1, 2)
      * ┌───────┬──────────┐
      * │ group │ mean_val │
@@ -429,7 +431,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A", "A"], val: [10, 50, 20] })
-     * >>> df.group_by("group").agg($df.col("val").median().alias("med"))
+     * >>> df.groupBy("group").agg($df.col("val").median().alias("med"))
      * shape: (1, 2)
      * ┌───────┬─────┐
      * │ group │ med │
@@ -446,7 +448,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A"], val: [10, 50] })
-     * >>> df.group_by("group").agg($df.col("val").min().alias("min_val"))
+     * >>> df.groupBy("group").agg($df.col("val").min().alias("min_val"))
      * shape: (1, 2)
      * ┌───────┬─────────┐
      * │ group │ min_val │
@@ -464,7 +466,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ name: ["a", "b", "c"], score: [10, 50, 20] })
-     * >>> df.select($df.col("name").min_by($df.col("score")).alias("lowest_scorer"))
+     * >>> df.select($df.col("name").minBy($df.col("score")).alias("lowest_scorer"))
      * shape: (1, 1)
      * ┌──────────────┐
      * │ lowest_scorer│
@@ -472,7 +474,7 @@ export class AggregationExpr extends ExprBase {
      * │ "a"          │
      * └──────────────┘
      */
-    min_by(by: any) {
+    minBy(by: any) {
         return this._deriveAggBinary(by, p => computeBy(p, "minIdx"));
     }
 
@@ -481,7 +483,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A", "A"], val: [5, 5, 10] })
-     * >>> df.group_by("group").agg($df.col("val").mode().alias("mode_val"))
+     * >>> df.groupBy("group").agg($df.col("val").mode().alias("mode_val"))
      * shape: (1, 2)
      * ┌───────┬──────────┐
      * │ group │ mode_val │
@@ -499,7 +501,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A", "A"], val: [5, 5, 10] })
-     * >>> df.group_by("group").agg($df.col("val").n_unique().alias("unique_cnt"))
+     * >>> df.groupBy("group").agg($df.col("val").n_unique().alias("unique_cnt"))
      * shape: (1, 2)
      * ┌───────┬────────────┐
      * │ group │ unique_cnt │
@@ -516,7 +518,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A"], val: [10, NaN] })
-     * >>> df.group_by("group").agg($df.col("val").nan_max().alias("nan_max_val"))
+     * >>> df.groupBy("group").agg($df.col("val").nanMax().alias("nan_max_val"))
      * shape: (1, 2)
      * ┌───────┬─────────────┐
      * │ group │ nan_max_val │
@@ -524,7 +526,7 @@ export class AggregationExpr extends ExprBase {
      * │ "A"   │ NaN         │
      * └───────┴─────────────┘
      */
-    nan_max() {
+    nanMax() {
         return this._deriveAgg(v => getArrayStats(v).nanMax);
     }
 
@@ -533,7 +535,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A"], val: [10, NaN] })
-     * >>> df.group_by("group").agg($df.col("val").nan_min().alias("nan_min_val"))
+     * >>> df.groupBy("group").agg($df.col("val").nanMin().alias("nan_min_val"))
      * shape: (1, 2)
      * ┌───────┬─────────────┐
      * │ group │ nan_min_val │
@@ -541,7 +543,7 @@ export class AggregationExpr extends ExprBase {
      * │ "A"   │ NaN         │
      * └───────┴─────────────┘
      */
-    nan_min() {
+    nanMin() {
         return this._deriveAgg(v => getArrayStats(v).nanMin);
     }
 
@@ -550,7 +552,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A"], val: [10, null] })
-     * >>> df.group_by("group").agg($df.col("val").null_count().alias("nulls"))
+     * >>> df.groupBy("group").agg($df.col("val").null_count().alias("nulls"))
      * shape: (1, 2)
      * ┌───────┬───────┐
      * │ group │ nulls │
@@ -586,7 +588,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A"], val: [2, 5] })
-     * >>> df.group_by("group").agg($df.col("val").product().alias("p"))
+     * >>> df.groupBy("group").agg($df.col("val").product().alias("p"))
      * shape: (1, 2)
      * ┌───────┬────┐
      * │ group │ p  │
@@ -641,7 +643,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A", "A"], val: [10, 20, 30] })
-     * >>> df.group_by("group").agg($df.col("val").std().alias("std_dev"))
+     * >>> df.groupBy("group").agg($df.col("val").std().alias("std_dev"))
      * shape: (1, 2)
      * ┌───────┬─────────┐
      * │ group │ std_dev │
@@ -658,7 +660,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A"], val: [10, 20] })
-     * >>> df.group_by("group").agg($df.col("val").sum().alias("total"))
+     * >>> df.groupBy("group").agg($df.col("val").sum().alias("total"))
      * shape: (1, 2)
      * ┌───────┬───────┐
      * │ group │ total │
@@ -675,7 +677,7 @@ export class AggregationExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ group: ["A", "A", "A"], val: [10, 20, 30] })
-     * >>> df.group_by("group").agg($df.col("val").variance().alias("v"))
+     * >>> df.groupBy("group").agg($df.col("val").variance().alias("v"))
      * shape: (1, 2)
      * ┌───────┬─────┐
      * │ group │ v   │

@@ -2,35 +2,51 @@ console.log("=========================================");
 console.log("RUNNING ALL DFSCRIPT PROJECT TESTS...");
 console.log("=========================================");
 
-import "./columnExpressions/test_dt_expr";
-import "./columnExpressions/test_temporal_tz";
-import "./columnExpressions/test_array_expr";
-import "./columnExpressions/test_array_eval";
-import "./columnExpressions/test_struct_expr";
-import "./columnExpressions/test_str_expr";
-import "./columnExpressions/test_str_json_path";
-import "./columnExpressions/test_window";
-import "./columnExpressions/test_arithmetic_expr";
-import "./columnExpressions/test_comparison_expr";
-import "./columnExpressions/test_boolean_expr";
-import "./columnExpressions/test_new_manipulations";
-import "./columnExpressions/test_when_then";
-import "./columnExpressions/test_seq_range";
-import "./columnExpressions/test_type_selector";
-import "./columnExpressions/test_type_inference";
-import "./columnExpressions/test_new_aggregations";
-import "./dataframe/run_all";
-import "./dataframe/read_csv.test";
+// 1. ColumnExpressions
+import "./columnExpressions/mixins/AggregationExpr.test";
+import "./columnExpressions/mixins/ArithmeticExpr.test";
+import "./columnExpressions/mixins/ArrayExpr.test";
+import "./columnExpressions/mixins/ComparisonExpr.test";
+import "./columnExpressions/mixins/LogicalExpr.test";
+import "./columnExpressions/mixins/ManipulationExpr.test";
+import "./columnExpressions/mixins/StringExpr.test";
+import "./columnExpressions/mixins/StructExpr.test";
+import "./columnExpressions/mixins/TemporalExpr.test";
+import "./columnExpressions/mixins/WindowExpr.test";
+import "./columnExpressions/functions/all.test";
+import "./columnExpressions/functions/coalesce.test";
+import "./columnExpressions/functions/duration.test";
+import "./columnExpressions/functions/element.test";
+import "./columnExpressions/functions/exclude.test";
+import "./columnExpressions/functions/implode.test";
+import "./columnExpressions/functions/lit.test";
+import "./columnExpressions/functions/seqRange.test";
+import "./columnExpressions/functions/struct.test";
+import "./columnExpressions/functions/when.test";
+import "./columnExpressions/typeSelector.test";
+import "./columnExpressions/typeInference.test";
 
-import "./datatypes/test_polars_types";
-import "./utils/test_date_robustness";
-import "./utils/test_array_robustness";
-import "./utils/test_types";
-import "./utils/test_string";
-import "./utils/test_io";
-import "./utils/test_binary";
-import "./utils/test_csv";
-import "./utils/test_csv_parse";
+// 2. DataFrames
+import "./dataframe/run_all";
+
+// 3. Functions
+import "./functions/concat.test";
+import "./functions/readCsv.test";
+import "./functions/readJson.test";
+
+// 4. DataTypes
+import "./datatypes/dataTypes.test";
+
+// 5. Utils
+import "./utils/array.test";
+import "./utils/binary.test";
+import "./utils/csv.test";
+import "./utils/date.test";
+import "./utils/duration.test";
+import "./utils/json.test";
+import "./utils/number.test";
+import "./utils/object.test";
+import "./utils/string.test";
 
 console.log("=========================================");
 console.log("🎉 ALL TESTS IN THE PROJECT PASSED SUCCESSFULLY!");

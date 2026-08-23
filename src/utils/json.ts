@@ -532,7 +532,7 @@ export function jsonPathMatch(jsonInput: unknown, path: string): string | null {
         });
 
         if (parsed === INVALID_SYMBOL) {
-            throw new InvalidArgumentError(`Invalid JSON string encountered in json_path_match: "${jsonInput}"`);
+            throw new InvalidArgumentError(`Invalid JSON string encountered in jsonPathMatch: "${jsonInput}"`);
         }
         root = parsed;
     }

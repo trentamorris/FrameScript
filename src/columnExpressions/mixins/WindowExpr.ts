@@ -99,7 +99,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [10, 20, 30] })
-     * >>> df.with_columns($df.col("val").cum_count().alias("c_count"))
+     * >>> df.withColumns($df.col("val").cum_count().alias("c_count"))
      * shape: (3, 2)
      * ┌─────┬─────────┐
      * │ val │ c_count │
@@ -119,7 +119,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [1, 3, 2] })
-     * >>> df.with_columns($df.col("val").cum_max().alias("c_max"))
+     * >>> df.withColumns($df.col("val").cum_max().alias("c_max"))
      * shape: (3, 2)
      * ┌─────┬───────┐
      * │ val │ c_max │
@@ -139,7 +139,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [3, 1, 2] })
-     * >>> df.with_columns($df.col("val").cum_min().alias("c_min"))
+     * >>> df.withColumns($df.col("val").cum_min().alias("c_min"))
      * shape: (3, 2)
      * ┌─────┬───────┐
      * │ val │ c_min │
@@ -159,7 +159,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [1, 2, 3, 4] })
-     * >>> df.with_columns($df.col("val").cum_prod().alias("c_prod"))
+     * >>> df.withColumns($df.col("val").cum_prod().alias("c_prod"))
      * shape: (4, 2)
      * ┌─────┬────────┐
      * │ val │ c_prod │
@@ -180,7 +180,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [10, 20, 30] })
-     * >>> df.with_columns($df.col("val").cum_sum().alias("c_sum"))
+     * >>> df.withColumns($df.col("val").cum_sum().alias("c_sum"))
      * shape: (3, 2)
      * ┌─────┬───────┐
      * │ val │ c_sum │
@@ -199,7 +199,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ score: [100, 100, 90] })
-     * >>> df.with_columns($df.col("score").dense_rank().alias("dr"))
+     * >>> df.withColumns($df.col("score").dense_rank().alias("dr"))
      * shape: (3, 2)
      * ┌───────┬────┐
      * │ score │ dr │
@@ -222,7 +222,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [10, 20, 30] })
-     * >>> df.with_columns($df.col("val").lag(1, 0).alias("prev"))
+     * >>> df.withColumns($df.col("val").lag(1, 0).alias("prev"))
      * shape: (3, 2)
      * ┌─────┬──────┐
      * │ val │ prev │
@@ -249,7 +249,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [10, 20, 30] })
-     * >>> df.with_columns($df.col("val").lead(1, 0).alias("next"))
+     * >>> df.withColumns($df.col("val").lead(1, 0).alias("next"))
      * shape: (3, 2)
      * ┌─────┬──────┐
      * │ val │ next │
@@ -275,7 +275,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ cat: ["A", "A", "B"], val: [10, 20, 30] })
-     * >>> df.with_columns($df.col("val").sum().over("cat").alias("cat_sum"))
+     * >>> df.withColumns($df.col("val").sum().over("cat").alias("cat_sum"))
      * shape: (3, 3)
      * ┌─────┬─────┬─────────┐
      * │ cat │ val │ cat_sum │
@@ -297,7 +297,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ score: [100, 80, 90] })
-     * >>> df.with_columns($df.col("score").rank().alias("rank"))
+     * >>> df.withColumns($df.col("score").rank().alias("rank"))
      * shape: (3, 2)
      * ┌───────┬──────┐
      * │ score │ rank │
@@ -319,7 +319,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [1, 5, 2, 8] })
-     * >>> df.with_columns($df.col("val").rolling_max(2).alias("r_max"))
+     * >>> df.withColumns($df.col("val").rolling_max(2).alias("r_max"))
      * shape: (4, 2)
      * ┌─────┬───────┐
      * │ val │ r_max │
@@ -340,7 +340,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [10, 20, 30] })
-     * >>> df.with_columns($df.col("val").rolling_mean(2).alias("r_mean"))
+     * >>> df.withColumns($df.col("val").rolling_mean(2).alias("r_mean"))
      * shape: (3, 2)
      * ┌─────┬────────┐
      * │ val │ r_mean │
@@ -360,7 +360,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [10, 30, 20] })
-     * >>> df.with_columns($df.col("val").rolling_median(2).alias("r_med"))
+     * >>> df.withColumns($df.col("val").rolling_median(2).alias("r_med"))
      * shape: (3, 2)
      * ┌─────┬───────┐
      * │ val │ r_med │
@@ -380,7 +380,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [10, 5, 20] })
-     * >>> df.with_columns($df.col("val").rolling_min(2).alias("r_min"))
+     * >>> df.withColumns($df.col("val").rolling_min(2).alias("r_min"))
      * shape: (3, 2)
      * ┌─────┬───────┐
      * │ val │ r_min │
@@ -401,7 +401,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [10, 20, 30] })
-     * >>> df.with_columns($df.col("val").rolling_quantile(0.5, 2).alias("r_quant"))
+     * >>> df.withColumns($df.col("val").rolling_quantile(0.5, 2).alias("r_quant"))
      * shape: (3, 2)
      * ┌─────┬─────────┐
      * │ val │ r_quant │
@@ -421,7 +421,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [10, 20, 15] })
-     * >>> df.with_columns($df.col("val").rolling_rank(2).alias("r_rank"))
+     * >>> df.withColumns($df.col("val").rolling_rank(2).alias("r_rank"))
      * shape: (3, 2)
      * ┌─────┬────────┐
      * │ val │ r_rank │
@@ -443,7 +443,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [10, 20, 30] })
-     * >>> df.with_columns($df.col("val").rolling_std(2).alias("r_std"))
+     * >>> df.withColumns($df.col("val").rolling_std(2).alias("r_std"))
      * shape: (3, 2)
      * ┌─────┬────────┐
      * │ val │ r_std  │
@@ -463,7 +463,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ val: [10, 20, 30] })
-     * >>> df.with_columns($df.col("val").rolling_sum(2).alias("r_sum"))
+     * >>> df.withColumns($df.col("val").rolling_sum(2).alias("r_sum"))
      * shape: (3, 2)
      * ┌─────┬───────┐
      * │ val │ r_sum │
@@ -482,7 +482,7 @@ export class WindowExpr extends ExprBase {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ cat: ["A", "A", "B"] })
-     * >>> df.with_columns($df.col("cat").row_number().over("cat").alias("rn"))
+     * >>> df.withColumns($df.col("cat").row_number().over("cat").alias("rn"))
      * shape: (3, 2)
      * ┌─────┬────┐
      * │ cat │ rn │

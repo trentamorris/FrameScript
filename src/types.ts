@@ -227,6 +227,16 @@ export interface DateTimeParts {
 
 export type ReplaceDateOptions = Partial<Omit<DateTimeParts, "dayOfWeek">>;
 
+/** Sorting Configuration */
+export interface SortArrayOptions<T = any> {
+    descending?: boolean | boolean[];
+    nullsLast?: boolean;
+    customComp?: ((a: any, b: any) => number) | Partial<Record<keyof T, (a: any, b: any) => number>> | null;
+}
+
+export interface SortOptions<T = any> extends SortArrayOptions<T> {
+    by: keyof T | (keyof T)[] | IExpr | IExpr[];
+}
 
 /** Concatenation Configuration */
 export type ConcatHow = "vertical" | "horizontal" | "diagonal";
@@ -242,8 +252,8 @@ export type ConcatItem = DataFrame<any> | ColumnDict | RowRecord[];
 export type { UniqueArrayStatsOptions, JoinArrayOptions } from "./utils/array";
 
 export interface ExplodeOptions {
-    empty_as_null?: boolean;
-    keep_nulls?: boolean;
+    emptyAsNull?: boolean;
+    keepNulls?: boolean;
 }
 
 
@@ -269,7 +279,7 @@ export interface FillNullOptions {
 
 export interface ToStructOptions {
     fields?: string[] | ((idx: number) => string);
-    upper_bound?: number;
+    upperBound?: number;
 }
 
 export interface SkewOptions {

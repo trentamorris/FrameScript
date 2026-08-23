@@ -1,9 +1,8 @@
-/** @typefile */
-import type { IExpr, AggFn, RowRecord, DataFrameSchema, JSONFormat } from "../types";
+import type { AggFn, RowRecord, DataFrameSchema, JSONFormat, SortArrayOptions, SortOptions } from "../types";
 import type { DataFrame } from "./dataframe";
 import type { JSONParseOptions, SafeJsonReplacerOptions, NDJSONParseOptions } from "../utils";
 
-export type { JSONParseOptions, SafeJsonReplacerOptions, NDJSONParseOptions };
+export type { JSONParseOptions, SafeJsonReplacerOptions, NDJSONParseOptions, SortArrayOptions, SortOptions };
 
 export type JoinType = "inner" | "outer" | "left" | "right" | "semi" | "anti" | "cross";
 export type JoinMaintainOrder = "none" | "left" | "right" | "left_right" | "right_left";
@@ -13,13 +12,6 @@ export type GroupMap = Map<string, number[]>;
 export interface LimitOptions {
     offset?: number;
     from?: LimitPosition;
-}
-
-export interface SortOptions<T> {
-    by: keyof T | (keyof T)[] | IExpr | IExpr[];
-    descending?: boolean | boolean[];
-    nullsLast?: boolean;
-    custom?: Partial<Record<keyof T, (a: any, b: any) => number>>;
 }
 
 export interface PivotOptions<T> {
@@ -36,9 +28,9 @@ export interface JoinOptions<T = any, U extends RowRecord = any> {
     rightOn?: (keyof U) | (keyof U)[];
     how?: JoinType;
     suffixes?: [string, string];
-    join_nulls?: boolean;
+    joinNulls?: boolean;
     coalesce?: boolean;
-    maintain_order?: JoinMaintainOrder | boolean;
+    maintainOrder?: JoinMaintainOrder | boolean;
 }
 
 export type AsofJoinStrategy = "backward" | "forward" | "nearest";
@@ -53,10 +45,10 @@ export interface AsofJoinOptions<T = any, U extends RowRecord = any> {
     rightBy?: (keyof U) | (keyof U)[];
     strategy?: AsofJoinStrategy;
     tolerance?: number | string;
-    allow_exact_matches?: boolean;
+    allowExactMatches?: boolean;
     suffixes?: [string, string];
     coalesce?: boolean;
-    check_sorted?: boolean;
+    checkSorted?: boolean;
 }
 
 export interface UnpivotOptions<T> {
@@ -67,9 +59,9 @@ export interface UnpivotOptions<T> {
 }
 
 export interface TransposeOptions {
-    include_header?: boolean;
-    header_name?: string;
-    column_names?: string | Iterable<string>;
+    includeHeader?: boolean;
+    headerName?: string;
+    columnNames?: string | Iterable<string>;
 }
 
 

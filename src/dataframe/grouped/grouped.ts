@@ -8,7 +8,7 @@ import type { IExpr, ColumnDict, RowRecord, DataFrameSchema } from "../../types"
  * Represents a DataFrame grouped by key columns, supporting aggregation operations.
  * @namespace df
  * @category DataFrame
- * @syntax df.groupby(...).{symbol}(...)
+ * @syntax df.groupBy(...).{symbol}(...)
  */
 export class GroupedData<T, K extends keyof T> {
     private _groups: GroupMap
@@ -40,7 +40,7 @@ export class GroupedData<T, K extends keyof T> {
      * @returns DataFrame
      * @example
      * >>> const df = $df.data({ group: ["A", "A", "B"], val: [1, 2, 3] })
-     * >>> df.groupby("group").to_dataframe()
+     * >>> df.groupBy("group").toDataframe()
      * shape: (2, 1)
      * ┌───────┐
      * │ group │
@@ -49,7 +49,7 @@ export class GroupedData<T, K extends keyof T> {
      * │ B     │
      * └───────┘
      */
-    to_dataframe<U extends RowRecord = any>(): DataFrame<U> {
+    toDataframe<U extends RowRecord = any>(): DataFrame<U> {
         const keysLen = this._keys.length;
         const keysStr = new Array(keysLen);
         for (let i = 0; i < keysLen; i++) {
@@ -87,7 +87,7 @@ export class GroupedData<T, K extends keyof T> {
      * @returns DataFrame
      * @example
      * >>> const df = $df.data({ group: ["A", "A", "B"], val: [10, 20, 30] })
-     * >>> df.groupby("group").agg($df.col("val").sum().alias("sum_val"))
+     * >>> df.groupBy("group").agg($df.col("val").sum().alias("sum_val"))
      * shape: (2, 2)
      * ┌───────┬─────────┐
      * │ group │ sum_val │

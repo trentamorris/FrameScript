@@ -37,7 +37,7 @@ export class StructExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ user: [{ name: "Alice", id: 1 }] })
-     * >>> df.with_columns($df.col("user").struct.field("name").alias("user_name"))
+     * >>> df.withColumns($df.col("user").struct.field("name").alias("user_name"))
      * shape: (1, 2)
      * ┌─────────────────────────┬───────────┐
      * │ user                    │ user_name │
@@ -66,7 +66,7 @@ export class StructExprNamespace {
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ user: [{ first: "Alice" }] })
-     * >>> df.with_columns($df.col("user").struct.rename_fields({ first: "first_name" }).alias("user_renamed"))
+     * >>> df.withColumns($df.col("user").struct.rename_fields({ first: "first_name" }).alias("user_renamed"))
      * shape: (1, 2)
      * ┌───────────────────┬─────────────────────────┐
      * │ user              │ user_renamed            │
@@ -117,7 +117,7 @@ export class StructExprNamespace {
      * @throws {Error} If expressions passed without an alias or name.
      * @example
      * >>> const df = $df.data({ user: [{ name: "Alice" }], age: [30] })
-     * >>> df.with_columns($df.col("user").struct.with_fields({ user_age: $df.col("age") }).alias("updated_user"))
+     * >>> df.withColumns($df.col("user").struct.with_fields({ user_age: $df.col("age") }).alias("updated_user"))
      * shape: (1, 3)
      * ┌─────────────────┬─────┬───────────────────────────────┐
      * │ user            │ age │ updated_user                  │

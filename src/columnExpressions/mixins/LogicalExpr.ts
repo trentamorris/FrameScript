@@ -17,7 +17,7 @@ export class LogicalExpr extends ExprBase {
      * ...   a: [true, true, false, null],
      * ...   b: [true, false, false, true]
      * ... })
-     * >>> df.with_columns($df.col("a").and($df.col("b")).alias("and_res"))
+     * >>> df.withColumns($df.col("a").and($df.col("b")).alias("and_res"))
      * shape: (4, 3)
      * ┌───────┬───────┬─────────┐
      * │ a     │ b     │ and_res │
@@ -52,7 +52,7 @@ export class LogicalExpr extends ExprBase {
      * >>> const df = $df.data({
      * ...   is_active: [true, false, null]
      * ... })
-     * >>> df.with_columns($df.col("is_active").not().alias("is_inactive"))
+     * >>> df.withColumns($df.col("is_active").not().alias("is_inactive"))
      * shape: (3, 2)
      * ┌───────────┬─────────────┐
      * │ is_active │ is_inactive │
@@ -75,7 +75,7 @@ export class LogicalExpr extends ExprBase {
      * ...   a: [true, false, false, null],
      * ...   b: [false, false, true, false]
      * ... })
-     * >>> df.with_columns($df.col("a").or($df.col("b")).alias("or_res"))
+     * >>> df.withColumns($df.col("a").or($df.col("b")).alias("or_res"))
      * shape: (4, 3)
      * ┌───────┬───────┬────────┐
      * │ a     │ b     │ or_res │
@@ -112,7 +112,7 @@ export class LogicalExpr extends ExprBase {
      * ...   a: [true, true, false, false],
      * ...   b: [true, false, true, false]
      * ... })
-     * >>> df.with_columns($df.col("a").xor($df.col("b")).alias("xor_res"))
+     * >>> df.withColumns($df.col("a").xor($df.col("b")).alias("xor_res"))
      * shape: (4, 3)
      * ┌───────┬───────┬─────────┐
      * │ a     │ b     │ xor_res │

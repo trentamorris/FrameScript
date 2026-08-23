@@ -3,7 +3,7 @@ import { isClass, isObj, isPlainObj, isValidDateObj, typedArrayTagGetter } from 
 import { toValidNumber, isValidNumber, isValidInt, toValidBigInt, isValidBigInt, clamp } from "./number";
 import { toValidDate } from "./date";
 import { toCanonicalString } from "./string";
-import type { AnyTypedArray, ColumnData, SkewOptions, KurtosisOptions, EntropyOptions } from "../types";
+import type { AnyTypedArray, ColumnData, SkewOptions, KurtosisOptions, EntropyOptions, SortArrayOptions } from "../types";
 
 import { ComputeError, InvalidArgumentError } from "../exceptions";
 
@@ -189,74 +189,65 @@ export function toArrayOfType<T = any>(
     return res;
 }
 
-export interface SortArrayOptions {
-    descending?: boolean;
-    nullsLast?: boolean;
+export function compareScalarValues(
+    a: any,
+    b: any,
+    { descending = false, nullsLast = true, customComp }: SortArrayOptions = {}
+): number {
+    const isDesc = Boolean(Array.isArray(descending) ? descending[0] : descending);
+    const dir = isDesc ? -1 : 1;
+
+    if (typeof customComp === "function") return customComp(a, b) * dir;
+    if (Object.is(a, b)) return 0;
+    if (a == null && b == null) return 0;
+    if (a == null || b == null) return (a == null ? 1 : -1) * (nullsLast ? 1 : -1);
+
+    const isDateA = isValidDateObj(a);
+    const isDateB = isValidDateObj(b);
+    if (isDateA !== isDateB) return isDateA ? -1 : 1;
+    if (isDateA && isDateB) return (a.getTime() < b.getTime() ? -1 : (a.getTime() > b.getTime() ? 1 : 0)) * dir;
+
+    const typeA = typeof a;
+    const typeB = typeof b;
+    const isNumA = typeA === "number" || typeA === "bigint";
+    const isNumB = typeB === "number" || typeB === "bigint";
+
+    const isNaNA = Number.isNaN(a);
+    const isNaNB = Number.isNaN(b);
+    if (isNaNA && isNaNB) return 0;
+    if (isNaNA || isNaNB) return (isNaNA ? 1 : -1) * (nullsLast ? 1 : -1);
+
+    if (isNumA && isNumB) return (a < b ? -1 : (a > b ? 1 : 0)) * dir;
+    if (typeA !== typeB) return typeA < typeB ? -1 : 1;
+    if (typeA === "string") return a.localeCompare(b) * dir;
+
+    return (a < b ? -1 : (a > b ? 1 : 0)) * dir;
 }
 
 export function sortArray(
     arr: unknown,
-    { descending = false, nullsLast = true }: SortArrayOptions = {}
+    { descending = false, nullsLast = true, customComp }: SortArrayOptions = {}
 ): any[] {
     if (!isArrayOrTypedArray(arr)) return [];
 
     const list = arr as any;
     const len = list.length;
-    if (len === 0) return [];
+    if (len <= 1) return isTypedArray(arr) ? Array.from(list) : (len === 0 ? [] : [list[0]]);
 
-    if (isTypedArray(arr)) {
+    const isDesc = Boolean(Array.isArray(descending) ? descending[0] : descending);
+
+    const isFloat = arr instanceof Float32Array || arr instanceof Float64Array;
+    if (isTypedArray(arr) && !customComp && nullsLast && (!isFloat || !isDesc)) {
         const copy = list.slice().sort();
-        if (descending) copy.reverse();
+        if (isDesc) copy.reverse();
         return Array.from(copy);
     }
-    const valid: any[] = [];
-    const nulls: any[] = [];
 
-    let isAllNumbers = true;
-    let isAllStrings = true;
-    let checkTypes = true;
-
+    const res = new Array(len);
     for (let i = 0; i < len; i++) {
-        const item = list[i];
-        if (item == null) {
-            nulls.push(item);
-        } else {
-            valid.push(item);
-            if (checkTypes) {
-                const t = typeof item;
-                if (t !== "number") isAllNumbers = false;
-                if (t !== "string") isAllStrings = false;
-                if (!isAllNumbers && !isAllStrings) {
-                    checkTypes = false;
-                }
-            }
-        }
+        res[i] = list[i];
     }
-
-    const validLen = valid.length;
-
-    if (validLen > 1) {
-        if (isAllNumbers) {
-            valid.sort(descending ? (a, b) => b - a : (a, b) => a - b);
-        } else if (isAllStrings) {
-            valid.sort(descending ? (a, b) => b.localeCompare(a) : (a, b) => a.localeCompare(b));
-        } else {
-            valid.sort((a, b) => {
-                const typeA = typeof a;
-                const typeB = typeof b;
-                if (typeA !== typeB) {
-                    const cmp = typeA < typeB ? -1 : 1;
-                    return descending ? -cmp : cmp;
-                }
-                if (a < b) return descending ? 1 : -1;
-                if (a > b) return descending ? -1 : 1;
-                return 0;
-            });
-        }
-    }
-
-    if (nulls.length === 0) return valid;
-    return nullsLast ? [...valid, ...nulls] : [...nulls, ...valid];
+    return res.sort((a, b) => compareScalarValues(a, b, { descending, nullsLast, customComp }));
 }
 
 const DEFAULT_STATS = { sum: null, product: null, count: 0, min: null, max: null, nanMin: null, nanMax: null, minIdx: null, maxIdx: null, mean: null, variance: 0, std: 0, nullCount: 0, nanCount: 0, len: 0, hasNulls: false, isNumeric: false };

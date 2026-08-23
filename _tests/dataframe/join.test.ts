@@ -18,21 +18,21 @@ const right = new DataFrame([
 
 const dfInner = left.join({ other: right, on: "id", how: "inner" });
 if (dfInner.height !== 1) throw new Error("Inner join height mismatch");
-const innerRow = dfInner.to_dicts()[0] as any;
+const innerRow = dfInner.toDicts()[0] as any;
 if (innerRow.val !== "L1" || innerRow.rval !== "R1") throw new Error("Inner join values mismatch");
 
 // ─── 2. Left Join ─────────────────────────────────────────────────────────────
 
 const dfLeft = left.join({ other: right, on: "id", how: "left" });
 if (dfLeft.height !== 2) throw new Error("Left join height mismatch");
-const leftRows = dfLeft.to_dicts() as any[];
+const leftRows = dfLeft.toDicts() as any[];
 if (leftRows[1].val !== "L2" || leftRows[1].rval !== null) throw new Error("Left join values mismatch");
 
 // ─── 3. Right Join ────────────────────────────────────────────────────────────
 
 const dfRight = left.join({ other: right, on: "id", how: "right" });
 if (dfRight.height !== 2) throw new Error("Right join height mismatch");
-const rightRows = dfRight.to_dicts() as any[];
+const rightRows = dfRight.toDicts() as any[];
 if (rightRows[1].rval !== "R3" || rightRows[1].val !== null) throw new Error("Right join values mismatch");
 
 // ─── 4. Outer Join ────────────────────────────────────────────────────────────
@@ -44,14 +44,14 @@ if (dfOuter.height !== 3) throw new Error("Outer join height mismatch");
 
 const dfSemi = left.join({ other: right, on: "id", how: "semi" });
 if (dfSemi.height !== 1) throw new Error("Semi join height mismatch");
-const semiRow = dfSemi.to_dicts()[0] as any;
+const semiRow = dfSemi.toDicts()[0] as any;
 if (semiRow.id !== 1 || semiRow.val !== "L1" || "rval" in semiRow) throw new Error("Semi join values/columns mismatch");
 
 // ─── 6. Anti Join ─────────────────────────────────────────────────────────────
 
 const dfAnti = left.join({ other: right, on: "id", how: "anti" });
 if (dfAnti.height !== 1) throw new Error("Anti join height mismatch");
-const antiRow = dfAnti.to_dicts()[0] as any;
+const antiRow = dfAnti.toDicts()[0] as any;
 if (antiRow.id !== 2 || antiRow.val !== "L2" || "rval" in antiRow) throw new Error("Anti join values/columns mismatch");
 
 // ─── 7. Suffix Collision Protection ───────────────────────────────────────────
@@ -59,7 +59,7 @@ if (antiRow.id !== 2 || antiRow.val !== "L2" || "rval" in antiRow) throw new Err
 const dfA = new DataFrame([{ id: 1, val: "A_val" }]);
 const dfB = new DataFrame([{ id: 1, val: "B_val", val_right: "B_existing_val_right" }]);
 const dfSuffixed = dfA.join({ other: dfB, on: "id" });
-const suffixedDict = dfSuffixed.to_dicts()[0] as any;
+const suffixedDict = dfSuffixed.toDicts()[0] as any;
 if (!("val" in suffixedDict) || !("val_right" in suffixedDict) || !("val_right_right" in suffixedDict)) {
     throw new Error("Suffix collision protection failed: missing resolved column name");
 }
@@ -67,17 +67,17 @@ if (suffixedDict.val !== "A_val" || suffixedDict.val_right !== "B_val" || suffix
     throw new Error("Suffix collision protection failed: value corruption");
 }
 
-// ─── 8. join_nulls: false (default) ──────────────────────────────────────────
+// ─── 8. joinNulls: false (default) ──────────────────────────────────────────
 
 const dfNullA = new DataFrame([{ id: null, val: "A" }, { id: 1, val: "B" }]);
 const dfNullB = new DataFrame([{ id: null, val: "C" }, { id: 1, val: "D" }]);
-const dfNoNullJoin = dfNullA.join({ other: dfNullB, on: "id", join_nulls: false });
-if (dfNoNullJoin.height !== 1) throw new Error("Expected join_nulls:false to exclude null key matches");
+const dfNoNullJoin = dfNullA.join({ other: dfNullB, on: "id", joinNulls: false });
+if (dfNoNullJoin.height !== 1) throw new Error("Expected joinNulls:false to exclude null key matches");
 
-// ─── 9. join_nulls: true ──────────────────────────────────────────────────────
+// ─── 9. joinNulls: true ──────────────────────────────────────────────────────
 
-const dfWithNullJoin = dfNullA.join({ other: dfNullB, on: "id", join_nulls: true });
-if (dfWithNullJoin.height !== 2) throw new Error("Expected join_nulls:true to include null key matches");
+const dfWithNullJoin = dfNullA.join({ other: dfNullB, on: "id", joinNulls: true });
+if (dfWithNullJoin.height !== 2) throw new Error("Expected joinNulls:true to include null key matches");
 
 // ─── 10. null key vs. string "null" — no collision ───────────────────────────
 // Previously computeRowHash mapped null → "" which could collide with other values.
@@ -85,9 +85,9 @@ if (dfWithNullJoin.height !== 2) throw new Error("Expected join_nulls:true to in
 
 const dfNullStr_L = new DataFrame([{ id: null, v: "left_null" }, { id: "null", v: "left_str_null" }]);
 const dfNullStr_R = new DataFrame([{ id: null, rv: "right_null" }, { id: "null", rv: "right_str_null" }]);
-const dfNullStrJoin = dfNullStr_L.join({ other: dfNullStr_R, on: "id", how: "inner", join_nulls: true });
+const dfNullStrJoin = dfNullStr_L.join({ other: dfNullStr_R, on: "id", how: "inner", joinNulls: true });
 if (dfNullStrJoin.height !== 2) throw new Error("null key and string 'null' should not collide");
-const nullStrRows = dfNullStrJoin.to_dicts() as any[];
+const nullStrRows = dfNullStrJoin.toDicts() as any[];
 const byV: Record<string, any> = {};
 for (const r of nullStrRows) byV[r.v] = r;
 if (byV["left_null"]?.rv !== "right_null") throw new Error("null row matched wrong right row");
@@ -98,9 +98,9 @@ if (byV["left_str_null"]?.rv !== "right_str_null") throw new Error("string 'null
 
 const dfEmptyStr_L = new DataFrame([{ id: null, v: "left_null" }, { id: "", v: "left_empty" }]);
 const dfEmptyStr_R = new DataFrame([{ id: null, rv: "right_null" }, { id: "", rv: "right_empty" }]);
-const dfEmptyJoin = dfEmptyStr_L.join({ other: dfEmptyStr_R, on: "id", how: "inner", join_nulls: true });
+const dfEmptyJoin = dfEmptyStr_L.join({ other: dfEmptyStr_R, on: "id", how: "inner", joinNulls: true });
 if (dfEmptyJoin.height !== 2) throw new Error("null key and empty-string key should not collide");
-const emptyRows = dfEmptyJoin.to_dicts() as any[];
+const emptyRows = dfEmptyJoin.toDicts() as any[];
 const byV2: Record<string, any> = {};
 for (const r of emptyRows) byV2[r.v] = r;
 if (byV2["left_null"]?.rv !== "right_null") throw new Error("null row matched wrong right row (empty string collision)");
@@ -112,17 +112,17 @@ const ml = new DataFrame([{ a: 1, b: 2, v: "X" }, { a: 1, b: 3, v: "Y" }]);
 const mr = new DataFrame([{ a: 1, b: 2, rv: "RX" }, { a: 2, b: 2, rv: "R22" }]);
 const dfMultiKey = ml.join({ other: mr, on: ["a", "b"], how: "inner" });
 if (dfMultiKey.height !== 1) throw new Error("Multi-key inner join height mismatch");
-if ((dfMultiKey.to_dicts()[0] as any).v !== "X") throw new Error("Multi-key inner join value mismatch");
+if ((dfMultiKey.toDicts()[0] as any).v !== "X") throw new Error("Multi-key inner join value mismatch");
 
-// ─── 13. Multi-key, join_nulls:false — partial null key skipped ──────────────
+// ─── 13. Multi-key, joinNulls:false — partial null key skipped ──────────────
 // Row with a=1, b=null on the right should not match anything; ends up as unmatched outer row
 
 const outerL = new DataFrame([{ a: 1, b: 1, v: "L1" }]);
 const outerR = new DataFrame([{ a: 1, b: null, rv: "Rnull" }, { a: 1, b: 1, rv: "R1" }]);
-const dfPartialNull = outerL.join({ other: outerR, on: ["a", "b"], how: "outer", join_nulls: false });
+const dfPartialNull = outerL.join({ other: outerR, on: ["a", "b"], how: "outer", joinNulls: false });
 // Expected: matched row (1,1) + unmatched right row (1,null)
 if (dfPartialNull.height !== 2) throw new Error("Multi-key outer: partial null key right row should be unmatched");
-const partialRows = dfPartialNull.to_dicts() as any[];
+const partialRows = dfPartialNull.toDicts() as any[];
 const matchedRow = partialRows.find((r: any) => r.rv === "R1");
 const unmatchedRow = partialRows.find((r: any) => r.rv === "Rnull");
 if (!matchedRow) throw new Error("Multi-key outer: matched row (1,1) missing");
@@ -135,7 +135,7 @@ const semiL = new DataFrame([{ a: 1, b: 2, extra: "keep" }, { a: 9, b: 9, extra:
 const semiR = new DataFrame([{ a: 1, b: 2, rightOnly: "gone" }]);
 const dfSemiMulti = semiL.join({ other: semiR, on: ["a", "b"], how: "semi" });
 if (dfSemiMulti.height !== 1) throw new Error("Multi-key semi join height mismatch");
-const semiMultiRow = dfSemiMulti.to_dicts()[0] as any;
+const semiMultiRow = dfSemiMulti.toDicts()[0] as any;
 if (semiMultiRow.extra !== "keep") throw new Error("Multi-key semi: left-only column lost");
 if ("rightOnly" in semiMultiRow) throw new Error("Multi-key semi: right column leaked into output");
 
@@ -161,19 +161,19 @@ const dupR = new DataFrame([{ id: 1, rv: "R1" }, { id: 1, rv: "R2" }, { id: 1, r
 const dfSemiDup = dupL.join({ other: dupR, on: "id", how: "semi" });
 if (dfSemiDup.height !== 1) throw new Error("Semi join must not duplicate left rows for multiple right matches");
 
-// ─── 18. join_nulls:true — semi join matches null keys ───────────────────────
+// ─── 18. joinNulls:true — semi join matches null keys ───────────────────────
 
 const nullSemiL = new DataFrame([{ id: null, v: "A" }, { id: 1, v: "B" }]);
 const nullSemiR = new DataFrame([{ id: null, rv: "X" }]);
-const dfNullSemi = nullSemiL.join({ other: nullSemiR, on: "id", how: "semi", join_nulls: true });
-if (dfNullSemi.height !== 1) throw new Error("Semi+join_nulls: null key should match");
-if ((dfNullSemi.to_dicts()[0] as any).v !== "A") throw new Error("Semi+join_nulls: wrong row matched");
+const dfNullSemi = nullSemiL.join({ other: nullSemiR, on: "id", how: "semi", joinNulls: true });
+if (dfNullSemi.height !== 1) throw new Error("Semi+joinNulls: null key should match");
+if ((dfNullSemi.toDicts()[0] as any).v !== "A") throw new Error("Semi+joinNulls: wrong row matched");
 
-// ─── 19. join_nulls:true — anti join excludes null-matched rows ──────────────
+// ─── 19. joinNulls:true — anti join excludes null-matched rows ──────────────
 
-const dfNullAnti = nullSemiL.join({ other: nullSemiR, on: "id", how: "anti", join_nulls: true });
-if (dfNullAnti.height !== 1) throw new Error("Anti+join_nulls: null-matched row should be excluded");
-if ((dfNullAnti.to_dicts()[0] as any).v !== "B") throw new Error("Anti+join_nulls: wrong row kept");
+const dfNullAnti = nullSemiL.join({ other: nullSemiR, on: "id", how: "anti", joinNulls: true });
+if (dfNullAnti.height !== 1) throw new Error("Anti+joinNulls: null-matched row should be excluded");
+if ((dfNullAnti.toDicts()[0] as any).v !== "B") throw new Error("Anti+joinNulls: wrong row kept");
 
 // ─── 20. Empty DataFrames ─────────────────────────────────────────────────────
 
@@ -194,7 +194,7 @@ const dfCollRes = dfCollL.join({ other: dfCollR, on: "id", suffixes: ["", "_righ
 // val in dfCollR collides with val in dfCollL (which claimed base name val).
 // Preferred suffix '_right' creates candidate 'val_right', but 'val_right' is already claimed by dfCollL!
 // Counter fallback creates 'val_right_1'.
-const collDict = dfCollRes.to_dicts()[0] as any;
+const collDict = dfCollRes.toDicts()[0] as any;
 if (!("val_right_1" in collDict)) throw new Error("Suffix collision resolver failed to create counter suffix val_right_1");
 if (collDict.val_right_1 !== "R") throw new Error("Suffix collision value incorrect");
 
@@ -236,7 +236,7 @@ if (!caughtMissingRight) throw new Error("Expected missing right key to throw Co
 const dfDualL = new DataFrame([{ id: 1, val: "left_val" }]);
 const dfDualR = new DataFrame([{ id: 1, val: "right_val" }]);
 const dualRes = dfDualL.join({ other: dfDualR, on: "id", suffixes: ["_left", "_right"] });
-const dualDict = dualRes.to_dicts()[0] as any;
+const dualDict = dualRes.toDicts()[0] as any;
 if (!("val_left" in dualDict) || !("val_right" in dualDict)) {
     throw new Error("Explicit dual suffixes ['_left', '_right'] failed to assign val_left and val_right");
 }
@@ -261,7 +261,7 @@ const rightHet = new DataFrame([
 // 25a. Heterogeneous Inner Join
 const hetInner = leftHet.join({ other: rightHet, leftOn: "user_id", rightOn: "id", how: "inner" });
 if (hetInner.height !== 2) throw new Error("Heterogeneous inner join height mismatch");
-const hetInnerDicts = hetInner.to_dicts() as any[];
+const hetInnerDicts = hetInner.toDicts() as any[];
 if (hetInnerDicts[0].user_id !== 101 || hetInnerDicts[0].score !== 95 || "id" in hetInnerDicts[0]) {
     throw new Error("Heterogeneous inner join values or coalesced column mismatch");
 }
@@ -269,7 +269,7 @@ if (hetInnerDicts[0].user_id !== 101 || hetInnerDicts[0].score !== 95 || "id" in
 // 25b. Heterogeneous Left Join
 const hetLeft = leftHet.join({ other: rightHet, leftOn: "user_id", rightOn: "id", how: "left" });
 if (hetLeft.height !== 3) throw new Error("Heterogeneous left join height mismatch");
-const hetLeftDicts = hetLeft.to_dicts() as any[];
+const hetLeftDicts = hetLeft.toDicts() as any[];
 if (hetLeftDicts[2].user_id !== 103 || hetLeftDicts[2].score !== null) {
     throw new Error("Heterogeneous left join null handling mismatch");
 }
@@ -277,7 +277,7 @@ if (hetLeftDicts[2].user_id !== 103 || hetLeftDicts[2].score !== null) {
 // 25c. Heterogeneous Right Join (Key Coalescing into leftOn column)
 const hetRight = leftHet.join({ other: rightHet, leftOn: "user_id", rightOn: "id", how: "right" });
 if (hetRight.height !== 3) throw new Error("Heterogeneous right join height mismatch");
-const hetRightDicts = hetRight.to_dicts() as any[];
+const hetRightDicts = hetRight.toDicts() as any[];
 const row104 = hetRightDicts.find((r: any) => r.user_id === 104);
 if (!row104 || row104.score !== 72 || row104.name !== null) {
     throw new Error("Heterogeneous right join key coalescing failed for user_id 104");
@@ -286,7 +286,7 @@ if (!row104 || row104.score !== 72 || row104.name !== null) {
 // 25d. Heterogeneous Semi Join
 const hetSemi = leftHet.join({ other: rightHet, leftOn: "user_id", rightOn: "id", how: "semi" });
 if (hetSemi.height !== 2) throw new Error("Heterogeneous semi join height mismatch");
-const hetSemiDicts = hetSemi.to_dicts() as any[];
+const hetSemiDicts = hetSemi.toDicts() as any[];
 if (hetSemiDicts[0].user_id !== 101 || "score" in hetSemiDicts[0]) {
     throw new Error("Heterogeneous semi join column mismatch");
 }
@@ -294,7 +294,7 @@ if (hetSemiDicts[0].user_id !== 101 || "score" in hetSemiDicts[0]) {
 // 25e. Heterogeneous Anti Join
 const hetAnti = leftHet.join({ other: rightHet, leftOn: "user_id", rightOn: "id", how: "anti" });
 if (hetAnti.height !== 1) throw new Error("Heterogeneous anti join height mismatch");
-if (hetAnti.to_dicts()[0].user_id !== 103) {
+if (hetAnti.toDicts()[0].user_id !== 103) {
     throw new Error("Heterogeneous anti join result mismatch");
 }
 
@@ -344,7 +344,7 @@ const multiInner = leftMulti.join({
     how: "inner",
 });
 if (multiInner.height !== 2) throw new Error("Composite multi-key inner join height mismatch");
-const multiInnerDicts = multiInner.to_dicts() as any[];
+const multiInnerDicts = multiInner.toDicts() as any[];
 if (multiInnerDicts[0].tenant !== "A" || multiInnerDicts[0].user_id !== 1 || multiInnerDicts[0].rval !== "R1") {
     throw new Error("Composite multi-key inner join values mismatch");
 }
@@ -358,7 +358,7 @@ const multiOuter = leftMulti.join({
     coalesce: true,
 });
 if (multiOuter.height !== 4) throw new Error("Composite multi-key outer join height mismatch");
-const multiOuterDicts = multiOuter.to_dicts() as any[];
+const multiOuterDicts = multiOuter.toDicts() as any[];
 const unmappedRightRow = multiOuterDicts.find((r: any) => r.rval === "R4");
 if (!unmappedRightRow || unmappedRightRow.tenant !== "B" || unmappedRightRow.user_id !== 2 || unmappedRightRow.val !== null) {
     throw new Error("Composite multi-key outer join coalescing failed for unmatched right row");
@@ -378,7 +378,7 @@ if (emptyLeftLeft.height !== 0) throw new Error("Empty left left join height sho
 
 const emptyLeftRight = emptyLeft.join({ other: popRight, on: "id", how: "right" });
 if (emptyLeftRight.height !== 2) throw new Error("Empty left right join height should match right DF height");
-if (emptyLeftRight.to_dicts()[0].rval !== "R1" || emptyLeftRight.to_dicts()[0].val !== null) {
+if (emptyLeftRight.toDicts()[0].rval !== "R1" || emptyLeftRight.toDicts()[0].val !== null) {
     throw new Error("Empty left right join values mismatch");
 }
 
@@ -402,19 +402,19 @@ if (emptyRightInner.height !== 0) throw new Error("Populated left + empty right 
 const emptyBothInner = emptyLeft.join({ other: emptyLeft, on: "id", how: "inner" });
 if (emptyBothInner.height !== 0) throw new Error("Empty both inner join height should be 0");
 
-// ─── 28. join_nulls with Heterogeneous Keys ───────────────────────────────────
+// ─── 28. joinNulls with Heterogeneous Keys ───────────────────────────────────
 
 const nullHetL = new DataFrame([{ k_left: null, val: "L_null" }, { k_left: 1, val: "L_1" }]);
 const nullHetR = new DataFrame([{ k_right: null, rval: "R_null" }, { k_right: 1, rval: "R_1" }]);
 
-// 28a. join_nulls: false (default)
-const nullHetFalse = nullHetL.join({ other: nullHetR, leftOn: "k_left", rightOn: "k_right", join_nulls: false });
-if (nullHetFalse.height !== 1) throw new Error("Heterogeneous join_nulls:false should exclude null key matches");
-if (nullHetFalse.to_dicts()[0].val !== "L_1") throw new Error("Heterogeneous join_nulls:false row mismatch");
+// 28a. joinNulls: false (default)
+const nullHetFalse = nullHetL.join({ other: nullHetR, leftOn: "k_left", rightOn: "k_right", joinNulls: false });
+if (nullHetFalse.height !== 1) throw new Error("Heterogeneous joinNulls:false should exclude null key matches");
+if (nullHetFalse.toDicts()[0].val !== "L_1") throw new Error("Heterogeneous joinNulls:false row mismatch");
 
-// 28b. join_nulls: true
-const nullHetTrue = nullHetL.join({ other: nullHetR, leftOn: "k_left", rightOn: "k_right", join_nulls: true });
-if (nullHetTrue.height !== 2) throw new Error("Heterogeneous join_nulls:true should include null key matches");
+// 28b. joinNulls: true
+const nullHetTrue = nullHetL.join({ other: nullHetR, leftOn: "k_left", rightOn: "k_right", joinNulls: true });
+if (nullHetTrue.height !== 2) throw new Error("Heterogeneous joinNulls:true should include null key matches");
 
 // ─── 29. Heterogeneous Joins Overlapping Payload Names & Custom Suffixes ──────
 
@@ -427,7 +427,7 @@ const suffixedHet = overlapL.join({
     rightOn: "id",
     suffixes: ["_left", "_right"],
 });
-const suffixedHetDict = suffixedHet.to_dicts()[0] as any;
+const suffixedHetDict = suffixedHet.toDicts()[0] as any;
 if (!("name_left" in suffixedHetDict) || !("name_right" in suffixedHetDict) || !("category_left" in suffixedHetDict) || !("category_right" in suffixedHetDict)) {
     throw new Error("Heterogeneous join suffix resolution failed for overlapping payload columns");
 }
@@ -475,7 +475,7 @@ const dfCrossR = new DataFrame([
 
 const crossRes = dfCrossL.join({ other: dfCrossR, how: "cross" });
 if (crossRes.height !== 6) throw new Error(`Cross join height expected 6, got ${crossRes.height}`);
-const crossRows = crossRes.to_dicts() as any[];
+const crossRows = crossRes.toDicts() as any[];
 if (crossRows[0].color !== "red" || crossRows[0].size !== "S") throw new Error("Cross join row 0 mismatch");
 if (crossRows[5].color !== "blue" || crossRows[5].size !== "L") throw new Error("Cross join row 5 mismatch");
 
@@ -503,7 +503,7 @@ const collCols = Object.keys(crossColl._columns);
 if (!collCols.includes("id_left") || !collCols.includes("id_right")) {
     throw new Error(`Expected suffixes on colliding columns, got: ${collCols.join(", ")}`);
 }
-const collRows = crossColl.to_dicts() as any[];
+const collRows = crossColl.toDicts() as any[];
 if (collRows[0].id_left !== 1 || collRows[0].id_right !== 10) throw new Error("Cross join collision row 0 mismatch");
 if (collRows[3].id_left !== 2 || collRows[3].id_right !== 20) throw new Error("Cross join collision row 3 mismatch");
 
@@ -541,10 +541,10 @@ const dfCoalesceOuter = coalesceL.join({
     other: coalesceR,
     on: "id",
     how: "outer",
-    join_nulls: true,
+    joinNulls: true,
     coalesce: true,
 });
-const outerCoalesceRows = dfCoalesceOuter.to_dicts() as any[];
+const outerCoalesceRows = dfCoalesceOuter.toDicts() as any[];
 const r2Row = outerCoalesceRows.find(r => r.rval === "R2");
 if (!r2Row || r2Row.id !== 2 || "id_right" in r2Row) {
     throw new Error("Expected explicit coalesce: true to merge right key into 'id' and omit 'id_right'");
@@ -555,9 +555,9 @@ const dfDefaultOuter = coalesceL.join({
     other: coalesceR,
     on: "id",
     how: "outer",
-    join_nulls: true,
+    joinNulls: true,
 });
-const defaultOuterRows = dfDefaultOuter.to_dicts() as any[];
+const defaultOuterRows = dfDefaultOuter.toDicts() as any[];
 const r2DefaultRow = defaultOuterRows.find(r => r.rval === "R2");
 if (!r2DefaultRow || r2DefaultRow.id !== 2 || "id_right" in r2DefaultRow) {
     throw new Error("Expected default outer join (coalesce omitted) to default to coalesce: true, merging keys into 'id' and omitting 'id_right'");
@@ -573,7 +573,7 @@ const dfHetNoCoalesce = hetCoalesceL.join({
     how: "outer",
     coalesce: false,
 });
-const hetNoCoalesceRows = dfHetNoCoalesce.to_dicts() as any[];
+const hetNoCoalesceRows = dfHetNoCoalesce.toDicts() as any[];
 const r30Row = hetNoCoalesceRows.find(r => r.r_id === 30);
 if (!r30Row || r30Row.l_id !== null || r30Row.score !== 88) {
     throw new Error("Expected coalesce: false on heterogeneous outer join to keep l_id=null and r_id=30 for unmatched right row");
@@ -586,7 +586,7 @@ const dfDefaultRight = hetCoalesceL.join({
     rightOn: "r_id",
     how: "right",
 });
-const defaultRightRows = dfDefaultRight.to_dicts() as any[];
+const defaultRightRows = dfDefaultRight.toDicts() as any[];
 const r30CoalescedRow = defaultRightRows.find(r => r.l_id === 30);
 if (!r30CoalescedRow || "r_id" in r30CoalescedRow) {
     throw new Error("Expected default right join to coalesce r_id into l_id (l_id=30) and drop r_id");
@@ -600,7 +600,7 @@ const dfHetOuterCoalesce = hetCoalesceL.join({
     how: "outer",
     coalesce: true,
 });
-const hetOuterCoalesceRows = dfHetOuterCoalesce.to_dicts() as any[];
+const hetOuterCoalesceRows = dfHetOuterCoalesce.toDicts() as any[];
 const r30HetRow = hetOuterCoalesceRows.find(r => r.score === 88);
 if (!r30HetRow || r30HetRow.l_id !== 30 || "r_id" in r30HetRow) {
     throw new Error("Expected explicit coalesce: true on heterogeneous outer join to merge r_id=30 into l_id=30 and drop r_id column");
@@ -616,7 +616,7 @@ const dfCompCoalesce = compL.join({
     how: "outer",
     coalesce: true,
 });
-const compRows = dfCompCoalesce.to_dicts() as any[];
+const compRows = dfCompCoalesce.toDicts() as any[];
 const b2Row = compRows.find(r => r.valR === "right2");
 if (!b2Row || b2Row.k1 !== "B" || b2Row.k2 !== 2 || "r1" in b2Row || "r2" in b2Row) {
     throw new Error("Expected composite keys (r1, r2) to be coalesced into (k1, k2) and dropped from output");
@@ -629,32 +629,32 @@ const dfLeftNoCoalesce = coalesceL.join({
     how: "left",
     coalesce: false,
 });
-const leftNoCoalesceRows = dfLeftNoCoalesce.to_dicts() as any[];
+const leftNoCoalesceRows = dfLeftNoCoalesce.toDicts() as any[];
 if (!leftNoCoalesceRows.every(r => "id" in r && "id_right" in r)) {
     throw new Error("Expected explicit coalesce: false on left join to preserve both 'id' and 'id_right'");
 }
 
-// 32h. Coalesce with join_nulls: true when both sides have null keys
+// 32h. Coalesce with joinNulls: true when both sides have null keys
 const nullL = new DataFrame([{ id: null as any, val: "LNull" }]);
 const nullR = new DataFrame([{ id: null as any, valR: "RNull" }, { id: 99, valR: "R99" }]);
 const dfNullCoalesce = nullL.join({
     other: nullR,
     on: "id",
     how: "outer",
-    join_nulls: true,
+    joinNulls: true,
     coalesce: true,
 });
-const nullCoalesceRows = dfNullCoalesce.to_dicts() as any[];
+const nullCoalesceRows = dfNullCoalesce.toDicts() as any[];
 const matchedNullRow = nullCoalesceRows.find(r => r.val === "LNull" && r.valR === "RNull");
 const r99Row = nullCoalesceRows.find(r => r.valR === "R99");
 if (!matchedNullRow || matchedNullRow.id !== null) {
-    throw new Error("Expected join_nulls matched null keys to coalesce to null");
+    throw new Error("Expected joinNulls matched null keys to coalesce to null");
 }
 if (!r99Row || r99Row.id !== 99 || "id_right" in r99Row) {
     throw new Error("Expected unmatched right row (id: 99) to coalesce key id to 99");
 }
 
-// ─── 33. Row Order Maintenance (maintain_order) ──────────────────────────────────
+// ─── 33. Row Order Maintenance (maintainOrder) ──────────────────────────────────
 
 const ordL = new DataFrame([
     { id: 3, val: "L3" },
@@ -667,36 +667,36 @@ const ordR = new DataFrame([
     { id: 3, rval: "R3" },
 ]);
 
-// maintain_order: "left" preserving left table row order
-const dfOrdLeft = ordL.join({ other: ordR, on: "id", maintain_order: "left" });
-const ordLeftIds = dfOrdLeft.to_dict()["id"];
+// maintainOrder: "left" preserving left table row order
+const dfOrdLeft = ordL.join({ other: ordR, on: "id", maintainOrder: "left" });
+const ordLeftIds = dfOrdLeft.toDict()["id"];
 if (ordLeftIds[0] !== 3 || ordLeftIds[1] !== 1 || ordLeftIds[2] !== 2) {
-    throw new Error("maintain_order: 'left' failed to preserve left table row order");
+    throw new Error("maintainOrder: 'left' failed to preserve left table row order");
 }
 
-// maintain_order: true (boolean) equivalent to "left"
-const dfOrdBool = ordL.join({ other: ordR, on: "id", maintain_order: true });
-const ordBoolIds = dfOrdBool.to_dict()["id"];
+// maintainOrder: true (boolean) equivalent to "left"
+const dfOrdBool = ordL.join({ other: ordR, on: "id", maintainOrder: true });
+const ordBoolIds = dfOrdBool.toDict()["id"];
 if (ordBoolIds[0] !== 3 || ordBoolIds[1] !== 1 || ordBoolIds[2] !== 2) {
-    throw new Error("maintain_order: true (boolean) failed to preserve left table row order");
+    throw new Error("maintainOrder: true (boolean) failed to preserve left table row order");
 }
 
-// maintain_order: "right" preserving right table row order
-const dfOrdRight = ordL.join({ other: ordR, on: "id", maintain_order: "right" });
-const ordRightIds = dfOrdRight.to_dict()["id"];
+// maintainOrder: "right" preserving right table row order
+const dfOrdRight = ordL.join({ other: ordR, on: "id", maintainOrder: "right" });
+const ordRightIds = dfOrdRight.toDict()["id"];
 if (ordRightIds[0] !== 1 || ordRightIds[1] !== 2 || ordRightIds[2] !== 3) {
-    throw new Error("maintain_order: 'right' failed to preserve right table row order");
+    throw new Error("maintainOrder: 'right' failed to preserve right table row order");
 }
 
-// maintain_order: "left_right" and "right_left"
-const dfOrdLeftRight = ordL.join({ other: ordR, on: "id", maintain_order: "left_right" });
-if (dfOrdLeftRight.to_dict()["id"][0] !== 3) {
-    throw new Error("maintain_order: 'left_right' failed");
+// maintainOrder: "left_right" and "right_left"
+const dfOrdLeftRight = ordL.join({ other: ordR, on: "id", maintainOrder: "left_right" });
+if (dfOrdLeftRight.toDict()["id"][0] !== 3) {
+    throw new Error("maintainOrder: 'left_right' failed");
 }
 
-// ─── 34. Edge Cases: maintain_order with Unmatched & Duplicate Rows ─────────────────────
+// ─── 34. Edge Cases: maintainOrder with Unmatched & Duplicate Rows ─────────────────────
 
-// 34a. maintain_order: "right" with unmatched left rows in a left join
+// 34a. maintainOrder: "right" with unmatched left rows in a left join
 const ordLUnmatched = new DataFrame([
     { id: 10, val: "L10" },
     { id: 20, val: "L20" }, // unmatched in right
@@ -711,15 +711,15 @@ const dfOrdRightUnmatched = ordLUnmatched.join({
     other: ordRUnmatched,
     on: "id",
     how: "left",
-    maintain_order: "right",
+    maintainOrder: "right",
 });
-const ordRightUnmatchedIds = dfOrdRightUnmatched.to_dict()["id"];
+const ordRightUnmatchedIds = dfOrdRightUnmatched.toDict()["id"];
 // Right order: 30 (index 0), 10 (index 1), then unmatched left 20 (index null) at the end
 if (ordRightUnmatchedIds[0] !== 30 || ordRightUnmatchedIds[1] !== 10 || ordRightUnmatchedIds[2] !== 20) {
-    throw new Error("maintain_order: 'right' failed for left join with unmatched rows");
+    throw new Error("maintainOrder: 'right' failed for left join with unmatched rows");
 }
 
-// 34b. maintain_order: "right_left" with 1-to-many duplicate key matches
+// 34b. maintainOrder: "right_left" with 1-to-many duplicate key matches
 const ordLDup = new DataFrame([
     { id: 2, val: "L2_a" }, // index 0
     { id: 1, val: "L1" },   // index 1
@@ -734,12 +734,12 @@ const dfOrdRightLeft = ordLDup.join({
     other: ordRDup,
     on: "id",
     how: "inner",
-    maintain_order: "right_left",
+    maintainOrder: "right_left",
 });
-const ordRightLeftVals = dfOrdRightLeft.to_dict()["val"];
+const ordRightLeftVals = dfOrdRightLeft.toDict()["val"];
 // Expected: Right index 0 (id 1 -> L1), then Right index 1 (id 2 -> L2_a then L2_b)
 if (ordRightLeftVals[0] !== "L1" || ordRightLeftVals[1] !== "L2_a" || ordRightLeftVals[2] !== "L2_b") {
-    throw new Error("maintain_order: 'right_left' failed for duplicate key matches");
+    throw new Error("maintainOrder: 'right_left' failed for duplicate key matches");
 }
 
 // ─── 35. Edge Cases: Coalesce with Heterogeneous Keys & Multiple Keys ─────────────────────
@@ -761,7 +761,7 @@ const dfMultiCoalesce = multiKeyL.join({
     how: "outer",
     coalesce: true,
 });
-const multiRows = dfMultiCoalesce.to_dicts() as any[];
+const multiRows = dfMultiCoalesce.toDicts() as any[];
 const r3Row = multiRows.find(r => r.rval === "R3");
 if (!r3Row || r3Row.k1 !== 3 || r3Row.k2 !== "c" || "rk1" in r3Row || "rk2" in r3Row) {
     throw new Error("Multi-key coalesce failed to coalesce rk1/rk2 into k1/k2 or suppress rk1/rk2");
@@ -795,31 +795,31 @@ const quotes = new DataFrame([
 ]);
 
 // Backward strategy (default)
-const dfAsofBackward = trades.join_asof({ other: quotes, on: "time", by: "symbol", strategy: "backward" });
-const asofBackwardRows = dfAsofBackward.to_dicts() as any[];
+const dfAsofBackward = trades.joinAsof({ other: quotes, on: "time", by: "symbol", strategy: "backward" });
+const asofBackwardRows = dfAsofBackward.toDicts() as any[];
 if (asofBackwardRows[0].bid !== 99.5 || asofBackwardRows[1].bid !== 100.5 || asofBackwardRows[2].bid !== 102.0) {
-    throw new Error("join_asof backward strategy failed");
+    throw new Error("joinAsof backward strategy failed");
 }
 
 // Forward strategy
-const dfAsofForward = trades.join_asof({ other: quotes, on: "time", by: "symbol", strategy: "forward" });
-const asofForwardRows = dfAsofForward.to_dicts() as any[];
+const dfAsofForward = trades.joinAsof({ other: quotes, on: "time", by: "symbol", strategy: "forward" });
+const asofForwardRows = dfAsofForward.toDicts() as any[];
 if (asofForwardRows[0].bid !== 100.5 || asofForwardRows[1].bid !== 102.0 || asofForwardRows[2].bid !== 102.0) {
-    throw new Error("join_asof forward strategy failed");
+    throw new Error("joinAsof forward strategy failed");
 }
 
 // Nearest strategy with tie-breaker (prefer backward on equal distance)
-const dfAsofNearest = trades.join_asof({ other: quotes, on: "time", by: "symbol", strategy: "nearest" });
-const asofNearestRows = dfAsofNearest.to_dicts() as any[];
+const dfAsofNearest = trades.joinAsof({ other: quotes, on: "time", by: "symbol", strategy: "nearest" });
+const asofNearestRows = dfAsofNearest.toDicts() as any[];
 if (asofNearestRows[0].bid !== 99.5 || asofNearestRows[1].bid !== 100.5 || asofNearestRows[2].bid !== 102.0) {
-    throw new Error("join_asof nearest strategy failed");
+    throw new Error("joinAsof nearest strategy failed");
 }
 
-// allow_exact_matches: false
-const dfAsofNoExact = trades.join_asof({ other: quotes, on: "time", by: "symbol", strategy: "backward", allow_exact_matches: false });
-const asofNoExactRows = dfAsofNoExact.to_dicts() as any[];
+// allowExactMatches: false
+const dfAsofNoExact = trades.joinAsof({ other: quotes, on: "time", by: "symbol", strategy: "backward", allowExactMatches: false });
+const asofNoExactRows = dfAsofNoExact.toDicts() as any[];
 if (asofNoExactRows[0].bid !== 99.5 || asofNoExactRows[1].bid !== 100.5 || asofNoExactRows[2].bid !== 100.5) {
-    throw new Error("join_asof allow_exact_matches:false failed");
+    throw new Error("joinAsof allowExactMatches:false failed");
 }
 
 // Heterogeneous key names: leftOn / rightOn & leftBy / rightBy
@@ -831,7 +831,7 @@ const rightDF = new DataFrame([
     { t_right: 8, symbol: "AAPL", rval: 100 },
     { t_right: 15, symbol: "GOOG", rval: 200 }
 ]);
-const dfAsofHetero = leftDF.join_asof({
+const dfAsofHetero = leftDF.joinAsof({
     other: rightDF,
     leftOn: "t_left",
     rightOn: "t_right",
@@ -839,9 +839,9 @@ const dfAsofHetero = leftDF.join_asof({
     rightBy: "symbol",
     strategy: "backward"
 });
-const heteroRows = dfAsofHetero.to_dicts() as any[];
+const heteroRows = dfAsofHetero.toDicts() as any[];
 if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
-    throw new Error("join_asof heterogeneous leftOn/rightOn/leftBy/rightBy failed");
+    throw new Error("joinAsof heterogeneous leftOn/rightOn/leftBy/rightBy failed");
 }
 
 // -------------------------------------------------------------
@@ -859,7 +859,7 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
     if (emptyLeftJoin.height !== 0) throw new Error("Empty left left join height must be 0");
 
     const emptyRightJoin = emptyL.join({ other: nonEmptyR, on: "id", how: "right" });
-    if (emptyRightJoin.height !== 2 || emptyRightJoin.to_dicts()[0].val !== "A") {
+    if (emptyRightJoin.height !== 2 || emptyRightJoin.toDicts()[0].val !== "A") {
         throw new Error("Empty left right join should preserve right rows");
     }
 
@@ -873,7 +873,7 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
     const emptyCross2 = nonEmptyR.join({ other: emptyL, how: "cross" });
     if (emptyCross2.height !== 0) throw new Error("Cross join with empty right must have height 0");
 
-    // Edge Case 3: join_nulls option (matching null with null)
+    // Edge Case 3: joinNulls option (matching null with null)
     const dfNullLeft = new DataFrame<any>([
         { k: null, lval: 1 },
         { k: "X", lval: 2 }
@@ -884,17 +884,17 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
     ]);
 
     const joinNullsDefault = dfNullLeft.join({ other: dfNullRight, on: "k", how: "inner" });
-    if (joinNullsDefault.height !== 1 || joinNullsDefault.to_dicts()[0].k !== "X") {
-        throw new Error("Default join_nulls: false should ignore null==null matches");
+    if (joinNullsDefault.height !== 1 || joinNullsDefault.toDicts()[0].k !== "X") {
+        throw new Error("Default joinNulls: false should ignore null==null matches");
     }
 
-    const joinNullsTrue = dfNullLeft.join({ other: dfNullRight, on: "k", how: "inner", join_nulls: true });
+    const joinNullsTrue = dfNullLeft.join({ other: dfNullRight, on: "k", how: "inner", joinNulls: true });
     if (joinNullsTrue.height !== 2) {
-        throw new Error("join_nulls: true should match null with null");
+        throw new Error("joinNulls: true should match null with null");
     }
-    const nullMatchedRow = joinNullsTrue.to_dicts().find((r: any) => r.k === null);
+    const nullMatchedRow = joinNullsTrue.toDicts().find((r: any) => r.k === null);
     if (!nullMatchedRow || nullMatchedRow.lval !== 1 || nullMatchedRow.rval !== 10) {
-        throw new Error("join_nulls: true matched row values incorrect");
+        throw new Error("joinNulls: true matched row values incorrect");
     }
 
     // Edge Case 4: Semi & Anti join with duplicate keys and nulls
@@ -911,19 +911,19 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
     ]);
 
     const semiResult = semiLeft.join({ other: semiRight, on: "id", how: "semi" });
-    if (semiResult.height !== 2 || semiResult.to_dicts()[0].id !== 1 || semiResult.to_dicts()[1].id !== 1) {
+    if (semiResult.height !== 2 || semiResult.toDicts()[0].id !== 1 || semiResult.toDicts()[1].id !== 1) {
         throw new Error("Semi join should keep all matching left rows and omit right columns");
     }
-    if ("score" in semiResult.to_dicts()[0]) {
+    if ("score" in semiResult.toDicts()[0]) {
         throw new Error("Semi join should not include right table columns");
     }
 
     const antiResult = semiLeft.join({ other: semiRight, on: "id", how: "anti" });
-    if (antiResult.height !== 2 || antiResult.to_dicts()[0].id !== 2 || antiResult.to_dicts()[1].id !== null) {
-        throw new Error("Anti join should keep unmatched rows (id: 2 and null when join_nulls: false)");
+    if (antiResult.height !== 2 || antiResult.toDicts()[0].id !== 2 || antiResult.toDicts()[1].id !== null) {
+        throw new Error("Anti join should keep unmatched rows (id: 2 and null when joinNulls: false)");
     }
 
-    // Edge Case 5: maintain_order ("left", "right", "left_right", "right_left")
+    // Edge Case 5: maintainOrder ("left", "right", "left_right", "right_left")
     const ordLeft = new DataFrame<any>([
         { id: 3, l: "L3" },
         { id: 1, l: "L1" },
@@ -935,28 +935,28 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
         { id: 4, r: "R4" }
     ]);
 
-    const ordOuterLR = ordLeft.join({ other: ordRight, on: "id", how: "outer", maintain_order: "left_right" });
-    const ordLRRows = ordOuterLR.to_dicts();
+    const ordOuterLR = ordLeft.join({ other: ordRight, on: "id", how: "outer", maintainOrder: "left_right" });
+    const ordLRRows = ordOuterLR.toDicts();
     if (ordLRRows[0].id !== 3 || ordLRRows[1].id !== 1 || ordLRRows[2].id !== 2 || ordLRRows[3].id !== 4) {
-        throw new Error("maintain_order: 'left_right' ordering mismatch");
+        throw new Error("maintainOrder: 'left_right' ordering mismatch");
     }
 
-    const ordOuterRL = ordLeft.join({ other: ordRight, on: "id", how: "outer", maintain_order: "right_left" });
-    const ordRLRows = ordOuterRL.to_dicts();
+    const ordOuterRL = ordLeft.join({ other: ordRight, on: "id", how: "outer", maintainOrder: "right_left" });
+    const ordRLRows = ordOuterRL.toDicts();
     if (ordRLRows[0].id !== 1 || ordRLRows[1].id !== 2 || ordRLRows[2].id !== 4 || ordRLRows[3].id !== 3) {
-        throw new Error("maintain_order: 'right_left' ordering mismatch");
+        throw new Error("maintainOrder: 'right_left' ordering mismatch");
     }
 
     // Edge Case 6: Multiple non-key column collision with custom suffixes
     const colLeft = new DataFrame<any>([{ id: 1, x: "L_X", y: "L_Y", z: "L_Z" }]);
     const colRight = new DataFrame<any>([{ id: 1, x: "R_X", y: "R_Y", z: "R_Z" }]);
     const colJoined = colLeft.join({ other: colRight, on: "id", how: "inner", suffixes: ["_src", "_tgt"] });
-    const colDict = colJoined.to_dicts()[0];
+    const colDict = colJoined.toDicts()[0];
     if (colDict.x_src !== "L_X" || colDict.x_tgt !== "R_X" || colDict.y_src !== "L_Y" || colDict.y_tgt !== "R_Y") {
         throw new Error("Custom suffixes on multiple colliding columns mismatch");
     }
 
-    // Edge Case 7: join_asof with exact match toggle, tolerance, and nearest strategy
+    // Edge Case 7: joinAsof with exact match toggle, tolerance, and nearest strategy
     const asofLeftT = new DataFrame<any>([
         { t: 10, cat: "A" },
         { t: 25, cat: "A" },
@@ -968,43 +968,43 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
         { t: 60, cat: "A", price: 600 }
     ]);
 
-    // 7a: strategy "backward" with allow_exact_matches: false
-    const asofNoExact = asofLeftT.join_asof({
+    // 7a: strategy "backward" with allowExactMatches: false
+    const asofNoExact = asofLeftT.joinAsof({
         other: asofRightT,
         on: "t",
         by: "cat",
         strategy: "backward",
-        allow_exact_matches: false
+        allowExactMatches: false
     });
-    const noExactRows = asofNoExact.to_dicts();
+    const noExactRows = asofNoExact.toDicts();
     if (noExactRows[0].price !== null || noExactRows[1].price !== 200) {
-        throw new Error("join_asof allow_exact_matches: false failed for exact key");
+        throw new Error("joinAsof allowExactMatches: false failed for exact key");
     }
 
     // 7b: strategy "nearest" with tolerance
-    const asofNearest = asofLeftT.join_asof({
+    const asofNearest = asofLeftT.joinAsof({
         other: asofRightT,
         on: "t",
         by: "cat",
         strategy: "nearest",
         tolerance: 15
     });
-    const nearestRows = asofNearest.to_dicts();
+    const nearestRows = asofNearest.toDicts();
     if (nearestRows[0].price !== 100 || nearestRows[1].price !== 200 || nearestRows[2].price !== 600) {
-        throw new Error("join_asof strategy 'nearest' with tolerance failed");
+        throw new Error("joinAsof strategy 'nearest' with tolerance failed");
     }
 
     // 7c: strategy "nearest" exceeding tolerance
-    const asofExceedTol = asofLeftT.join_asof({
+    const asofExceedTol = asofLeftT.joinAsof({
         other: asofRightT,
         on: "t",
         by: "cat",
         strategy: "nearest",
         tolerance: 5
     });
-    const exceedRows = asofExceedTol.to_dicts();
+    const exceedRows = asofExceedTol.toDicts();
     if (exceedRows[1].price !== 200 || exceedRows[2].price !== null) {
-        throw new Error("join_asof nearest exceeding tolerance should produce null");
+        throw new Error("joinAsof nearest exceeding tolerance should produce null");
     }
 
     // Edge Case 8: Unsorted check error validation
@@ -1015,13 +1015,13 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
     let unsortedErrorCaught = false;
     try {
         const sampleTrades = new DataFrame([{ time: 20, symbol: "AAPL", price: 100.0 }]);
-        sampleTrades.join_asof({ other: unsortedRight, on: "time", by: "symbol", check_sorted: true });
+        sampleTrades.joinAsof({ other: unsortedRight, on: "time", by: "symbol", checkSorted: true });
     } catch (e: any) {
         unsortedErrorCaught = true;
     }
     // ─── 10/10 ULTRA-COMPLEX ROBUST EDGE CASES ────────────────────────────────
 
-    // 1. Many-to-Many Cross Product Explosion with Composite Nulls and join_nulls
+    // 1. Many-to-Many Cross Product Explosion with Composite Nulls and joinNulls
     {
         const m2mL = new DataFrame<any>([
             { k1: "A", k2: null, val_l: 1 },
@@ -1035,14 +1035,14 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
             { k1: "B", k2: 10, val_r: "W" },
         ]);
 
-        // Default join_nulls: false -> null composite keys don't match -> only (B, 10) matches
-        const m2mDefault = m2mL.join({ other: m2mR, on: ["k1", "k2"], how: "inner", join_nulls: false });
-        if (m2mDefault.height !== 1 || m2mDefault.to_dicts()[0].val_r !== "W") {
-            throw new Error("M2M Complex Case 1: join_nulls: false failed to suppress null composite joins");
+        // Default joinNulls: false -> null composite keys don't match -> only (B, 10) matches
+        const m2mDefault = m2mL.join({ other: m2mR, on: ["k1", "k2"], how: "inner", joinNulls: false });
+        if (m2mDefault.height !== 1 || m2mDefault.toDicts()[0].val_r !== "W") {
+            throw new Error("M2M Complex Case 1: joinNulls: false failed to suppress null composite joins");
         }
 
-        // join_nulls: true -> (A, null) has 2 left rows * 3 right rows = 6 rows + 1 from (B, 10) = 7 total rows
-        const m2mTrue = m2mL.join({ other: m2mR, on: ["k1", "k2"], how: "inner", join_nulls: true });
+        // joinNulls: true -> (A, null) has 2 left rows * 3 right rows = 6 rows + 1 from (B, 10) = 7 total rows
+        const m2mTrue = m2mL.join({ other: m2mR, on: ["k1", "k2"], how: "inner", joinNulls: true });
         if (m2mTrue.height !== 7) {
             throw new Error(`M2M Complex Case 1: Expected 7 exploded rows, got ${m2mTrue.height}`);
         }
@@ -1067,7 +1067,7 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
         if (resNum.height !== 4) {
             throw new Error(`Complex Case 2: BigInt & numeric boundary join height mismatch (${resNum.height})`);
         }
-        const rows = resNum.to_dicts();
+        const rows = resNum.toDicts();
         const big1 = rows.find((r: any) => r.label === "big1");
         const big2 = rows.find((r: any) => r.label === "big2");
         const zero = rows.find((r: any) => r.label === "zero");
@@ -1088,7 +1088,7 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
         const dateR = new DataFrame<any>([{ timestamp: d3, meta: "M1" }]);
 
         const dateRes = dateL.join({ other: dateR, on: "timestamp", how: "inner" });
-        if (dateRes.height !== 1 || dateRes.to_dicts()[0].event !== "E1" || dateRes.to_dicts()[0].meta !== "M1") {
+        if (dateRes.height !== 1 || dateRes.toDicts()[0].event !== "E1" || dateRes.toDicts()[0].meta !== "M1") {
             throw new Error("Complex Case 3: Date millisecond precision join key failed");
         }
     }
@@ -1119,7 +1119,7 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
         const deepR = new DataFrame<any>([{ id: 1, data: "R0", data_right: "R1" }]);
 
         const deepJoined = deepL.join({ other: deepR, on: "id", how: "inner", suffixes: ["", "_right"] });
-        const resObj = deepJoined.to_dicts()[0];
+        const resObj = deepJoined.toDicts()[0];
 
         // Left keeps data, data_right, data_right_1
         // Right's 'data' wants 'data_right' (taken) -> 'data_right_1' (taken) -> allocates 'data_right_2'
@@ -1149,7 +1149,7 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
         });
 
         if (hOuter.height !== 3) throw new Error("Complex Case 6: Heterogeneous outer join height mismatch");
-        const rows = hOuter.to_dicts();
+        const rows = hOuter.toDicts();
 
         // account_id should be coalesced into user_id
         const u1 = rows.find((r: any) => r.user_id === "U1");
@@ -1164,7 +1164,7 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
         }
     }
 
-    // 7. join_asof "forward" Strategy with Multi-Column Partitioning & Duplicates
+    // 7. joinAsof "forward" Strategy with Multi-Column Partitioning & Duplicates
     {
         const fwdL = new DataFrame<any>([
             { time: 100, region: "US", sector: "TECH", quote: "Q1" },
@@ -1179,35 +1179,35 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
             { time: 210, region: "EU", sector: "FIN", ask: 101.0 },
         ]);
 
-        const fwdJoined = fwdL.join_asof({
+        const fwdJoined = fwdL.joinAsof({
             other: fwdR,
             on: "time",
             by: ["region", "sector"],
             strategy: "forward",
-            allow_exact_matches: true
+            allowExactMatches: true
         });
 
-        const rows = fwdJoined.to_dicts();
+        const rows = fwdJoined.toDicts();
         if (rows[0].ask !== 12.5 || rows[1].ask !== 15.0 || rows[2].ask !== 101.0) {
-            throw new Error("Complex Case 7: join_asof forward strategy with composite 'by' keys failed");
+            throw new Error("Complex Case 7: joinAsof forward strategy with composite 'by' keys failed");
         }
     }
 
-    // 8. join_asof "nearest" Equidistant Tie-Breaking Edge Case
+    // 8. joinAsof "nearest" Equidistant Tie-Breaking Edge Case
     {
         // When left time is 15, and right has 10 and 20 (both diff 5)
         const tieL = new DataFrame<any>([{ t: 15 }]);
         const tieR = new DataFrame<any>([{ t: 10, v: "backward_10" }, { t: 20, v: "forward_20" }]);
 
-        const nearestRes = tieL.join_asof({
+        const nearestRes = tieL.joinAsof({
             other: tieR,
             on: "t",
             strategy: "nearest"
         });
-        const rows = nearestRes.to_dicts();
+        const rows = nearestRes.toDicts();
         // Math.abs(15 - 10) <= Math.abs(15 - 20) -> tie broken backward to 10
         if (rows[0].v !== "backward_10") {
-            throw new Error("Complex Case 8: join_asof nearest tie-break failed");
+            throw new Error("Complex Case 8: joinAsof nearest tie-break failed");
         }
     }
 
@@ -1225,7 +1225,7 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
         const typedOuter = typedL.join({ other: typedR, on: "id", how: "outer", suffixes: ["_l", "_r"] });
         if (typedOuter.height !== 3) throw new Error("Complex Case 9: TypedArray outer join height mismatch");
 
-        const rows = typedOuter.to_dicts();
+        const rows = typedOuter.toDicts();
         const r1 = rows.find((r: any) => r.id === 1);
         const r3 = rows.find((r: any) => r.id === 3);
 
@@ -1248,12 +1248,12 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
         ]);
 
         // Maintain order 'right': matched and right unmatched rows follow right table index order
-        const outerRightOrder = orderL.join({ other: orderR, on: "id", how: "outer", maintain_order: "right" });
-        const rightOrderRows = outerRightOrder.to_dicts();
+        const outerRightOrder = orderL.join({ other: orderR, on: "id", how: "outer", maintainOrder: "right" });
+        const rightOrderRows = outerRightOrder.toDicts();
 
         // Expected order: id 50 (rIdx 0), id 99 (rIdx 1), id 70 (rIdx 2), id 10 (unmatched left)
         if (rightOrderRows[0].id !== 50 || rightOrderRows[1].id !== 99 || rightOrderRows[2].id !== 70 || rightOrderRows[3].id !== 10) {
-            throw new Error("Complex Case 10: maintain_order 'right' sequence failed");
+            throw new Error("Complex Case 10: maintainOrder 'right' sequence failed");
         }
     }
 
@@ -1273,22 +1273,22 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
 
         const keys = ["k_str", "k_num", "k_big", "k_date", "k_obj", "k_null"];
 
-        // Case 11a: join_nulls = false -> composite key with k_null == null must not match
-        const resSuppressed = tortureL.join({ other: tortureR, on: keys, how: "inner", join_nulls: false });
+        // Case 11a: joinNulls = false -> composite key with k_null == null must not match
+        const resSuppressed = tortureL.join({ other: tortureR, on: keys, how: "inner", joinNulls: false });
         if (resSuppressed.height !== 0) {
-            throw new Error("Torture Test 11a: join_nulls: false failed on composite key with null entry");
+            throw new Error("Torture Test 11a: joinNulls: false failed on composite key with null entry");
         }
 
-        // Case 11b: join_nulls = true -> (-0 matches 0, Date matches Date, deep object matches deep object, null matches null)
+        // Case 11b: joinNulls = true -> (-0 matches 0, Date matches Date, deep object matches deep object, null matches null)
         // 2 left rows * 2 right rows = 4 matches
-        const resMatched = tortureL.join({ other: tortureR, on: keys, how: "inner", join_nulls: true });
+        const resMatched = tortureL.join({ other: tortureR, on: keys, how: "inner", joinNulls: true });
         if (resMatched.height !== 4) {
             throw new Error(`Torture Test 11b: Expected 4 cross matches, got ${resMatched.height}`);
         }
 
-        // Case 11c: Full Outer join with join_nulls = true
+        // Case 11c: Full Outer join with joinNulls = true
         // 4 matched rows + 1 left unmatched ("LV3") + 1 right unmatched ("RV3") = 6 total rows
-        const resOuter = tortureL.join({ other: tortureR, on: keys, how: "outer", join_nulls: true });
+        const resOuter = tortureL.join({ other: tortureR, on: keys, how: "outer", joinNulls: true });
         if (resOuter.height !== 6) {
             throw new Error(`Torture Test 11c: Expected 6 outer rows, got ${resOuter.height}`);
         }
@@ -1315,38 +1315,38 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
         ]);
 
         // Backward test
-        const backwardRes = asofStressL.join_asof({
+        const backwardRes = asofStressL.joinAsof({
             other: asofStressR,
             on: "t",
             by: ["grp1", "grp2"],
             strategy: "backward"
         });
-        const bRows = backwardRes.to_dicts();
+        const bRows = backwardRes.toDicts();
         if (bRows[0].r_bid !== 10.0 || bRows[1].r_bid !== 10.0 || bRows[2].r_bid !== 11.5 || bRows[3].r_bid !== 50.0 || bRows[4].r_bid !== null) {
             throw new Error("Extreme Asof Test 12: Backward strategy resolution mismatch with duplicates & composite by-keys");
         }
 
         // Forward test
-        const forwardRes = asofStressL.join_asof({
+        const forwardRes = asofStressL.joinAsof({
             other: asofStressR,
             on: "t",
             by: ["grp1", "grp2"],
             strategy: "forward"
         });
-        const fRows = forwardRes.to_dicts();
+        const fRows = forwardRes.toDicts();
         if (fRows[0].r_bid !== 10.0 || fRows[1].r_bid !== 11.0 || fRows[2].r_bid !== 11.0 || fRows[3].r_bid !== 60.0 || fRows[4].r_bid !== null) {
             throw new Error("Extreme Asof Test 12: Forward strategy resolution mismatch with duplicates & composite by-keys");
         }
 
         // Nearest test with tolerance = 6
-        const nearestRes = asofStressL.join_asof({
+        const nearestRes = asofStressL.joinAsof({
             other: asofStressR,
             on: "t",
             by: ["grp1", "grp2"],
             strategy: "nearest",
             tolerance: 6
         });
-        const nRows = nearestRes.to_dicts();
+        const nRows = nearestRes.toDicts();
         // L100 (exact match -> 10.0)
         // L105 (dist to 100 is 5 <= 6, dist to 110 is 5 <= 6 -> tie broken backward to 100 -> bid 10.0)
         // L110 (exact match at t=110, backward binary search selects last matching duplicate -> bid 11.5)
@@ -1356,6 +1356,60 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
             throw new Error("Extreme Asof Test 12: Nearest strategy resolution mismatch");
         }
     }
+
+    // ─── 13. Validation & Shortened Error Message Tests ───────────────────────
+    {
+        let threwCrossWithKeys = false;
+        try {
+            left.join({ other: right, on: "id", how: "cross" });
+        } catch (e: any) {
+            if (e.message.includes('Cannot specify "on", "leftOn", or "rightOn" when how is "cross"')) {
+                threwCrossWithKeys = true;
+            }
+        }
+        if (!threwCrossWithKeys) throw new Error("Cross join with keys validation failed");
+
+        let threwBothOnAndLeft = false;
+        try {
+            left.join({ other: right, on: "id", leftOn: "id", rightOn: "id" } as any);
+        } catch (e: any) {
+            if (e.message.includes('Cannot specify both "on" and "leftOn"/"rightOn"')) {
+                threwBothOnAndLeft = true;
+            }
+        }
+        if (!threwBothOnAndLeft) throw new Error("Both on and leftOn validation failed");
+
+        let threwMissingRightOn = false;
+        try {
+            left.join({ other: right, leftOn: "id" } as any);
+        } catch (e: any) {
+            if (e.message.includes('join() requires both "leftOn" and "rightOn"')) {
+                threwMissingRightOn = true;
+            }
+        }
+        if (!threwMissingRightOn) throw new Error("Missing rightOn validation failed");
+
+        let threwAsofMissingOther = false;
+        try {
+            left.joinAsof({ on: "id" } as any);
+        } catch (e: any) {
+            if (e.message.includes('joinAsof() requires a valid DataFrame in "other"')) {
+                threwAsofMissingOther = true;
+            }
+        }
+        if (!threwAsofMissingOther) throw new Error("Asof missing other validation failed");
+
+        let threwAsofMismatchBy = false;
+        try {
+            left.joinAsof({ other: right, on: "id", leftBy: ["a", "b"], rightBy: ["a"] } as any);
+        } catch (e: any) {
+            if (e.message.includes("Partition key length mismatch")) {
+                threwAsofMismatchBy = true;
+            }
+        }
+        if (!threwAsofMismatchBy) throw new Error("Asof mismatch by length validation failed");
+    }
 }
 
 console.log("✓ join tests passed!");
+

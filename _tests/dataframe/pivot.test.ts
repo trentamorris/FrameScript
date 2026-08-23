@@ -15,7 +15,7 @@ const dfPivoted = df.pivot({ index: "year", columns: "month", values: "sales" })
 
 if (dfPivoted.height !== 2) throw new Error(`Expected height 2, got ${dfPivoted.height}`);
 
-const collected = dfPivoted.to_dicts();
+const collected = dfPivoted.toDicts();
 const y2020 = collected.find(r => r.year === 2020);
 const y2021 = collected.find(r => r.year === 2021);
 
@@ -36,7 +36,7 @@ const dfNullIdx = new DataFrame([
 const dfNullPivot = dfNullIdx.pivot({ index: "grp", columns: "col", values: "val" });
 if (dfNullPivot.height !== 2) throw new Error(`null index: expected 2 rows, got ${dfNullPivot.height}`);
 
-const pivotRows = dfNullPivot.to_dicts() as any[];
+const pivotRows = dfNullPivot.toDicts() as any[];
 const nullRow = pivotRows.find(r => r.grp === null);
 const xRow    = pivotRows.find(r => r.grp === "X");
 
@@ -55,7 +55,7 @@ const dfMixedIdx = new DataFrame([
 const dfMixedPivot = dfMixedIdx.pivot({ index: "grp", columns: "col", values: "val" });
 if (dfMixedPivot.height !== 2) throw new Error("null and empty string index must be separate pivot rows");
 
-const mixedRows = dfMixedPivot.to_dicts() as any[];
+const mixedRows = dfMixedPivot.toDicts() as any[];
 const mNullRow  = mixedRows.find(r => r.grp === null);
 const mEmptyRow = mixedRows.find(r => r.grp === "");
 
@@ -73,7 +73,7 @@ const dfStrNull = new DataFrame([
 const dfStrNullPivot = dfStrNull.pivot({ index: "grp", columns: "col", values: "val" });
 if (dfStrNullPivot.height !== 2) throw new Error("null and string 'null' index must be separate pivot rows");
 
-const strNullRows   = dfStrNullPivot.to_dicts() as any[];
+const strNullRows   = dfStrNullPivot.toDicts() as any[];
 const sNullRow      = strNullRows.find(r => r.grp === null);
 const sStrNullRow   = strNullRows.find(r => r.grp === "null");
 
@@ -91,7 +91,7 @@ const dfMulti = new DataFrame([
 const dfMultiPivot = dfMulti.pivot({ index: ["a", "b"], columns: "col", values: "val" });
 if (dfMultiPivot.height !== 2) throw new Error("Multi-key: (1,null) and (1,2) should be distinct pivot rows");
 
-const multiRows = dfMultiPivot.to_dicts() as any[];
+const multiRows = dfMultiPivot.toDicts() as any[];
 const nullIdx   = multiRows.find(r => r.a === 1 && r.b === null);
 const twoIdx    = multiRows.find(r => r.a === 1 && r.b === 2);
 
@@ -109,7 +109,7 @@ const dfSparse = new DataFrame([
 const dfSparsePivot = dfSparse.pivot({ index: "grp", columns: "col", values: "val" });
 if (dfSparsePivot.height !== 2) throw new Error("Sparse pivot height mismatch");
 
-const sparseRows = dfSparsePivot.to_dicts() as any[];
+const sparseRows = dfSparsePivot.toDicts() as any[];
 const aRow = sparseRows.find(r => r.grp === "A");
 const bRow = sparseRows.find(r => r.grp === "B");
 

@@ -11,6 +11,16 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils.mjs",
+      "require": "./dist/utils.js"
+    },
+    "./expressions": {
+      "types": "./dist/columnExpressions/index.d.ts",
+      "import": "./dist/expressions.mjs",
+      "require": "./dist/expressions.js"
     }
   },
   "sideEffects": false,
@@ -20,25 +30,35 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc --emitDeclarationOnly && esbuild src/index.ts --bundle --minify --target=es2020 --outfile=dist/index.js --platform=node --mangle-props=\\\"^_\\\" && esbuild src/index.ts --bundle --minify --target=es2020 --outfile=dist/index.mjs --platform=neutral --format=esm --external:fs --mangle-props=\\\"^_\\\"",
+    "build": "tsc --emitDeclarationOnly && esbuild src/index.ts --bundle --minify --target=es2020 --tree-shaking=true --drop:console --drop:debugger --legal-comments=none --outfile=dist/index.js --platform=node --mangle-props=^_ && esbuild src/index.ts --bundle --minify --target=es2020 --tree-shaking=true --drop:console --drop:debugger --legal-comments=none --outfile=dist/index.mjs --platform=neutral --format=esm --external:fs --mangle-props=^_ && esbuild src/utils/index.ts --bundle --minify --target=es2020 --tree-shaking=true --drop:console --drop:debugger --legal-comments=none --outfile=dist/utils.js --platform=node --mangle-props=^_ && esbuild src/utils/index.ts --bundle --minify --target=es2020 --tree-shaking=true --drop:console --drop:debugger --legal-comments=none --outfile=dist/utils.mjs --platform=neutral --format=esm --external:fs --mangle-props=^_ && esbuild src/columnExpressions/index.ts --bundle --minify --target=es2020 --tree-shaking=true --drop:console --drop:debugger --legal-comments=none --outfile=dist/expressions.js --platform=node --mangle-props=^_ && esbuild src/columnExpressions/index.ts --bundle --minify --target=es2020 --tree-shaking=true --drop:console --drop:debugger --legal-comments=none --outfile=dist/expressions.mjs --platform=neutral --format=esm --external:fs --mangle-props=^_",
     "test": "tsx _tests/run_all_project_tests.ts",
     "prepublishOnly": "npm run build",
     "extract-docs": "node scripts/extract-docs.mjs",
+    "sync-docs": "node scripts/extract-docs.mjs --sync",
     "release": "node scripts/publish.mjs"
   },
   "keywords": [
     "dataframe",
+    "dataframes",
     "polars",
     "pandas",
     "data-analysis",
-    "typescript",
-    "javascript",
-    "columnar",
     "data-science",
-    "zero-dependency",
     "data-manipulation",
+    "data-processing",
+    "etl",
+    "columnar",
+    "tabular",
+    "query-engine",
+    "expression-engine",
+    "json-path",
+    "zero-dependency",
+    "lightweight",
+    "in-memory",
     "csv",
-    "expression-engine"
+    "timeseries",
+    "typescript",
+    "javascript"
   ],
   "author": "Trent Morris",
   "repository": {
@@ -55,6 +75,7 @@
     "url": "https://github.com/trentamorris/df-script/blob/main/DONATIONS.md"
   },
   "devDependencies": {
+    "esbuild": "^0.28.0",
     "typescript": "^5.4.5",
     "tsx": "^4.15.5",
     "@types/node": "^20.14.2"

@@ -322,10 +322,10 @@ export function alignKeyIndices(
     rightKeys: string[],
     options: Partial<JoinOptions> = {}
 ): { leftIndices: number[]; rightIndices: (number | null)[] } {
-    const { how = "inner", join_nulls = false, maintain_order } = options;
+    const { how = "inner", joinNulls = false, maintainOrder } = options;
 
     const getRowHashAt = (cols: ColumnDict, keys: string[], idx: number): string | null => {
-        if (!join_nulls) {
+        if (!joinNulls) {
             for (let i = 0; i < keys.length; i++) {
                 if (cols[keys[i]][idx] == null) return null;
             }
@@ -402,8 +402,8 @@ export function alignKeyIndices(
         }
     }
 
-    // 5. Apply maintain_order sorting if requested
-    const orderStrategy = maintain_order || "none";
+    // 5. Apply maintainOrder sorting if requested
+    const orderStrategy = maintainOrder || "none";
 
     // Fast-path: "left" (and "none") are naturally emitted in left-table row order!
     if (orderStrategy === "none" || orderStrategy === "left") {
@@ -448,8 +448,8 @@ export function alignAsofIndices(
     options: AsofJoinOptions = {} as AsofJoinOptions
 ): { leftIndices: number[]; rightIndices: (number | null)[] } {
     const strategy = options.strategy ?? "backward";
-    const allowExactMatches = options.allow_exact_matches ?? true;
-    const checkSorted = options.check_sorted ?? true;
+    const allowExactMatches = options.allowExactMatches ?? true;
+    const checkSorted = options.checkSorted ?? true;
 
     assertColumnExists(leftOnKey, leftCols, "Join on key", " in the left DataFrame.");
     assertColumnExists(rightOnKey, rightCols, "Join on key", " in the right DataFrame.");

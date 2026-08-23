@@ -126,6 +126,102 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
 
 ---
 
+
+## 🚀 v2.0.0 Release Scope
+
+### 🏷️ Idiomatic `camelCase` API Standardization
+- [x] **Complete `camelCase` API & File Structure Standardization**:
+  * [x] **DataFrame & Expression Methods**: Standardized all method signatures to idiomatic `camelCase`.
+  * [x] **Source File Names**: Standardized module filenames to `camelCase`.
+  * [x] **Options & Configuration Parameters**: Converted all option parameter interfaces to `camelCase`.
+
+### 📚 Modular Documentation Infrastructure
+- [x] **Centralized Example Reuse (`doc-examples.ts`)**:
+  * [x] Extracted repetitive ASCII JSDoc input tables into root `doc-examples.ts` with `<!-- @doc:KEY -->` tags, significantly reducing source file lengths while dynamically hydrating `docs.json`.
+
+### 🧪 Test Suite Architecture & 1:1 Directory Mirroring
+- [x] **Align `_tests/` Directory Structure Directly with `src/`**:
+  * Organize test files to mirror the `src/` hierarchy 1:1, enabling granular, atomic test execution alongside the global `npm test` runner.
+
+
+/DataFrame.__getitem__
+/DataFrame.__setitem__
+/DataFrame.bottom_k
+/DataFrame.cast
+/DataFrame.clear
+/DataFrame/drop_in_place
+/DataFrame/drop_nans
+/DataFrame/drop_nulls
+/DataFrame/extend
+/DataFrame/fill_nan  ?filter under the hood
+/DataFrame/gather
+/DataFrame/gather_every
+/DataFrame/get_column
+/DataFrame/get_column_index
+/DataFrame/get_columns
+/DataFrame/group_by_dynamic
+/DataFrame/interpolate
+/DataFrame/iter_slices
+/DataFrame/join_where
+/DataFrame/match_to_schema
+/DataFrame/merge_sorted
+/DataFrame/partition_by
+/DataFrame/pipe
+/DataFrame/rechunk
+/DataFrame/remove
+/DataFrame/replace_column
+/DataFrame/rolling
+/DataFrame/row
+/DataFrame/rows
+/DataFrame/rows_by_key
+/DataFrame/sample
+/DataFrame/select_seq
+/DataFrame/set_sorted
+/DataFrame/shift
+/DataFrame/shrink_to_fit
+/DataFrame/sql
+/DataFrame/to_dummies
+/DataFrame/to_series
+/DataFrame/top_k
+/DataFrame/unnest
+/DataFrame/unstack
+/DataFrame/update
+/DataFrame/upsample
+
+#Aggregation
+/DataFrame/count
+/DataFrame/max
+/DataFrame/max_horizontal
+/DataFrame/mean
+/DataFrame/mean_horizontal
+/DataFrame/median
+/DataFrame/min
+/DataFrame/min_horizontal
+/DataFrame/product
+/DataFrame/quantile
+/DataFrame/std
+/DataFrame/sum
+/DataFrame/sum_horizontal
+/DataFrame/var
+
+#Attributes
+/DataFrame/flags
+
+#Computation
+/DataFrame/fold
+/DataFrame/hash_rows
+
+#Miscellaneous 
+/DataFrame/collect_schema
+/DataFrame/corr
+/DataFrame/equals
+/DataFrame/lazy
+/DataFrame/map_columns
+/DataFrame/map_rows
+/DataFrame/deserialize
+/DataFrame/serialize
+
+
 ## 🔮 Future / Backlog Scope (V2.0+)
 
 ### 🔎 Inspection & Reporting Utilities
@@ -170,23 +266,12 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
   * Implement `.sample(nOrFraction, options)` to randomly select $N$ rows or a fractional percentage of rows (with optional seed and replacement), useful for ML train/test splitting and dataset exploration.
 
 ### 🔢 Expressions & Transformations Missing Matrix
+- [ ] **Select Columns by DataType (`$df.col(DataType)` / `pl.col(pl.Float64)`)**:
+  * Allow passing `DataType` instances (or constructors) directly into `col()` (e.g. `$df.col(DataTypeRegistry.Float64)`, `$df.col(DataTypeRegistry.Numeric)`).
+  * Expand the column selector engine in `select()` and `with_columns()` to match and expand all DataFrame columns possessing the matching datatype, applying expressions uniformly across all matching columns.
 - [ ] **Lead/Lag & Difference (`col.shift()`, `col.diff()`)**:
   * Implement `.shift(n, fill_value)` for lead/lag calculations and `.diff(n)` for step differences across rows.
 - [ ] **Ranking (`col.rank()`)**:
   * Implement `.rank(method, descending)` supporting dense, ordinal, min, max, and average rank methods.
 - [ ] **Datatype & Pattern Selectors (`cs.numeric()`, `cs.string()`, `cs.matches()`)**:
-  * Add column selector helpers to allow selecting columns dynamically by data type or regex matching in `select()` and `with_columns()`.
-
-### ⚙️ Schema & Type Inference Engine
-- [ ] **Pure Static Operator-Driven Type Inference (Zero Data Scanning)**:
-  * **Objective**: Transition type deduction in `src/columnExpressions/typeInference.ts` to be 100% static/compile-time driven without scanning runtime row values (`colSample`).
-  * **True Division (`/`, `.div()`)**: Tag true division binary operations with `op: "div"` (or `_targetType = DataTypeRegistry.Float64`) so integer division (`Int32 / Int32`) automatically infers `Float64` statically ahead of evaluation (matching Polars behavior).
-  * **Floor Division (`//`, `.floordiv()`)**: Preserve integer types (`Int32`, `Int64`, etc.) during integer floor division.
-  * **Eliminate `colSample` Sampling Loop**: Remove the runtime non-integer scan in `deduceBinaryType`, enabling zero-cost O(1) schema deduction directly from expression ASTs before data evaluation.
-
-
-
-
-
-
-
+  * Add column selector helpers (`cs.*`) to allow selecting columns dynamically by data type or regex matching in `select()` and `with_columns()`.

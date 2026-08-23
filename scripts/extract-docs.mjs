@@ -15,6 +15,48 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const srcDir = path.resolve(__dirname, "../src");
+const docExamplesPath = path.resolve(__dirname, "../doc-examples.ts");
+
+let docExamples = {};
+try {
+    const content = fs.readFileSync(docExamplesPath, "utf-8");
+    const match = content.match(/export const DOC_EXAMPLES:\s*Record<string,\s*string>\s*=\s*(\{[\s\S]*?\n\};)/);
+    if (match) {
+        docExamples = new Function("return " + match[1])();
+    }
+} catch (e) {}
+
+/**
+ * Synchronizes and embeds raw example tables directly into source file JSDocs when --sync is passed.
+ */
+function syncJSDocsInFiles(sourceFiles) {
+    let updatedCount = 0;
+    const tagRegex = /\/\*[\s\S]*?\*\//g;
+
+    for (const filePath of sourceFiles) {
+        let content = fs.readFileSync(filePath, "utf-8");
+        let changed = false;
+
+        content = content.replace(tagRegex, (jsdoc) => {
+            return jsdoc.replace(/<!-- @doc:([a-zA-Z0-9_]+) -->([\s\S]*?)(?=(\n\s*\* >>> df\.|\n\s*\* @|\*\/))/g, (match, key) => {
+                if (docExamples[key]) {
+                    changed = true;
+                    return `<!-- @doc:${key} -->\n     * ${docExamples[key]}`;
+                }
+                return match;
+            });
+        });
+
+        if (changed) {
+            fs.writeFileSync(filePath, content, "utf-8");
+            updatedCount++;
+            console.log(`  Synchronized JSDoc examples in: ${path.relative(srcDir, filePath)}`);
+        }
+    }
+    if (updatedCount > 0) {
+        console.log(`✓ Synchronized JSDoc tables in ${updatedCount} source files.`);
+    }
+}
 
 // ─── JSDoc Tag Constants ──────────────────────────────────────────────────────
 const TAG_PREFIX = "@";
@@ -104,30 +146,37 @@ function parseJSDocComment(comment) {
 
   return {
     desc,
-    examples: examplesList.length > 0 ? examplesList : undefined,
+    examples: examplesList.length > 0 ? examplesList.map(ex => {
+        return ex.replace(/<!-- @doc:([a-zA-Z0-9_]+) -->/g, (_, key) => {
+            return docExamples[key] ? docExamples[key].replace(/^ {5}\* /gm, "") : "";
+        }).trim();
+    }) : undefined,
     params: paramsList.length > 0 ? paramsList : undefined,
     notes: notesList.length > 0 ? notesList : undefined,
     returns
   };
 }
 
-function extractSignatureFromCode(rawContent, startIndex, symbolName, isGetter) {
+function extractSignatureAndEnd(rawContent, startIndex, symbolName, isGetter) {
   let parenDepth = 0;
   let braceDepth = 0;
   let angleDepth = 0;
-  let inString = null; // Track string char: ", ', or `
+  let inString = null;
   let isEscaped = false;
   let signature = isGetter ? "get " + symbolName : symbolName;
 
   let i = startIndex;
   while (i < rawContent.length && /\s/.test(rawContent[i])) i++;
 
+  let bodyStartIndex = -1;
+
+  // 1. Scan the signature until top-level '{' or ';'
   while (i < rawContent.length) {
     const char = rawContent[i];
 
     if (inString) {
       if (char === inString && !isEscaped) {
-        inString = null; // String closed
+        inString = null;
       }
       isEscaped = char === "\\" && !isEscaped;
     } else {
@@ -136,21 +185,64 @@ function extractSignatureFromCode(rawContent, startIndex, symbolName, isGetter) 
       } else if (char === "(") parenDepth++;
       else if (char === ")") parenDepth--;
       else if (char === "{") {
-        if (parenDepth === 0 && angleDepth === 0 && braceDepth === 0) break;
+        if (parenDepth === 0 && angleDepth === 0 && braceDepth === 0) {
+          bodyStartIndex = i;
+          break;
+        }
         braceDepth++;
       } else if (char === "}") braceDepth--;
       else if (char === "<") angleDepth++;
       else if (char === ">") {
         if (angleDepth > 0) angleDepth--;
+      } else if (char === ";" && parenDepth === 0 && braceDepth === 0) {
+        return {
+          signature: signature.replace(/\s+/g, " ").trim(),
+          endIndex: i
+        };
       }
-      else if (char === ";" && parenDepth === 0 && braceDepth === 0) break;
     }
 
     signature += char;
     i++;
   }
 
-  return signature.replace(/\s+/g, " ").trim();
+  // 2. If we found the opening brace of the function body, scan until matching closing brace
+  let endIndex = bodyStartIndex !== -1 ? bodyStartIndex : i;
+  if (bodyStartIndex !== -1) {
+    let bodyBraceDepth = 0;
+    let j = bodyStartIndex;
+    let bodyString = null;
+    let bodyEscaped = false;
+
+    while (j < rawContent.length) {
+      const char = rawContent[j];
+
+      if (bodyString) {
+        if (char === bodyString && !bodyEscaped) {
+          bodyString = null;
+        }
+        bodyEscaped = char === "\\" && !bodyEscaped;
+      } else {
+        if (char === '"' || char === "'" || char === "`") {
+          bodyString = char;
+        } else if (char === "{") {
+          bodyBraceDepth++;
+        } else if (char === "}") {
+          bodyBraceDepth--;
+          if (bodyBraceDepth === 0) {
+            endIndex = j;
+            break;
+          }
+        }
+      }
+      j++;
+    }
+  }
+
+  return {
+    signature: signature.replace(/\s+/g, " ").trim(),
+    endIndex
+  };
 }
 
 // splitByComma: Splits a string on commas at the top-level (respecting nested parentheses, curly braces, and generics).
@@ -354,17 +446,16 @@ function extractRawDocs() {
 
       const afterComment = match[0].substring(match[0].lastIndexOf("*/") + 2);
       const isGetter = /\bget\b/.test(afterComment);
-      const rawSignature = extractSignatureFromCode(rawContent, JSDOC_BLOCK_REGEX.lastIndex, symbolName, isGetter);
+      const { signature: rawSignature, endIndex } = extractSignatureAndEnd(rawContent, JSDOC_BLOCK_REGEX.lastIndex, symbolName, isGetter);
       const formattedSignature = formatSignature(rawSignature, parsed.params);
 
       const symbolIndex = symbolSyntax.indexOf(symbolName);
       const callerPrefix = symbolIndex !== -1 ? symbolSyntax.substring(0, symbolIndex) : "";
       parsed.signature = callerPrefix + formattedSignature;
 
-      // Compute 1-based line number of the symbol declaration for GitHub source linking.
-      // match.index is the start of the JSDoc block; match[0].length covers the whole match
-      // ending exactly at the symbol name after the closing */, giving us the declaration line.
+      // Compute 1-based start and end line numbers of the symbol declaration for GitHub source linking (#L{lineStart}-L{lineEnd}).
       parsed.lineStart = rawContent.substring(0, match.index + match[0].length).split("\n").length;
+      parsed.lineEnd = rawContent.substring(0, endIndex + 1).split("\n").length;
 
       // If we successfully parsed JSDoc details, add them
       if (parsed.desc || parsed.params || parsed.returns || parsed.examples || parsed.notes) {
@@ -384,6 +475,13 @@ function extractRawDocs() {
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
+
+const isSync = process.argv.includes("--sync");
+if (isSync) {
+  console.log("Synchronizing JSDoc template tables in TypeScript source files...");
+  const sourceFiles = getSourceFiles(srcDir);
+  syncJSDocsInFiles(sourceFiles);
+}
 
 const outArg = process.argv.indexOf("--out");
 const outPath = outArg !== -1
