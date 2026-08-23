@@ -3,11 +3,12 @@ import {
     strftime,
     strptime,
     toValidDate,
-    dateDiff,
-    getMonthOffset,
+    toEpoch,
+    toValidTime,
+    replaceDateComponents,
     offsetDay,
     isBusinessDay,
-    getEraUnit,
+    getTimeZoneOffset,
     _createUTCDate
 } from "../../src/utils/date";
 import { ComputeError } from "../../src/exceptions";
@@ -109,111 +110,9 @@ try {
     }
     console.log("✓ Invalid timezone fallback to UTC passed");
 
-    // 8. Test dateDiff utility
-    const d1 = new Date("2026-05-15T12:00:00Z");
-    const d2 = new Date("2026-06-17T18:00:00Z"); // 1 month, 2.25 days later
 
-    // milliseconds
-    const offsetMs = dateDiff(d1, d2, "ms");
-    if (offsetMs !== d2.getTime() - d1.getTime()) {
-        throw new Error(`Expected correct ms offset, got ${offsetMs}`);
-    }
 
-    // seconds
-    const offsetS = dateDiff(d1, d2, "seconds");
-    if (offsetS !== (d2.getTime() - d1.getTime()) / 1000) {
-        throw new Error(`Expected correct seconds offset, got ${offsetS}`);
-    }
-
-    // days
-    const offsetD = dateDiff(d1, d2, "d");
-    if (offsetD !== (d2.getTime() - d1.getTime()) / 86400000) {
-        throw new Error(`Expected correct days offset, got ${offsetD}`);
-    }
-
-    // weeks
-    const offsetW = dateDiff(d1, d2, "weeks");
-    if (offsetW !== (d2.getTime() - d1.getTime()) / 604800000) {
-        throw new Error(`Expected correct weeks offset, got ${offsetW}`);
-    }
-
-    // months (May has 31 days. Day diff = (17 - 15) + (18 - 12)/24 = 2.25. 2.25 / 31 = 0.07258064516129032)
-    const offsetMo = dateDiff(d1, d2, "months");
-    const expectedMo = 1 + 2.25 / 31;
-    if (Math.abs((offsetMo ?? 0) - expectedMo) > 1e-9) {
-        throw new Error(`Expected correct months offset around ${expectedMo}, got ${offsetMo}`);
-    }
-
-    // quarters
-    const offsetQ = dateDiff(d1, d2, "q");
-    if (Math.abs((offsetQ ?? 0) - expectedMo / 3) > 1e-9) {
-        throw new Error(`Expected correct quarters offset, got ${offsetQ}`);
-    }
-
-    // years
-    const offsetY = dateDiff(d1, d2, "y");
-    if (Math.abs((offsetY ?? 0) - expectedMo / 12) > 1e-9) {
-        throw new Error(`Expected correct years offset, got ${offsetY}`);
-    }
-
-    // Negative difference
-    const offsetNegMo = dateDiff(d2, d1, "months");
-    // Going backward: April has 30 days. Day diff = (15 - 17) + (12 - 18)/24 = -2.25. -2.25 / 31 (previous month of June 17 is May, which has 31 days? Wait, target is d1 which is May 15. The previous month of May 15 is April which has 30 days)
-    // Wait, let's verify what previous month dateDiff uses when going backward (dayDiff < 0):
-    // d1 = June 17 (y2=2026, m2=5), d2 = May 15 (y1=2026, m1=4)
-    // baseMonths = (2026 - 2026)*12 + (4 - 5) = -1
-    // dayDiff = (15 - 17) + (12 - 18)/24 = -2.25
-    // Since dayDiff < 0, we use new Date(Date.UTC(y2, m2, 0)).getUTCDate() where y2=2026, m2=4 (May).
-    // Date.UTC(2026, 4, 0) is the last day of April (30 days). So daysInMonth = 30.
-    // expectedNegMo = -1 + (-2.25) / 30 = -1.075
-    const expectedNegMo = -1 - 2.25 / 30;
-    if (Math.abs((offsetNegMo ?? 0) - expectedNegMo) > 1e-9) {
-        throw new Error(`Expected correct negative months offset, got ${offsetNegMo}`);
-    }
-
-    // Invalid dates
-    if (dateDiff(new Date("invalid"), d2, "ms") !== null) {
-        throw new Error("Expected null offset for invalid date");
-    }
-
-    // Test rounding modes
-    // Positive offsetMo = 1.07258...
-    if (dateDiff(d1, d2, "months", { roundMode: "floor" }) !== 1) {
-        throw new Error("Expected floor mode to return 1");
-    }
-    if (dateDiff(d1, d2, "months", { roundMode: "ceil" }) !== 2) {
-        throw new Error("Expected ceil mode to return 2");
-    }
-    if (dateDiff(d1, d2, "months", { roundMode: "round" }) !== 1) {
-        throw new Error("Expected round mode to return 1");
-    }
-    if (dateDiff(d1, d2, "months", { roundMode: "trunc" }) !== 1) {
-        throw new Error("Expected trunc mode to return 1");
-    }
-    if (dateDiff(d1, d2, "months", { roundMode: "exact" }) !== offsetMo) {
-        throw new Error("Expected exact mode to return offsetMo");
-    }
-
-    // Negative offsetNegMo = -1.075
-    if (dateDiff(d2, d1, "months", { roundMode: "floor" }) !== -2) {
-        throw new Error("Expected floor mode for negative offset to return -2");
-    }
-    if (dateDiff(d2, d1, "months", { roundMode: "ceil" }) !== -1) {
-        throw new Error("Expected ceil mode for negative offset to return -1");
-    }
-    if (dateDiff(d2, d1, "months", { roundMode: "round" }) !== -1) {
-        throw new Error("Expected round mode for negative offset to return -1");
-    }
-    if (dateDiff(d2, d1, "months", { roundMode: "trunc" }) !== -1) {
-        throw new Error("Expected trunc mode for negative offset to return -1");
-    }
-    if (dateDiff(d2, d1, "months", { roundMode: "exact" }) !== offsetNegMo) {
-        throw new Error("Expected exact mode for negative offset to return offsetNegMo");
-    }
-
-    console.log("✓ dateDiff utility correctness passed");
-
-    // 9. Visualize and test getMonthOffset(d, 1, 0) for days_in_month
+    // 9. Visualize and test _createUTCDate(d.getUTCFullYear(), d.getUTCMonth() + 1, 0) for days_in_month
     console.log("\n--- VISUALIZING DAYS IN MONTH CALCULATION ---");
     const testDates = [
         new Date("2024-02-15T00:00:00Z"), // Leap year February
@@ -224,7 +123,7 @@ try {
 
     for (const d of testDates) {
         const nextMonthZeroIndexed = d.getUTCMonth() + 1;
-        const endOfMonthDate = getMonthOffset(d, 1, 0);
+        const endOfMonthDate = _createUTCDate(d.getUTCFullYear(), d.getUTCMonth() + 1, 0);
         const days = endOfMonthDate ? endOfMonthDate.getUTCDate() : null;
 
         console.log(`Input Date: ${d.toISOString().substring(0, 10)}`);
@@ -241,57 +140,9 @@ try {
     }
     console.log("✓ days_in_month visualization tests passed");
 
-    // 10. getEraUnit (Century & Millennium) Exhaustive Tests
-    console.log("\n--- EXHAUSTIVE GETERAUNIT TESTS ---");
-    const testEraDates = [
-        // Modern & standard dates
-        { date: new Date("2026-05-25T00:00:00Z"), century: 21, millennium: 3 },
-        { date: new Date("2001-01-01T00:00:00Z"), century: 21, millennium: 3 },
-        { date: new Date("2000-12-31T23:59:59Z"), century: 20, millennium: 2 },
-        { date: new Date("2000-01-01T00:00:00Z"), century: 20, millennium: 2 },
-        { date: new Date("1999-12-31T00:00:00Z"), century: 20, millennium: 2 },
-        { date: new Date("1901-01-01T00:00:00Z"), century: 20, millennium: 2 },
-        { date: new Date("1900-12-31T00:00:00Z"), century: 19, millennium: 2 },
-        { date: new Date("1900-01-01T00:00:00Z"), century: 19, millennium: 2 },
-        { date: new Date("1001-01-01T00:00:00Z"), century: 11, millennium: 2 },
-        { date: new Date("1000-01-01T00:00:00Z"), century: 10, millennium: 1 },
-        { date: new Date("0999-12-31T00:00:00Z"), century: 10, millennium: 1 },
-        { date: new Date("0101-01-01T00:00:00Z"), century: 2, millennium: 1 },
-        { date: new Date("0100-01-01T00:00:00Z"), century: 1, millennium: 1 },
-        { date: new Date("0001-01-01T00:00:00Z"), century: 1, millennium: 1 },
-        // Epoch 0
-        { date: new Date(0), century: 20, millennium: 2 },
-        // Distant future
-        { date: new Date("9999-12-31T23:59:59Z"), century: 100, millennium: 10 },
-        { date: (() => { const d = new Date(0); d.setUTCFullYear(10000); return d; })(), century: 100, millennium: 10 },
-        { date: (() => { const d = new Date(0); d.setUTCFullYear(10001); return d; })(), century: 101, millennium: 11 },
-    ];
-    for (const t of testEraDates) {
-        if (getEraUnit(t.date, 100) !== t.century) {
-            throw new Error(`Expected getEraUnit(year=${t.date.getUTCFullYear()}, 100) to be ${t.century}, got ${getEraUnit(t.date, 100)}`);
-        }
-        if (getEraUnit(t.date, 1000) !== t.millennium) {
-            throw new Error(`Expected getEraUnit(year=${t.date.getUTCFullYear()}, 1000) to be ${t.millennium}, got ${getEraUnit(t.date, 1000)}`);
-        }
-    }
-    // Negative / BC dates using setUTCFullYear
-    const bc1 = new Date(0);
-    bc1.setUTCFullYear(-1);
-    if (getEraUnit(bc1, 100) !== 0 || getEraUnit(bc1, 1000) !== 0) {
-        throw new Error(`Expected year -1 to be century 0 / millennium 0, got c=${getEraUnit(bc1, 100)} m=${getEraUnit(bc1, 1000)}`);
-    }
-    const bc100 = new Date(0);
-    bc100.setUTCFullYear(-100);
-    if (getEraUnit(bc100, 100) !== -1 || getEraUnit(bc100, 1000) !== 0) {
-        throw new Error(`Expected year -100 to be century -1 / millennium 0, got c=${getEraUnit(bc100, 100)} m=${getEraUnit(bc100, 1000)}`);
-    }
-    const bc1000 = new Date(0);
-    bc1000.setUTCFullYear(-1000);
-    if (getEraUnit(bc1000, 100) !== -10 || getEraUnit(bc1000, 1000) !== -1) {
-        throw new Error(`Expected year -1000 to be century -10 / millennium -1, got c=${getEraUnit(bc1000, 100)} m=${getEraUnit(bc1000, 1000)}`);
-    }
-
-    // Invalid date inputs & non-date objects
+    // 11. isBusinessDay Exhaustive Tests
+    console.log("\n--- EXHAUSTIVE ISBUSINESSDAY TESTS ---");
+    // Invalid / non-date inputs
     const invalidInputs: any[] = [
         new Date("invalid"),
         null,
@@ -305,19 +156,6 @@ try {
         NaN,
         Symbol("d")
     ];
-    for (const inp of invalidInputs) {
-        if (getEraUnit(inp, 100) !== null) {
-            throw new Error(`Expected getEraUnit(${String(inp)}, 100) to return null, got ${getEraUnit(inp, 100)}`);
-        }
-        if (getEraUnit(inp, 1000) !== null) {
-            throw new Error(`Expected getEraUnit(${String(inp)}, 1000) to return null, got ${getEraUnit(inp, 1000)}`);
-        }
-    }
-    console.log("✓ Exhaustive getEraUnit tests passed");
-
-    // 11. isBusinessDay Exhaustive Tests
-    console.log("\n--- EXHAUSTIVE ISBUSINESSDAY TESTS ---");
-    // Invalid / non-date inputs
     for (const inp of invalidInputs) {
         if (isBusinessDay(inp) !== null) {
             throw new Error(`Expected isBusinessDay(${String(inp)}) to return null, got ${isBusinessDay(inp)}`);
@@ -806,6 +644,605 @@ try {
     if (offsetDay(feb29_2024, 2, { excludeWeekdays: [0, 6] }) !== 4) throw new Error("Leap day + 2 bdays !== 4");
 
     console.log("✓ Exhaustive offsetDay tests passed");
+
+    // =========================================
+    // EXHAUSTIVE STRFTIME & STRPTIME EDGE CASES
+    // =========================================
+    console.log("\n--- EXHAUSTIVE STRFTIME & STRPTIME TESTS ---");
+
+    // 1. All standard & custom directives (%Y, %y, %m, %d, %e, %H, %I, %p, %M, %S, %ms, %f, %u, %w, %V, %G, %j, %Z, %z, %%)
+    const refDate = new Date("2026-05-20T15:07:09.045Z"); // Wednesday, May 20, 2026 15:07:09.045 UTC (Week 21)
+    const allDirectivesFormatted = strftime(refDate, {
+        format: "%Y|%y|%m|%d|%e|%H|%I|%p|%M|%S|%ms|%f|%u|%w|%V|%G|%j|%%"
+    });
+    const expectedAll = "2026|26|05|20|20|15|03|PM|07|09|045|045000|3|3|21|2026|140|%";
+    if (allDirectivesFormatted !== expectedAll) {
+        throw new Error(`Expected all directives "${expectedAll}", got "${allDirectivesFormatted}"`);
+    }
+
+    // 2. Format shorthands (%F, %T, %R, %D)
+    const shorthandsFormatted = strftime(refDate, { format: "%F %T %R %D" });
+    if (shorthandsFormatted !== "2026-05-20 15:07:09 15:07 05/20/26") {
+        throw new Error(`Expected shorthands "2026-05-20 15:07:09 15:07 05/20/26", got "${shorthandsFormatted}"`);
+    }
+
+    // 3. ISO Week & ISO Year Boundary Cases:
+    // Dec 31, 2024 is Tuesday -> Week 1 of 2025, Year 2025
+    const dec31_2024 = new Date("2024-12-31T00:00:00Z");
+    if (strftime(dec31_2024, { format: "%G-W%V" }) !== "2025-W01") {
+        throw new Error(`Expected "2025-W01", got "${strftime(dec31_2024, { format: "%G-W%V" })}"`);
+    }
+    // Jan 1, 2023 is Sunday -> Week 52 of 2022, Year 2022
+    const jan1_2023 = new Date("2023-01-01T00:00:00Z");
+    if (strftime(jan1_2023, { format: "%G-W%V" }) !== "2022-W52") {
+        throw new Error(`Expected "2022-W52", got "${strftime(jan1_2023, { format: "%G-W%V" })}"`);
+    }
+
+    // 4. Midnight and Noon 12-hour (%I) and AM/PM (%p) checks
+    const midnight = new Date("2026-05-20T00:00:00.000Z");
+    const noon = new Date("2026-05-20T12:00:00.000Z");
+    if (strftime(midnight, { format: "%I %p" }) !== "12 AM") {
+        throw new Error(`Midnight format expected "12 AM", got "${strftime(midnight, { format: "%I %p" })}"`);
+    }
+    if (strftime(noon, { format: "%I %p" }) !== "12 PM") {
+        throw new Error(`Noon format expected "12 PM", got "${strftime(noon, { format: "%I %p" })}"`);
+    }
+
+    // 5. Timezone conversions with strftime
+    // 2026-05-20 15:07:09 UTC in America/New_York (EDT = UTC-4) -> 2026-05-20 11:07:09
+    const nyFormatted = strftime(refDate, { format: "%Y-%m-%d %H:%M:%S %z", timeZone: "America/New_York" });
+    if (!nyFormatted.startsWith("2026-05-20 11:07:09 -0400")) {
+        throw new Error(`Expected NY time "2026-05-20 11:07:09 -0400", got "${nyFormatted}"`);
+    }
+    // 2026-05-20 15:07:09 UTC in Asia/Tokyo (JST = UTC+9) -> 2026-05-21 00:07:09
+    const tokyoFormatted = strftime(refDate, { format: "%Y-%m-%d %H:%M:%S %z", timeZone: "Asia/Tokyo" });
+    if (!tokyoFormatted.startsWith("2026-05-21 00:07:09 +0900")) {
+        throw new Error(`Expected Tokyo time "2026-05-21 00:07:09 +0900", got "${tokyoFormatted}"`);
+    }
+
+    // 6. Comprehensive strftime directive & edge case tests
+    // 6a. Literal percent escaping ("%%")
+    const percentEscaped = strftime(refDate, { format: "%%Y %%%% %Y" });
+    if (percentEscaped !== "%Y %% 2026") {
+        throw new Error(`strftime %% escaping failed: expected "%Y %% 2026", got "${percentEscaped}"`);
+    }
+
+    // 6b. Single-digit padding checks (%m, %d, %H, %M, %S, %ms, %f, %e, %I)
+    // 2026-01-05 04:08:09.007 UTC
+    const singleDigitDate = new Date("2026-01-05T04:08:09.007Z");
+    const padded = strftime(singleDigitDate, { format: "%m/%d/%Y %H:%M:%S.%ms %f | space-day: '%e' | 12h: %I %p" });
+    if (padded !== "01/05/2026 04:08:09.007 007000 | space-day: ' 5' | 12h: 04 AM") {
+        throw new Error(`strftime padding failed: got "${padded}"`);
+    }
+
+    // 6c. Midnight (00:00) vs Noon (12:00) 12-hour AM/PM formatting
+    const strftimeMidnight = new Date("2026-06-15T00:00:00.000Z");
+    const strftimeNoon = new Date("2026-06-15T12:00:00.000Z");
+    if (strftime(strftimeMidnight, { format: "%I %p" }) !== "12 AM") throw new Error(`Midnight expected "12 AM", got "${strftime(strftimeMidnight, { format: "%I %p" })}"`);
+    if (strftime(strftimeNoon, { format: "%I %p" }) !== "12 PM") throw new Error(`Noon expected "12 PM", got "${strftime(strftimeNoon, { format: "%I %p" })}"`);
+
+    // 6d. ISO Week (%V) & ISO Year (%G) boundary edge cases
+    // Gotcha 1: 2027-01-02 (Saturday) -> Week 53 of ISO Year 2026
+    const isoEndYear = new Date("2027-01-02T12:00:00.000Z");
+    const isoEndFormatted = strftime(isoEndYear, { format: "Gregorian: %Y, ISO: %G-W%V" });
+    if (isoEndFormatted !== "Gregorian: 2027, ISO: 2026-W53") {
+        throw new Error(`ISO end year failed: expected "Gregorian: 2027, ISO: 2026-W53", got "${isoEndFormatted}"`);
+    }
+
+    // Gotcha 2: 2024-12-30 (Monday) -> Week 01 of ISO Year 2025
+    const isoStartNext = new Date("2024-12-30T12:00:00.000Z");
+    const isoStartFormatted = strftime(isoStartNext, { format: "Gregorian: %Y, ISO: %G-W%V" });
+    if (isoStartFormatted !== "Gregorian: 2024, ISO: 2025-W01") {
+        throw new Error(`ISO start next year failed: expected "Gregorian: 2024, ISO: 2025-W01", got "${isoStartFormatted}"`);
+    }
+
+    // 6e. Weekday indices (%u: Mon=1..Sun=7, %w: Sun=0..Sat=6)
+    const sundayDate = new Date("2026-05-24T12:00:00.000Z"); // Sunday
+    const mondayDate = new Date("2026-05-25T12:00:00.000Z"); // Monday
+    if (strftime(sundayDate, { format: "u:%u w:%w" }) !== "u:7 w:0") {
+        throw new Error(`Sunday %u / %w failed: expected "u:7 w:0", got "${strftime(sundayDate, { format: "u:%u w:%w" })}"`);
+    }
+    if (strftime(mondayDate, { format: "u:%u w:%w" }) !== "u:1 w:1") {
+        throw new Error(`Monday %u / %w failed: expected "u:1 w:1", got "${strftime(mondayDate, { format: "u:%u w:%w" })}"`);
+    }
+
+    // 6f. Ordinal day (%j) on leap years vs non-leap years
+    const leapDec31 = new Date("2024-12-31T00:00:00.000Z"); // 2024 is leap year -> 366
+    const nonLeapDec31 = new Date("2026-12-31T00:00:00.000Z"); // 2026 is non-leap -> 365
+    if (strftime(leapDec31, { format: "%j" }) !== "366") throw new Error(`Leap year Dec 31 expected "366", got "${strftime(leapDec31, { format: "%j" })}"`);
+    if (strftime(nonLeapDec31, { format: "%j" }) !== "365") throw new Error(`Non-leap year Dec 31 expected "365", got "${strftime(nonLeapDec31, { format: "%j" })}"`);
+
+    // 6g. 2-digit year (%y)
+    const year1999 = new Date("1999-12-31T00:00:00.000Z");
+    const year2005 = new Date("2005-01-01T00:00:00.000Z");
+    if (strftime(year1999, { format: "%y" }) !== "99") throw new Error(`1999 %y expected "99", got "${strftime(year1999, { format: "%y" })}"`);
+    if (strftime(year2005, { format: "%y" }) !== "05") throw new Error(`2005 %y expected "05", got "${strftime(year2005, { format: "%y" })}"`);
+
+    // 6h. Shorthand macro expansions (%F, %T, %R, %D)
+    const macroDate = new Date("2026-05-20T15:07:09.123Z");
+    if (strftime(macroDate, { format: "%F" }) !== "2026-05-20") throw new Error(`%F expansion failed`);
+    if (strftime(macroDate, { format: "%T" }) !== "15:07:09") throw new Error(`%T expansion failed`);
+    if (strftime(macroDate, { format: "%R" }) !== "15:07") throw new Error(`%R expansion failed`);
+    if (strftime(macroDate, { format: "%D" }) !== "05/20/26") throw new Error(`%D expansion failed`);
+
+    // 6i. Null & invalid date/format guards for strftime
+    if (strftime(null as any, { format: "%Y-%m-%d" }) !== "") throw new Error("strftime(null) should be ''");
+    if (strftime(undefined as any, { format: "%Y-%m-%d" }) !== "") throw new Error("strftime(undefined) should be ''");
+    if (strftime(new Date("invalid"), { format: "%Y-%m-%d" }) !== "") throw new Error("strftime(Invalid Date) should be ''");
+    if (strftime(refDate, { format: null as any }) !== "") throw new Error("strftime(null format) should be ''");
+
+    // 7. Comprehensive strptime roundtrip & parsing tests
+    // 7a. Standard ISO format roundtrip
+    const isoStr = "2026-05-20 15:07:09.045";
+    const parsedIso = strptime(isoStr, { format: "%Y-%m-%d %H:%M:%S.%ms" });
+    if (!parsedIso || parsedIso.toISOString() !== "2026-05-20T15:07:09.045Z") {
+        throw new Error(`strptime ISO failed: got ${parsedIso?.toISOString()}`);
+    }
+
+    // 7b. Shorthand formats roundtrip
+    const parsedShortF = strptime("2026-05-20", { format: "%F" });
+    if (!parsedShortF || parsedShortF.toISOString() !== "2026-05-20T00:00:00.000Z") {
+        throw new Error(`strptime %F failed: got ${parsedShortF?.toISOString()}`);
+    }
+
+    // 7c. 12-hour AM/PM parsing
+    const parsedAM = strptime("2026-05-20 12:30:00 AM", { format: "%Y-%m-%d %I:%M:%S %p" });
+    if (!parsedAM || parsedAM.getUTCHours() !== 0) {
+        throw new Error(`strptime 12 AM failed: expected 00:30, got ${parsedAM?.toISOString()}`);
+    }
+    const parsedPM = strptime("2026-05-20 12:30:00 PM", { format: "%Y-%m-%d %I:%M:%S %p" });
+    if (!parsedPM || parsedPM.getUTCHours() !== 12) {
+        throw new Error(`strptime 12 PM failed: expected 12:30, got ${parsedPM?.toISOString()}`);
+    }
+    const parsed3PM = strptime("2026-05-20 03:30:00 PM", { format: "%Y-%m-%d %I:%M:%S %p" });
+    if (!parsed3PM || parsed3PM.getUTCHours() !== 15) {
+        throw new Error(`strptime 3 PM failed: expected 15:30, got ${parsed3PM?.toISOString()}`);
+    }
+
+    // 7d. 2-digit year pivot (%y)
+    const parsed70s = strptime("75-05-20", { format: "%y-%m-%d" }); // >= 69 -> 1975
+    if (!parsed70s || parsed70s.getUTCFullYear() !== 1975) {
+        throw new Error(`strptime %y 75 failed: got ${parsed70s?.getUTCFullYear()}`);
+    }
+    const parsed20s = strptime("25-05-20", { format: "%y-%m-%d" }); // < 69 -> 2025
+    if (!parsed20s || parsed20s.getUTCFullYear() !== 2025) {
+        throw new Error(`strptime %y 25 failed: got ${parsed20s?.getUTCFullYear()}`);
+    }
+
+    // 7e. Explicit offset parsing (%z)
+    const parsedOffset = strptime("2026-05-20 11:07:09 -0400", { format: "%Y-%m-%d %H:%M:%S %z" });
+    if (!parsedOffset || parsedOffset.toISOString() !== "2026-05-20T15:07:09.000Z") {
+        throw new Error(`strptime %z offset failed: expected 15:07:09 UTC, got ${parsedOffset?.toISOString()}`);
+    }
+    const parsedColonOffset = strptime("2026-05-20 11:07:09 -04:00", { format: "%Y-%m-%d %H:%M:%S %z" });
+    if (!parsedColonOffset || parsedColonOffset.toISOString() !== "2026-05-20T15:07:09.000Z") {
+        throw new Error(`strptime %z colon offset failed: expected 15:07:09 UTC, got ${parsedColonOffset?.toISOString()}`);
+    }
+
+    // 7f. Ordinal Day parsing (%j)
+    const parsedOrdinal = strptime("2026 140", { format: "%Y %j" }); // 140th day of 2026 = May 20
+    if (!parsedOrdinal || parsedOrdinal.getUTCMonth() !== 4 || parsedOrdinal.getUTCDate() !== 20) {
+        throw new Error(`strptime %j ordinal day failed: got ${parsedOrdinal?.toISOString()}`);
+    }
+    // Leap year ordinal 366 (Dec 31, 2024)
+    const parsedLeap366 = strptime("2024 366", { format: "%Y %j" });
+    if (!parsedLeap366 || parsedLeap366.toISOString() !== "2024-12-31T00:00:00.000Z") {
+        throw new Error(`strptime leap %j 366 failed: got ${parsedLeap366?.toISOString()}`);
+    }
+    // Invalid non-leap ordinal 366 (2026 only has 365 days) -> should return null
+    if (strptime("2026 366", { format: "%Y %j" }) !== null) {
+        throw new Error(`strptime non-leap 366 should return null`);
+    }
+    // Boundary ordinal day: 000 / 0 (must be null), 001 (Jan 1), 367 (must be null)
+    if (strptime("2026 000", { format: "%Y %j" }) !== null) throw new Error("strptime %j day 0 should be null");
+    if (strptime("2024 0", { format: "%Y %j" }) !== null) throw new Error("strptime %j day 0 should be null");
+    if (strptime("2026 001", { format: "%Y %j" })?.toISOString() !== "2026-01-01T00:00:00.000Z") throw new Error("strptime %j day 1 failed");
+    if (strptime("2024 367", { format: "%Y %j" }) !== null) throw new Error("strptime %j day 367 should be null");
+    if (strptime("2026 367", { format: "%Y %j" }) !== null) throw new Error("strptime %j day 367 should be null");
+
+    // Century leap rules (2000 is leap; 1900 and 2100 are NOT leap)
+    if (strptime("2000 366", { format: "%Y %j" })?.toISOString() !== "2000-12-31T00:00:00.000Z") throw new Error("strptime century 2000 leap day 366 failed");
+    if (strptime("1900 366", { format: "%Y %j" }) !== null) throw new Error("strptime century 1900 non-leap day 366 should be null");
+    if (strptime("2100 366", { format: "%Y %j" }) !== null) throw new Error("strptime century 2100 non-leap day 366 should be null");
+    if (strptime("2000-02-29", { format: "%Y-%m-%d" })?.toISOString() !== "2000-02-29T00:00:00.000Z") throw new Error("strptime 2000-02-29 (leap) failed");
+    if (strptime("1900-02-29", { format: "%Y-%m-%d" }) !== null) throw new Error("strptime 1900-02-29 (non-leap) should be null");
+    if (strptime("2100-02-29", { format: "%Y-%m-%d" }) !== null) throw new Error("strptime 2100-02-29 (non-leap) should be null");
+
+    // 7g. Calendar Rollover / Non-existent date guards (e.g. Feb 30, Nov 31, April 31)
+    if (strptime("2026-02-29", { format: "%Y-%m-%d" }) !== null) throw new Error("strptime 2026-02-29 (non-leap) should be null");
+    if (strptime("2024-02-29", { format: "%Y-%m-%d" })?.toISOString() !== "2024-02-29T00:00:00.000Z") throw new Error("strptime 2024-02-29 (leap) failed");
+    if (strptime("2026-04-31", { format: "%Y-%m-%d" }) !== null) throw new Error("strptime April 31 should be null");
+    if (strptime("2026-06-31", { format: "%Y-%m-%d" }) !== null) throw new Error("strptime June 31 should be null");
+    if (strptime("2026-09-31", { format: "%Y-%m-%d" }) !== null) throw new Error("strptime September 31 should be null");
+    if (strptime("2026-11-31", { format: "%Y-%m-%d" }) !== null) throw new Error("strptime November 31 should be null");
+
+    // 7h. Time component boundaries (hour 24, min 60, sec 60)
+    if (strptime("2026-05-20 24:00:00", { format: "%Y-%m-%d %H:%M:%S" }) !== null) throw new Error("strptime hour 24 should be null");
+    if (strptime("2026-05-20 23:60:00", { format: "%Y-%m-%d %H:%M:%S" }) !== null) throw new Error("strptime minute 60 should be null");
+    if (strptime("2026-05-20 23:59:60", { format: "%Y-%m-%d %H:%M:%S" }) !== null) throw new Error("strptime second 60 should be null");
+
+    // 7i. Fractional seconds and sub-second scaling (%ms, %f)
+    const parsedSubMs = strptime("2026-05-20 10:20:30.5", { format: "%Y-%m-%d %H:%M:%S.%ms" });
+    if (!parsedSubMs || parsedSubMs.getUTCMilliseconds() !== 500) {
+        throw new Error(`strptime %ms '.5' expected 500ms, got ${parsedSubMs?.getUTCMilliseconds()}`);
+    }
+    const parsedMicro = strptime("2026-05-20 10:20:30.123456", { format: "%Y-%m-%d %H:%M:%S.%f" });
+    if (!parsedMicro || parsedMicro.getUTCMilliseconds() !== 123) {
+        throw new Error(`strptime %f '.123456' expected 123ms, got ${parsedMicro?.getUTCMilliseconds()}`);
+    }
+
+    // 7j. Non-strict fallback to toValidDate
+    const fallbackIso = strptime("2026-05-20T14:30:00.000Z", { format: "wrong format", strict: false });
+    if (!fallbackIso || fallbackIso.toISOString() !== "2026-05-20T14:30:00.000Z") {
+        throw new Error(`strptime non-strict fallback failed`);
+    }
+
+    // 7k. strptime invalid input & strict guards
+    if (strptime(null as any, { format: "%Y-%m-%d" }) !== null) throw new Error("strptime(null) should be null");
+    if (strptime(undefined as any, { format: "%Y-%m-%d" }) !== null) throw new Error("strptime(undefined) should be null");
+    if (strptime("invalid date", { format: "%Y-%m-%d", strict: true }) !== null) throw new Error("strptime invalid strict should be null");
+    if (strptime("2026-05-20", { format: null as any }) !== null) throw new Error("strptime null format should be null");
+    if (strptime("2026-05-20", { format: "" }) !== null) throw new Error("strptime empty format should be null");
+    if (strptime("", { format: "%Y-%m-%d" }) !== null) throw new Error("strptime empty str should be null");
+
+    // 8. Comprehensive epoch normalization via toValidDate edge case tests
+    // These exercise _normalizeEpochToMs indirectly through toValidDate
+    const expectedIso = "2026-01-01T00:00:00.000Z";
+
+    // 8a. Seconds detection (range 0 to 3e10)
+    if (toValidDate(1767225600)?.toISOString() !== expectedIso) throw new Error("toValidDate(seconds) failed");
+    if (toValidDate(1767225600n)?.toISOString() !== expectedIso) throw new Error("toValidDate(seconds BigInt) failed");
+    if (toValidDate(-1767225600)?.toISOString() !== "1914-01-01T00:00:00.000Z") throw new Error("toValidDate(-seconds) failed");
+    if (toValidDate(-1767225600n)?.toISOString() !== "1914-01-01T00:00:00.000Z") throw new Error("toValidDate(-seconds BigInt) failed");
+
+    // Boundary: 3e10 (year ~2920)
+    if (toValidDate(30_000_000_000)?.getTime() !== 30_000_000_000_000) throw new Error("toValidDate(3e10) failed");
+    if (toValidDate(30_000_000_000n)?.getTime() !== 30_000_000_000_000) throw new Error("toValidDate(3e10 BigInt) failed");
+
+    // 8b. Milliseconds detection (range 3e10 to 1e14)
+    if (toValidDate(1767225600000)?.toISOString() !== expectedIso) throw new Error("toValidDate(ms) failed");
+    if (toValidDate(1767225600000n)?.toISOString() !== expectedIso) throw new Error("toValidDate(ms BigInt) failed");
+    if (toValidDate(-1767225600000)?.toISOString() !== "1914-01-01T00:00:00.000Z") throw new Error("toValidDate(-ms) failed");
+    if (toValidDate(-1767225600000n)?.toISOString() !== "1914-01-01T00:00:00.000Z") throw new Error("toValidDate(-ms BigInt) failed");
+
+    // Boundary: 1e14 (year ~5138)
+    if (toValidDate(100_000_000_000_000)?.getTime() !== 100_000_000_000_000) throw new Error("toValidDate(1e14) failed");
+    if (toValidDate(100_000_000_000_000n)?.getTime() !== 100_000_000_000_000) throw new Error("toValidDate(1e14 BigInt) failed");
+
+    // 8c. Microseconds detection (range 1e14 to 1e17)
+    if (toValidDate(1767225600000000n)?.toISOString() !== expectedIso) throw new Error("toValidDate(us BigInt) failed");
+    if (toValidDate(-1767225600000000n)?.toISOString() !== "1914-01-01T00:00:00.000Z") throw new Error("toValidDate(-us BigInt) failed");
+
+    // 8d. Nanoseconds detection (> 1e17)
+    if (toValidDate(1767225600000000000n)?.toISOString() !== expectedIso) throw new Error("toValidDate(ns BigInt) failed");
+    if (toValidDate(-1767225600000000000n)?.toISOString() !== "1914-01-01T00:00:00.000Z") throw new Error("toValidDate(-ns BigInt) failed");
+
+    // 8e. toValidDate null and invalid guards
+    if (toValidDate(null) !== null) throw new Error("toValidDate(null) should be null");
+    if (toValidDate(undefined) !== null) throw new Error("toValidDate(undefined) should be null");
+    if (toValidDate("") !== null) throw new Error("toValidDate('') should be null");
+    if (toValidDate("   ") !== null) throw new Error("toValidDate('   ') should be null");
+    if (toValidDate("invalid date string") !== null) throw new Error("toValidDate(invalid) should be null");
+    if (toValidDate(NaN) !== null) throw new Error("toValidDate(NaN) should be null");
+    if (toValidDate(Infinity) !== null) throw new Error("toValidDate(Infinity) should be null");
+
+    console.log("✓ Exhaustive epoch normalization & toValidDate numeric tests passed");
+
+    // 9. strptime with defaultTimeZone (exercises _getTimeZoneOffsetMinutes with pre-resolved tz)
+    // EST (UTC-5) in January (standard time)
+    const parsedEST = strptime("2026-01-15 12:00:00", { format: "%Y-%m-%d %H:%M:%S", defaultTimeZone: "America/New_York" });
+    if (parsedEST?.toISOString() !== "2026-01-15T17:00:00.000Z") throw new Error(`strptime EST defaultTimeZone failed: got ${parsedEST?.toISOString()}`);
+
+    // EDT (UTC-4) in July (daylight saving time)
+    const parsedEDT = strptime("2026-07-15 12:00:00", { format: "%Y-%m-%d %H:%M:%S", defaultTimeZone: "America/New_York" });
+    if (parsedEDT?.toISOString() !== "2026-07-15T16:00:00.000Z") throw new Error(`strptime EDT defaultTimeZone failed: got ${parsedEDT?.toISOString()}`);
+
+    // Explicit offset in string should override defaultTimeZone
+    const parsedExplicitOffset = strptime("2026-01-15 12:00:00 +0900", { format: "%Y-%m-%d %H:%M:%S %z", defaultTimeZone: "America/New_York" });
+    if (parsedExplicitOffset?.toISOString() !== "2026-01-15T03:00:00.000Z") throw new Error(`strptime explicit offset should override defaultTimeZone: got ${parsedExplicitOffset?.toISOString()}`);
+
+    // defaultTimeZone: "UTC" should leave date as-is
+    const parsedUTC = strptime("2026-01-15 12:00:00", { format: "%Y-%m-%d %H:%M:%S", defaultTimeZone: "UTC" });
+    if (parsedUTC?.toISOString() !== "2026-01-15T12:00:00.000Z") throw new Error(`strptime UTC defaultTimeZone failed: got ${parsedUTC?.toISOString()}`);
+
+    console.log("✓ strptime defaultTimeZone tests passed");
+
+    // 10. getTimeZoneOffset (exercises _getTimeZoneOffsetMinutes with pre-resolved tz)
+    const janDate = _createUTCDate(2026, 0, 15, 12, 0, 0);
+    const julDate = _createUTCDate(2026, 6, 15, 12, 0, 0);
+
+    // Total offset for New York: -300 min (EST) / -240 min (EDT)
+    const janTotalMin = getTimeZoneOffset(janDate, "America/New_York", { format: "minutes" }) as number;
+    const julTotalMin = getTimeZoneOffset(julDate, "America/New_York", { format: "minutes" }) as number;
+    if (janTotalMin !== -300) throw new Error(`getTimeZoneOffset Jan NY total minutes: expected -300, got ${janTotalMin}`);
+    if (julTotalMin !== -240) throw new Error(`getTimeZoneOffset Jul NY total minutes: expected -240, got ${julTotalMin}`);
+
+    // DST offset: 0 in winter, 60 in summer
+    const janDST = getTimeZoneOffset(janDate, "America/New_York", { type: "daylightSavingTime", format: "minutes" }) as number;
+    const julDST = getTimeZoneOffset(julDate, "America/New_York", { type: "daylightSavingTime", format: "minutes" }) as number;
+    if (janDST !== 0) throw new Error(`getTimeZoneOffset Jan NY DST: expected 0, got ${janDST}`);
+    if (julDST !== 60) throw new Error(`getTimeZoneOffset Jul NY DST: expected 60, got ${julDST}`);
+
+    // Base (standard) offset: -300 for both
+    const janBase = getTimeZoneOffset(janDate, "America/New_York", { type: "base", format: "minutes" }) as number;
+    const julBase = getTimeZoneOffset(julDate, "America/New_York", { type: "base", format: "minutes" }) as number;
+    if (janBase !== -300) throw new Error(`getTimeZoneOffset Jan NY base: expected -300, got ${janBase}`);
+    if (julBase !== -300) throw new Error(`getTimeZoneOffset Jul NY base: expected -300, got ${julBase}`);
+
+    // UTC should always be 0
+    if (getTimeZoneOffset(janDate, "UTC", { format: "minutes" }) !== 0) throw new Error("getTimeZoneOffset UTC should be 0");
+
+    // ISO format output
+    const isoOffset = getTimeZoneOffset(janDate, "America/New_York", { format: "iso" });
+    if (isoOffset !== "-05:00") throw new Error(`getTimeZoneOffset iso format: expected -05:00, got ${isoOffset}`);
+
+    // Basic format output
+    const basicOffset = getTimeZoneOffset(janDate, "America/New_York", { format: "basic" });
+    if (basicOffset !== "-0500") throw new Error(`getTimeZoneOffset basic format: expected -0500, got ${basicOffset}`);
+
+    console.log("✓ getTimeZoneOffset tests passed");
+
+    // 11. Additional Edge Case Tests
+    console.log("\n--- ADDITIONAL DATE UTILS EDGE CASE TESTS ---");
+    // toValidDate edge cases
+    if (toValidDate(null) !== null) throw new Error("toValidDate(null) must be null");
+    if (toValidDate(undefined) !== null) throw new Error("toValidDate(undefined) must be null");
+    if (toValidDate("") !== null) throw new Error("toValidDate('') must be null");
+    if (toValidDate("   ") !== null) throw new Error("toValidDate whitespace must be null");
+    if (toValidDate(new Date(NaN)) !== null) throw new Error("toValidDate(invalid Date) must be null");
+    if (toValidDate(Object(1700000000000))?.getTime() !== 1700000000000) throw new Error("toValidDate boxed number failed");
+    if (toValidDate(Object("2026-01-01T00:00:00Z"))?.getTime() !== new Date("2026-01-01T00:00:00Z").getTime()) throw new Error("toValidDate boxed string failed");
+
+    // dateOnly option
+    const fullDate = new Date("2026-08-22T15:30:45.678Z");
+    const dateOnlyRes = toValidDate(fullDate, { dateOnly: true });
+    if (dateOnlyRes?.toISOString() !== "2026-08-22T00:00:00.000Z") {
+        throw new Error(`toValidDate with dateOnly failed: ${dateOnlyRes?.toISOString()}`);
+    }
+
+    // toValidTime edge cases
+    if (toValidTime(null) !== null) throw new Error("toValidTime(null) must be null");
+    if (toValidTime(undefined) !== null) throw new Error("toValidTime(undefined) must be null");
+    if (toValidTime("invalid-time") !== null) throw new Error("toValidTime('invalid-time') must be null");
+    if (toValidTime("14:30:00") !== "14:30:00.000") throw new Error(`toValidTime standard failed: got ${toValidTime("14:30:00")}`);
+    if (toValidTime("14:30:00.123") !== "14:30:00.123") throw new Error(`toValidTime with ms failed: got ${toValidTime("14:30:00.123")}`);
+
+    // replaceDateComponents edge cases
+    const baseD = new Date("2026-05-20T14:30:15.500Z");
+    const replacedYear = replaceDateComponents(baseD, { year: 2030, timeZone: "UTC" });
+    if (replacedYear.toISOString() !== "2030-05-20T14:30:15.500Z") throw new Error(`replace year failed: ${replacedYear.toISOString()}`);
+    const replacedAll = replaceDateComponents(baseD, { year: 2024, month: 2, day: 29, hour: 0, minute: 0, second: 0, ms: 0, timeZone: "UTC" });
+    if (replacedAll.toISOString() !== "2024-02-29T00:00:00.000Z") throw new Error(`replace leap day failed: ${replacedAll.toISOString()}`);
+
+    // negative day indexing (from month end)
+    const lastDayMay = replaceDateComponents(baseD, { day: -1, timeZone: "UTC" });
+    if (lastDayMay.toISOString() !== "2026-05-31T14:30:15.500Z") throw new Error(`replace day: -1 failed: ${lastDayMay.toISOString()}`);
+    const secondLastDayMay = replaceDateComponents(baseD, { day: -2, timeZone: "UTC" });
+    if (secondLastDayMay.toISOString() !== "2026-05-30T14:30:15.500Z") throw new Error(`replace day: -2 failed: ${secondLastDayMay.toISOString()}`);
+    const lastDayFebLeap = replaceDateComponents(baseD, { year: 2024, month: 2, day: -1, timeZone: "UTC" });
+    if (lastDayFebLeap.toISOString() !== "2024-02-29T14:30:15.500Z") throw new Error(`replace Feb leap -1 failed: ${lastDayFebLeap.toISOString()}`);
+    const lastDayFebNonLeap = replaceDateComponents(baseD, { year: 2023, month: 2, day: -1, timeZone: "UTC" });
+    if (lastDayFebNonLeap.toISOString() !== "2023-02-28T14:30:15.500Z") throw new Error(`replace Feb non-leap -1 failed: ${lastDayFebNonLeap.toISOString()}`);
+
+    // negative month and time component indexing
+    const endOfYear = replaceDateComponents(baseD, { month: -1, day: -1, hour: -1, minute: -1, second: -1, ms: -1, timeZone: "UTC" });
+    if (endOfYear.toISOString() !== "2026-12-31T23:59:59.999Z") throw new Error(`replace end of year failed: ${endOfYear.toISOString()}`);
+    const secondToLastMonth = replaceDateComponents(baseD, { month: -2, timeZone: "UTC" });
+    if (secondToLastMonth.toISOString() !== "2026-11-20T14:30:15.500Z") throw new Error(`replace month: -2 failed: ${secondToLastMonth.toISOString()}`);
+
+    // --- EXTENSIVE NEGATIVE INDEXING EDGE CASES ---
+    // (1) Full negative month spectrum (-1 to -12)
+    const expectedMonths = [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
+    for (let i = 1; i <= 12; i++) {
+        const rMonth = replaceDateComponents(baseD, { month: -i, day: 1, timeZone: "UTC" });
+        const expectedM = expectedMonths[i - 1];
+        if (rMonth.getUTCMonth() + 1 !== expectedM) {
+            throw new Error(`Negative month -${i} failed: expected month ${expectedM}, got ${rMonth.getUTCMonth() + 1}`);
+        }
+    }
+
+    // (2) All 12 months last day (-1) with leap/non-leap year checks
+    const daysIn2024 = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    const daysIn2025 = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    for (let m = 1; m <= 12; m++) {
+        // Leap year 2024
+        const leapEnd = replaceDateComponents(baseD, { year: 2024, month: m, day: -1, timeZone: "UTC" });
+        if (leapEnd.getUTCDate() !== daysIn2024[m - 1]) {
+            throw new Error(`2024 month ${m} day: -1 failed: expected ${daysIn2024[m - 1]}, got ${leapEnd.getUTCDate()}`);
+        }
+        // Non-leap year 2025
+        const nonLeapEnd = replaceDateComponents(baseD, { year: 2025, month: m, day: -1, timeZone: "UTC" });
+        if (nonLeapEnd.getUTCDate() !== daysIn2025[m - 1]) {
+            throw new Error(`2025 month ${m} day: -1 failed: expected ${daysIn2025[m - 1]}, got ${nonLeapEnd.getUTCDate()}`);
+        }
+    }
+
+    // (3) Deep negative day offsets within a month (-1 to -28/-31)
+    // In Jan (31 days): -31 is Jan 1st, -1 is Jan 31st
+    for (let offset = 1; offset <= 31; offset++) {
+        const janDay = replaceDateComponents(baseD, { month: 1, day: -offset, timeZone: "UTC" });
+        const expectedDay = 31 + 1 - offset;
+        if (janDay.getUTCDate() !== expectedDay) {
+            throw new Error(`Jan negative day -${offset} failed: expected ${expectedDay}, got ${janDay.getUTCDate()}`);
+        }
+    }
+
+    // (4) Hour negative indexing (-1 = 23, -24 = 0)
+    for (let h = 1; h <= 24; h++) {
+        const rHour = replaceDateComponents(baseD, { hour: -h, timeZone: "UTC" });
+        const expectedHour = 24 - h;
+        if (rHour.getUTCHours() !== expectedHour) {
+            throw new Error(`Hour -${h} failed: expected ${expectedHour}, got ${rHour.getUTCHours()}`);
+        }
+    }
+
+    // (5) Minute negative indexing (-1 = 59, -60 = 0)
+    for (let min = 1; min <= 60; min++) {
+        const rMin = replaceDateComponents(baseD, { minute: -min, timeZone: "UTC" });
+        const expectedMin = 60 - min;
+        if (rMin.getUTCMinutes() !== expectedMin) {
+            throw new Error(`Minute -${min} failed: expected ${expectedMin}, got ${rMin.getUTCMinutes()}`);
+        }
+    }
+
+    // (6) Second negative indexing (-1 = 59, -60 = 0)
+    for (let s = 1; s <= 60; s++) {
+        const rSec = replaceDateComponents(baseD, { second: -s, timeZone: "UTC" });
+        const expectedSec = 60 - s;
+        if (rSec.getUTCSeconds() !== expectedSec) {
+            throw new Error(`Second -${s} failed: expected ${expectedSec}, got ${rSec.getUTCSeconds()}`);
+        }
+    }
+
+    // (7) Millisecond negative indexing (-1 = 999, -500 = 500, -1000 = 0)
+    const msChecks = [
+        { neg: -1, expected: 999 },
+        { neg: -250, expected: 750 },
+        { neg: -500, expected: 500 },
+        { neg: -999, expected: 1 },
+        { neg: -1000, expected: 0 },
+    ];
+    for (const { neg, expected } of msChecks) {
+        const rMs = replaceDateComponents(baseD, { ms: neg, timeZone: "UTC" });
+        if (rMs.getUTCMilliseconds() !== expected) {
+            throw new Error(`Ms ${neg} failed: expected ${expected}, got ${rMs.getUTCMilliseconds()}`);
+        }
+    }
+
+    // (8) Complex combination of negative and positive components
+    const combo1 = replaceDateComponents(baseD, {
+        year: 2028, // Leap year
+        month: -11, // February (12 + 1 - 11 = 2)
+        day: -1,    // 29
+        hour: -1,   // 23
+        minute: -1, // 59
+        second: -1, // 59
+        ms: -1,     // 999
+        timeZone: "UTC"
+    });
+    if (combo1.toISOString() !== "2028-02-29T23:59:59.999Z") {
+        throw new Error(`Complex negative leap combo failed: got ${combo1.toISOString()}`);
+    }
+
+    // (9) Preserving unspecified fields while replacing negative fields
+    const morningD = new Date("2026-07-04T08:15:30.100Z");
+    const replacedOnlyDay = replaceDateComponents(morningD, { day: -1, timeZone: "UTC" });
+    if (replacedOnlyDay.toISOString() !== "2026-07-31T08:15:30.100Z") {
+        throw new Error(`Preserving hours/mins with negative day failed: got ${replacedOnlyDay.toISOString()}`);
+    }
+
+    // (10) Timezone awareness with negative components
+    // 2026-01-15T00:00:00Z in America/New_York is 2026-01-14 19:00:00 EST
+    const nyDate = new Date("2026-01-15T00:00:00Z");
+    const nyMonthEnd = replaceDateComponents(nyDate, { day: -1, timeZone: "America/New_York" });
+    // In NY local time, Jan 14th day -1 is Jan 31st 19:00:00 -> represented as UTC 2026-01-31T19:00:00.000Z
+    if (nyMonthEnd.toISOString() !== "2026-01-31T19:00:00.000Z") {
+        throw new Error(`Timezone aware negative day failed: got ${nyMonthEnd.toISOString()}`);
+    }
+
+    // toEpoch edge cases
+    const epochDate = new Date("1970-01-01T00:00:01.500Z");
+    if (toEpoch(epochDate, "s") !== 1) throw new Error(`toEpoch s failed: ${toEpoch(epochDate, "s")}`);
+    if (toEpoch(epochDate, "ms") !== 1500) throw new Error(`toEpoch ms failed: ${toEpoch(epochDate, "ms")}`);
+    if (toEpoch(epochDate, "us") !== 1500000n) throw new Error(`toEpoch us failed: ${toEpoch(epochDate, "us")}`);
+    if (toEpoch(epochDate, "ns") !== 1500000000n) throw new Error(`toEpoch ns failed: ${toEpoch(epochDate, "ns")}`);
+
+    // BigInt negative epoch normalization
+    const negBigIntDate = toValidDate(-1000n);
+    if (negBigIntDate?.getTime() !== -1000000) throw new Error(`Negative bigint epoch sec failed: ${negBigIntDate?.getTime()}`);
+
+    // Exhaustive 10/10 toValidDate edge cases
+    if (toValidDate(null) !== null) throw new Error("toValidDate(null) should be null");
+    if (toValidDate(undefined) !== null) throw new Error("toValidDate(undefined) should be null");
+    if (toValidDate(NaN) !== null) throw new Error("toValidDate(NaN) should be null");
+    if (toValidDate(Infinity) !== null) throw new Error("toValidDate(Infinity) should be null");
+    if (toValidDate(-Infinity) !== null) throw new Error("toValidDate(-Infinity) should be null");
+    if (toValidDate(true) !== null) throw new Error("toValidDate(true) should be null");
+    if (toValidDate(false) !== null) throw new Error("toValidDate(false) should be null");
+    if (toValidDate(Symbol("date")) !== null) throw new Error("toValidDate(Symbol) should be null");
+    if (toValidDate({}) !== null) throw new Error("toValidDate({}) should be null");
+    if (toValidDate([]) !== null) throw new Error("toValidDate([]) should be null");
+    if (toValidDate(() => {}) !== null) throw new Error("toValidDate(function) should be null");
+    if (toValidDate("") !== null) throw new Error("toValidDate('') should be null");
+    if (toValidDate("   ") !== null) throw new Error("toValidDate('   ') should be null");
+    if (toValidDate("invalid-date-string") !== null) throw new Error("toValidDate('invalid-date-string') should be null");
+    if (toValidDate(new Date("invalid")) !== null) throw new Error("toValidDate(InvalidDate) should be null");
+
+    // toValidDate numeric & bigint multi-scale epoch auto-detection (positive and negative)
+    const baseSec = 1716200000;
+    const baseMs = 1716200000000;
+    const baseUs = 1716200000000000n;
+    const baseNs = 1716200000000000000n;
+    if (toValidDate(baseSec)?.getTime() !== baseMs) throw new Error("toValidDate numeric seconds failed");
+    if (toValidDate(baseMs)?.getTime() !== baseMs) throw new Error("toValidDate numeric milliseconds failed");
+    if (toValidDate(baseUs)?.getTime() !== baseMs) throw new Error("toValidDate bigint microseconds failed");
+    if (toValidDate(baseNs)?.getTime() !== baseMs) throw new Error("toValidDate bigint nanoseconds failed");
+    if (toValidDate(-baseSec)?.getTime() !== -baseMs) throw new Error("toValidDate negative numeric seconds failed");
+    if (toValidDate(-baseUs)?.getTime() !== -baseMs) throw new Error("toValidDate negative bigint microseconds failed");
+    if (toValidDate(-baseNs)?.getTime() !== -baseMs) throw new Error("toValidDate negative bigint nanoseconds failed");
+
+    // toValidDate dateOnly: true option
+    const fullDateSample = new Date("2026-05-20T14:30:45.999Z");
+    const strippedDate = toValidDate(fullDateSample, { dateOnly: true });
+    if (strippedDate?.toISOString() !== "2026-05-20T00:00:00.000Z") {
+        throw new Error(`toValidDate dateOnly Date failed: ${strippedDate?.toISOString()}`);
+    }
+    const strippedStr = toValidDate("2026-05-20T14:30:45.999Z", { dateOnly: true });
+    if (strippedStr?.toISOString() !== "2026-05-20T00:00:00.000Z") {
+        throw new Error(`toValidDate dateOnly string failed: ${strippedStr?.toISOString()}`);
+    }
+    const strippedNum = toValidDate(fullDateSample.getTime(), { dateOnly: true });
+    if (strippedNum?.toISOString() !== "2026-05-20T00:00:00.000Z") {
+        throw new Error(`toValidDate dateOnly number failed: ${strippedNum?.toISOString()}`);
+    }
+
+    // Exhaustive 10/10 toValidTime edge cases
+    if (toValidTime(null) !== null) throw new Error("toValidTime(null) should be null");
+    if (toValidTime(undefined) !== null) throw new Error("toValidTime(undefined) should be null");
+    if (toValidTime(NaN) !== null) throw new Error("toValidTime(NaN) should be null");
+    if (toValidTime(Infinity) !== null) throw new Error("toValidTime(Infinity) should be null");
+    if (toValidTime(true) !== null) throw new Error("toValidTime(true) should be null");
+    if (toValidTime(false) !== null) throw new Error("toValidTime(false) should be null");
+    if (toValidTime({}) !== null) throw new Error("toValidTime({}) should be null");
+    if (toValidTime([]) !== null) throw new Error("toValidTime([]) should be null");
+    if (toValidTime("") !== null) throw new Error("toValidTime('') should be null");
+    if (toValidTime("   ") !== null) throw new Error("toValidTime('   ') should be null");
+    if (toValidTime("not-a-date-or-time") !== null) throw new Error("toValidTime('not-a-date-or-time') should be null");
+    if (toValidTime("25:00:00") !== null) throw new Error("toValidTime('25:00:00') should be null");
+    if (toValidTime("12:65:00") !== null) throw new Error("toValidTime('12:65:00') should be null");
+    if (toValidTime("14:30") !== "14:30:00.000") throw new Error(`toValidTime '14:30' failed: ${toValidTime("14:30")}`);
+    if (toValidTime("14:30:15") !== "14:30:15.000") throw new Error(`toValidTime standard failed: ${toValidTime("14:30:15")}`);
+    if (toValidTime("14:30:15.123") !== "14:30:15.123") throw new Error(`toValidTime standard with ms failed: ${toValidTime("14:30:15.123")}`);
+    if (toValidTime("14:30:15.123456") !== "14:30:15.123") throw new Error(`toValidTime standard with microseconds failed: ${toValidTime("14:30:15.123456")}`);
+    if (toValidTime("14:30:15+02:00") !== "12:30:15.000") throw new Error(`toValidTime zone offset failed: ${toValidTime("14:30:15+02:00")}`);
+    if (toValidTime("14:30:15-05:00") !== "19:30:15.000") throw new Error(`toValidTime negative zone offset failed: ${toValidTime("14:30:15-05:00")}`);
+    if (toValidTime("14:30:15Z") !== "14:30:15.000") throw new Error(`toValidTime Z zone offset failed: ${toValidTime("14:30:15Z")}`);
+    if (toValidTime("2026-05-20T10:15:30.500Z") !== "10:15:30.500") throw new Error(`toValidTime ISO date string failed: ${toValidTime("2026-05-20T10:15:30.500Z")}`);
+    if (toValidTime(new Date("2026-05-20T08:00:00.123Z")) !== "08:00:00.123") throw new Error("toValidTime Date object failed");
+    if (toValidTime(1700000000000) !== "22:13:20.000") throw new Error(`toValidTime timestamp failed: ${toValidTime(1700000000000)}`);
+
+    // ISO week & year edge cases (%V and %G boundary checks across year transitions)
+    // 2024-12-30 (Monday) belongs to ISO Year 2025, Week 01
+    const dDec30 = new Date("2024-12-30T00:00:00.000Z");
+    if (strftime(dDec30, { format: "%G-W%V" }) !== "2025-W01") {
+        throw new Error(`Expected "2025-W01", got "${strftime(dDec30, { format: "%G-W%V" })}"`);
+    }
+    // 2027-01-01 (Friday) belongs to ISO Year 2026, Week 53
+    const dJan1 = new Date("2027-01-01T00:00:00.000Z");
+    if (strftime(dJan1, { format: "%G-W%V" }) !== "2026-W53") {
+        throw new Error(`Expected "2026-W53", got "${strftime(dJan1, { format: "%G-W%V" })}"`);
+    }
+
+    // isBusinessDay edge cases with custom excludeWeekdays and empty sets
+    const sunCheckDate = new Date("2026-05-24T00:00:00.000Z"); // Sunday
+    if (isBusinessDay(sunCheckDate, { excludeWeekdays: [0, 6] }) !== false) throw new Error("Sunday should not be a business day");
+    if (isBusinessDay(sunCheckDate, { excludeWeekdays: [] }) !== true) throw new Error("Sunday with no excluded weekdays should be true");
+    if (isBusinessDay(new Date(NaN)) !== null) throw new Error("Invalid date should return null");
+    if (isBusinessDay(new Date("2026-05-25T00:00:00.000Z"), { holidays: ["invalid-holiday-string"] }) !== true) {
+        throw new Error("Invalid holiday string should be safely ignored");
+    }
+
+    console.log("✓ Additional date utils edge case tests passed");
 
     console.log("\n🎉 ALL DATE UTILS ROBUSTNESS TESTS PASSED SUCCESSFULLY!");
 } catch (err) {

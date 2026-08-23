@@ -1,5 +1,5 @@
 import type { TimeUnit, DatetimeTimeUnit, StrftimeOptions, IsBusinessDayOptions, DayOffsetOptions, UtcOffsetOptions, ReplaceDateOptions } from "../../types";
-import { DatetimeType } from "../../datatypes/types";
+import { DatetimeType, Int32, BooleanDataType } from "../../datatypes/types";
 import { InvalidArgumentError } from "../../exceptions";
 import { ExprBase, derive } from "../ExprBase";
 import { kleeneUnary, kleeneBinary } from "../utils";
@@ -7,25 +7,13 @@ import {
     toValidDate,
     toEpoch,
     strftime,
-    getOrdinalDay,
-    getQuarter,
-    isLeapYear,
-    getMonthOffset,
-    getEraUnit,
     offsetDay,
     getTimeZoneOffset,
     isBusinessDay,
-    getISO,
-    replaceDateComponents,
-    _createUTCDate,
-    _getDateTimeParts,
-    _getTimeZoneOffsetMinutes
+    replaceDateComponents
 } from "../../utils";
 import {
     MS_PER_SECOND,
-    MS_PER_MINUTE,
-    MS_PER_HOUR,
-    MS_PER_DAY,
     US_PER_MS,
     NS_PER_MS
 } from "../../constants";
@@ -102,8 +90,8 @@ export class DateTimeExprNamespace {
      * │ 2026-05-20 │ 21      │
      * └────────────┴─────────┘
      */
-    century() {
-        return this._deriveDate((d: Date) => getEraUnit(d, 100));
+    century(timeZone?: string) {
+        return this.year(timeZone).sub(1).floordiv(100).add(1);
     }
 
     /**
@@ -149,7 +137,7 @@ export class DateTimeExprNamespace {
      * └──────────────────────┴──────────────────────────┘
      */
     date() {
-        return this._deriveDate((d) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())));
+        return this.replace({ hour: 0, minute: 0, second: 0, ms: 0 });
     }
 
     /**
@@ -167,8 +155,7 @@ export class DateTimeExprNamespace {
      * └────────────┴─────┘
      */
     day(timeZone?: string) {
-        const tz = timeZone || this._colTz() || "UTC";
-        return this._deriveDate((d) => _getDateTimeParts(d, tz).day);
+        return this.strftime({ format: "%d", timeZone }).cast(Int32);
     }
 
     /**
@@ -186,12 +173,7 @@ export class DateTimeExprNamespace {
      * └────────────┴─────┘
      */
     days_in_month(timeZone?: string) {
-        const tz = timeZone || this._colTz() || "UTC";
-        return this._deriveDate((d) => {
-            const p = _getDateTimeParts(d, tz);
-            const end = getMonthOffset(_createUTCDate(p.year, p.month - 1, 1), 1, 0);
-            return end ? end.getUTCDate() : null;
-        });
+        return this.month_end().dt.day(timeZone);
     }
 
     /**
@@ -227,8 +209,7 @@ export class DateTimeExprNamespace {
      * └──────────────────────┴────┘
      */
     hour(timeZone?: string) {
-        const tz = timeZone || this._colTz() || "UTC";
-        return this._deriveDate((d) => _getDateTimeParts(d, tz).hour);
+        return this.strftime({ format: "%H", timeZone }).cast(Int32);
     }
 
     /**
@@ -252,6 +233,7 @@ export class DateTimeExprNamespace {
 
     /**
      * Checks if the calendar year of a Datetime value is a leap year (366 days).
+     * @param timeZone Optional IANA timezone identifier. Defaults to the column timezone or UTC.
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2024-01-01", "2026-01-01"] })
@@ -264,12 +246,14 @@ export class DateTimeExprNamespace {
      * │ 2026-01-01 │ false │
      * └────────────┴───────┘
      */
-    is_leap_year() {
-        return this._deriveDate(isLeapYear);
+    is_leap_year(timeZone?: string) {
+        const y = this.year(timeZone);
+        return y.mod(4).eq(0).and(y.mod(100).ne(0)).or(y.mod(400).eq(0)).cast(BooleanDataType);
     }
 
     /**
      * Extracts the ISO 8601 week number (1-53) from a Datetime column.
+     * @param timeZone Optional IANA timezone identifier. Defaults to the column timezone or UTC.
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-20"] })
@@ -281,12 +265,13 @@ export class DateTimeExprNamespace {
      * │ 2026-05-20 │ 21   │
      * └────────────┴──────┘
      */
-    iso_week() {
-        return this._deriveDate((d) => getISO(d, { field: "week" }));
+    iso_week(timeZone?: string) {
+        return this.strftime({ format: "%V", timeZone }).cast(Int32);
     }
 
     /**
      * Extracts the ISO 8601 week-numbering year from a Datetime column.
+     * @param timeZone Optional IANA timezone identifier. Defaults to the column timezone or UTC.
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-20"] })
@@ -298,12 +283,13 @@ export class DateTimeExprNamespace {
      * │ 2026-05-20 │ 2026   │
      * └────────────┴────────┘
      */
-    iso_year() {
-        return this._deriveDate((d) => getISO(d, { field: "year" }));
+    iso_year(timeZone?: string) {
+        return this.strftime({ format: "%G", timeZone }).cast(Int32);
     }
 
     /**
      * Extracts the microsecond component (0-999,000) scaled from Datetime millisecond precision.
+     * @param timeZone Optional IANA timezone identifier. Defaults to the column timezone or UTC.
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ ts: ["2026-05-20T10:00:00.123Z"] })
@@ -315,8 +301,8 @@ export class DateTimeExprNamespace {
      * │ 2026-05-20T10:00:00.123Z │ 123000 │
      * └──────────────────────────┴────────┘
      */
-    microsecond() {
-        return this.millisecond().mul(US_PER_MS);
+    microsecond(timeZone?: string) {
+        return this.strftime({ format: "%f", timeZone }).cast(Int32);
     }
 
     /**
@@ -332,12 +318,13 @@ export class DateTimeExprNamespace {
      * │ 2026-05-20 │ 3   │
      * └────────────┴─────┘
      */
-    millennium() {
-        return this._deriveDate((d: Date) => getEraUnit(d, 1000));
+    millennium(timeZone?: string) {
+        return this.year(timeZone).sub(1).floordiv(1000).add(1);
     }
 
     /**
      * Extracts the millisecond component (0-999) from a Datetime column.
+     * @param timeZone Optional IANA timezone identifier. Defaults to the column timezone or UTC.
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ ts: ["2026-05-20T10:00:00.456Z"] })
@@ -349,8 +336,8 @@ export class DateTimeExprNamespace {
      * │ 2026-05-20T10:00:00.456Z │ 456 │
      * └──────────────────────────┴─────┘
      */
-    millisecond() {
-        return this._deriveDate((d) => d.getUTCMilliseconds());
+    millisecond(timeZone?: string) {
+        return this.strftime({ format: "%ms", timeZone }).cast(Int32);
     }
 
     /**
@@ -368,8 +355,7 @@ export class DateTimeExprNamespace {
      * └──────────────────────┴─────┘
      */
     minute(timeZone?: string) {
-        const tz = timeZone || this._colTz() || "UTC";
-        return this._deriveDate((d) => _getDateTimeParts(d, tz).minute);
+        return this.strftime({ format: "%M", timeZone }).cast(Int32);
     }
 
     /**
@@ -387,8 +373,7 @@ export class DateTimeExprNamespace {
      * └────────────┴───┘
      */
     month(timeZone?: string) {
-        const tz = timeZone || this._colTz() || "UTC";
-        return this._deriveDate((d) => _getDateTimeParts(d, tz).month);
+        return this.strftime({ format: "%m", timeZone }).cast(Int32);
     }
 
     /**
@@ -405,7 +390,7 @@ export class DateTimeExprNamespace {
      * └────────────┴──────────────────────────┘
      */
     month_end() {
-        return this._deriveDate((d) => getMonthOffset(d, 1, 0));
+        return this.replace({ day: -1, hour: 0, minute: 0, second: 0, ms: 0 });
     }
 
     /**
@@ -422,11 +407,12 @@ export class DateTimeExprNamespace {
      * └────────────┴──────────────────────────┘
      */
     month_start() {
-        return this._deriveDate((d) => getMonthOffset(d, 0, 1));
+        return this.replace({ day: 1, hour: 0, minute: 0, second: 0, ms: 0 });
     }
 
     /**
      * Extracts the nanosecond component (0-999,000,000) scaled from Datetime millisecond precision.
+     * @param timeZone Optional IANA timezone identifier. Defaults to the column timezone or UTC.
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ ts: ["2026-05-20T10:00:00.001Z"] })
@@ -438,8 +424,8 @@ export class DateTimeExprNamespace {
      * │ 2026-05-20T10:00:00.001Z │ 1000000 │
      * └──────────────────────────┴─────────┘
      */
-    nanosecond() {
-        return this.millisecond().mul(NS_PER_MS);
+    nanosecond(timeZone?: string) {
+        return this.microsecond(timeZone).mul(1000);
     }
 
     /**
@@ -472,6 +458,7 @@ export class DateTimeExprNamespace {
 
     /**
      * Extracts the day of the year (1-366) from a Datetime column.
+     * @param timeZone Optional IANA timezone identifier. Defaults to the column timezone or UTC.
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-02-01"] })
@@ -483,12 +470,13 @@ export class DateTimeExprNamespace {
      * │ 2026-02-01 │ 32  │
      * └────────────┴─────┘
      */
-    ordinal_day() {
-        return this._deriveDate(getOrdinalDay);
+    ordinal_day(timeZone?: string) {
+        return this.strftime({ format: "%j", timeZone }).cast(Int32);
     }
 
     /**
      * Extracts the calendar quarter of the year (1-4) from a Datetime column.
+     * @param timeZone Optional IANA timezone identifier. Defaults to UTC.
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-20"] })
@@ -500,8 +488,8 @@ export class DateTimeExprNamespace {
      * │ 2026-05-20 │ 2   │
      * └────────────┴─────┘
      */
-    quarter() {
-        return this._deriveDate(getQuarter);
+    quarter(timeZone?: string) {
+        return this.month(timeZone).div(3).ceil();
     }
 
     /**
@@ -542,7 +530,7 @@ export class DateTimeExprNamespace {
      * └──────────────────────┴─────┘
      */
     second() {
-        return this._deriveDate((d) => d.getUTCSeconds());
+        return this.strftime({ format: "%S", timeZone: "UTC" }).cast(Int32);
     }
 
     /**
@@ -582,7 +570,7 @@ export class DateTimeExprNamespace {
      * └──────────────────────┴──────────────┘
      */
     time() {
-        return this._deriveDate((d) => d.toISOString().split("T")[1].slice(0, 12));
+        return this.strftime({ format: "%H:%M:%S.%ms", timeZone: "UTC" });
     }
 
     /**
@@ -618,7 +606,7 @@ export class DateTimeExprNamespace {
      * └──────────┴──────┘
      */
     total_days() {
-        return this.expr.div(MS_PER_DAY);
+        return this.total_hours().div(24);
     }
 
     /**
@@ -635,7 +623,7 @@ export class DateTimeExprNamespace {
      * └─────────┴─────┘
      */
     total_hours() {
-        return this.expr.div(MS_PER_HOUR);
+        return this.total_minutes().div(60);
     }
 
     /**
@@ -652,7 +640,7 @@ export class DateTimeExprNamespace {
      * └─────┴───────┘
      */
     total_microseconds() {
-        return this.expr.mul(US_PER_MS);
+        return this.total_milliseconds().mul(US_PER_MS);
     }
 
     /**
@@ -686,7 +674,7 @@ export class DateTimeExprNamespace {
      * └───────┴──────┘
      */
     total_minutes() {
-        return this.expr.div(MS_PER_MINUTE);
+        return this.total_seconds().div(60);
     }
 
     /**
@@ -703,7 +691,7 @@ export class DateTimeExprNamespace {
      * └─────┴─────────┘
      */
     total_nanoseconds() {
-        return this.expr.mul(NS_PER_MS);
+        return this.total_milliseconds().mul(NS_PER_MS);
     }
 
     /**
@@ -720,7 +708,7 @@ export class DateTimeExprNamespace {
      * └──────┴──────┘
      */
     total_seconds() {
-        return this.expr.div(MS_PER_SECOND);
+        return this.total_milliseconds().div(MS_PER_SECOND);
     }
 
     /**
@@ -751,6 +739,7 @@ export class DateTimeExprNamespace {
 
     /**
      * Extracts ISO week index. Alias for iso_week.
+     * @param timeZone Optional IANA timezone identifier. Defaults to the column timezone or UTC.
      * @returns ColumnExpression
      * @example
      * >>> const df = $df.data({ d: ["2026-05-20"] })
@@ -762,8 +751,8 @@ export class DateTimeExprNamespace {
      * │ 2026-05-20 │ 21   │
      * └────────────┴──────┘
      */
-    week() {
-        return this.iso_week();
+    week(timeZone?: string) {
+        return this.iso_week(timeZone);
     }
 
     /**
@@ -781,8 +770,7 @@ export class DateTimeExprNamespace {
      * └────────────┴────┘
      */
     weekday(timeZone?: string) {
-        const tz = timeZone || this._colTz() || "UTC";
-        return this._deriveDate((d) => _getDateTimeParts(d, tz).dayOfWeek || 7);
+        return this.strftime({ format: "%u", timeZone }).cast(Int32);
     }
 
     /**
@@ -800,8 +788,7 @@ export class DateTimeExprNamespace {
      * └────────────┴──────┘
      */
     year(timeZone?: string) {
-        const tz = timeZone || this._colTz() || "UTC";
-        return this._deriveDate((d) => _getDateTimeParts(d, tz).year);
+        return this.strftime({ format: "%Y", timeZone }).cast(Int32);
     }
 }
 

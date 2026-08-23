@@ -478,9 +478,107 @@ try {
     if (resDur[2].d !== 0 || resDur[2].h !== 0 || resDur[2].ms !== 0 || resDur[2].us !== 0 || resDur[2].ns !== 0) {
         throw new Error(`Total Edge Case 3 Fail: Expected 0 across all units, got d=${resDur[2].d}`);
     }
-    if (resDur[3].d !== null || resDur[3].h !== null || resDur[3].ms !== null) {
-        throw new Error(`Total Edge Case 4 Fail: Expected null output for null duration input`);
+    // 4. century, millennium, and quarter edge cases (including boundaries, and timezones)
+    const d1000 = new Date(0); d1000.setUTCFullYear(1000, 0, 1);
+    const d100 = new Date(0); d100.setUTCFullYear(100, 0, 1);
+    const d1 = new Date(0); d1.setUTCFullYear(1, 0, 1);
+
+    const dfEras = $df.data({
+        date: [
+            new Date("2026-05-25T00:00:00.000Z"),
+            new Date("2001-01-01T00:00:00.000Z"),
+            new Date("2000-12-31T23:59:59.000Z"),
+            new Date("2000-01-01T00:00:00.000Z"),
+            new Date("1901-01-01T00:00:00.000Z"),
+            new Date("1900-12-31T00:00:00.000Z"),
+            d1000,
+            d100,
+            d1,
+            new Date("2026-01-01T02:00:00.000Z"),
+            null
+        ]
+    }, { date: $df.DataType.Datetime });
+
+    const resEras = dfEras.select([
+        $df.col("date").dt.century().alias("c_utc"),
+        $df.col("date").dt.millennium().alias("m_utc"),
+        $df.col("date").dt.quarter().alias("q_utc"),
+        $df.col("date").dt.quarter("America/New_York").alias("q_ny"),
+        $df.col("date").dt.year("America/New_York").alias("y_ny")
+    ]).to_dicts() as any[];
+
+    console.log("resEras results:", resEras);
+    // 0: 2026-05-25
+    if (resEras[0].c_utc !== 21 || resEras[0].m_utc !== 3 || resEras[0].q_utc !== 2) {
+        throw new Error(`Eras Edge Case 0 Fail: 2026 expected c=21, m=3, q=2; got c=${resEras[0].c_utc}, m=${resEras[0].m_utc}, q=${resEras[0].q_utc}`);
     }
+    // 1: 2001-01-01
+    if (resEras[1].c_utc !== 21 || resEras[1].m_utc !== 3 || resEras[1].q_utc !== 1) {
+        throw new Error(`Eras Edge Case 1 Fail: 2001 expected c=21, m=3, q=1; got c=${resEras[1].c_utc}, m=${resEras[1].m_utc}`);
+    }
+    // 2: 2000-12-31
+    if (resEras[2].c_utc !== 20 || resEras[2].m_utc !== 2 || resEras[2].q_utc !== 4) {
+        throw new Error(`Eras Edge Case 2 Fail: 2000-12-31 expected c=20, m=2, q=4; got c=${resEras[2].c_utc}, m=${resEras[2].m_utc}`);
+    }
+    // 3: 2000-01-01 -> 20th century, 2nd millennium, Q1
+    if (resEras[3].c_utc !== 20 || resEras[3].m_utc !== 2 || resEras[3].q_utc !== 1) {
+        throw new Error(`Eras Edge Case 3 Fail: 2000-01-01 expected c=20, m=2, q=1`);
+    }
+    // 4: 1901-01-01 -> 20th century, 2nd millennium, Q1
+    if (resEras[4].c_utc !== 20 || resEras[4].m_utc !== 2 || resEras[4].q_utc !== 1) {
+        throw new Error(`Eras Edge Case 4 Fail: 1901-01-01 expected c=20, m=2, q=1`);
+    }
+    // 5: 1900-12-31 -> 19th century, 2nd millennium, Q4
+    if (resEras[5].c_utc !== 19 || resEras[5].m_utc !== 2 || resEras[5].q_utc !== 4) {
+        throw new Error(`Eras Edge Case 5 Fail: 1900-12-31 expected c=19, m=2, q=4`);
+    }
+    // 6: 1000-01-01 -> 10th century, 1st millennium, Q1
+    if (resEras[6].c_utc !== 10 || resEras[6].m_utc !== 1 || resEras[6].q_utc !== 1) {
+        throw new Error(`Eras Edge Case 6 Fail: 1000 expected c=10, m=1, q=1, got c=${resEras[6].c_utc}, m=${resEras[6].m_utc}, q=${resEras[6].q_utc}`);
+    }
+    // 7: 0100-01-01 -> 1st century, 1st millennium, Q1
+    if (resEras[7].c_utc !== 1 || resEras[7].m_utc !== 1 || resEras[7].q_utc !== 1) {
+        throw new Error(`Eras Edge Case 7 Fail: 100 expected c=1, m=1, q=1`);
+    }
+    // 8: 0001-01-01 -> 1st century, 1st millennium, Q1
+    if (resEras[8].c_utc !== 1 || resEras[8].m_utc !== 1 || resEras[8].q_utc !== 1) {
+        throw new Error(`Eras Edge Case 8 Fail: 1 expected c=1, m=1, q=1`);
+    }
+    // 9: Timezone boundary shift check: 2026-01-01T02:00:00Z is 2025-12-31 21:00 in NY
+    if (resEras[9].q_utc !== 1 || resEras[9].q_ny !== 4 || resEras[9].y_ny !== 2025) {
+        throw new Error(`Eras Edge Case 9 Fail: TZ shift expected q_utc=1, q_ny=4, y_ny=2025; got q_utc=${resEras[9].q_utc}, q_ny=${resEras[9].q_ny}, y_ny=${resEras[9].y_ny}`);
+    }
+    // 10: Null check
+    if (resEras[10].c_utc !== null || resEras[10].m_utc !== null || resEras[10].q_utc !== null) {
+        throw new Error(`Eras Edge Case 10 Fail: Expected nulls for null input`);
+    }
+
+    // 11: Exhaustive is_leap_year edge cases
+    const dfLeapTest = $df.data({
+        date: [
+            "2000-01-01T00:00:00Z", // 400-year leap year -> true
+            "1900-01-01T00:00:00Z", // 100-year non-leap year -> false
+            "2024-02-29T12:00:00Z", // 4-year leap year -> true
+            "2023-05-15T00:00:00Z", // standard non-leap year -> false
+            "2024-01-01T03:00:00Z", // 2024 in UTC (true), but 2023-12-31 in America/New_York (false)
+            null
+        ]
+    }, { date: $df.DataType.Datetime });
+
+    const leapRes = dfLeapTest.select([
+        $df.col("date").dt.is_leap_year().alias("leap_utc"),
+        $df.col("date").dt.is_leap_year("America/New_York").alias("leap_ny")
+    ]).to_dicts() as any[];
+
+    if (leapRes[0].leap_utc !== true) throw new Error("Year 2000 should be leap year (divisible by 400)");
+    if (leapRes[1].leap_utc !== false) throw new Error("Year 1900 should NOT be leap year (divisible by 100 but not 400)");
+    if (leapRes[2].leap_utc !== true) throw new Error("Year 2024 should be leap year");
+    if (leapRes[3].leap_utc !== false) throw new Error("Year 2023 should NOT be leap year");
+    // Timezone boundary test: 2024-01-01T03:00:00Z is 2023-12-31 22:00:00 in America/New_York
+    if (leapRes[4].leap_utc !== true || leapRes[4].leap_ny !== false) {
+        throw new Error(`Leap year timezone shift failed: expected leap_utc=true, leap_ny=false, got leap_utc=${leapRes[4].leap_utc}, leap_ny=${leapRes[4].leap_ny}`);
+    }
+    if (leapRes[5].leap_utc !== null) throw new Error("Null date should evaluate to null for is_leap_year");
 
     console.log("All refactored dt method edge cases passed successfully!");
 

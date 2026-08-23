@@ -1,5 +1,5 @@
 import { ExprBase, derive } from "../ExprBase"
-import { isArrayOrTypedArray, getArrayStats, fillSequence } from "../../utils"
+import { isArrayOrTypedArray, getArrayStats } from "../../utils"
 import { InvalidArgumentError } from "../../exceptions"
 import type { FillNullOptions } from "../../types"
 
@@ -38,51 +38,47 @@ export class ManipulationExpr extends ExprBase {
 
                 if (strategy !== undefined) {
                     if (strategy === "zero" || strategy === "one" || strategy === "min" || strategy === "max" || strategy === "mean") {
-                        let fillVal: any;
-                        if (strategy === "zero") {
-                            fillVal = 0;
-                        } else if (strategy === "one") {
-                            fillVal = 1;
-                        } else {
-                            const stats = getArrayStats(vArray);
-                            fillVal = stats[strategy];
+                        const fillVal = strategy === "zero" ? 0
+                            : strategy === "one" ? 1
+                            : (getArrayStats(vArray) as any)[strategy];
+                        for (let i = 0; i < height; i++) {
+                            if (result[i] == null) result[i] = fillVal;
                         }
-                        fillSequence(result, fillVal, {
-                            mode: "constant",
-                            condition: (v) => v == null
-                        });
-                    } else if (strategy === "forward" || strategy === "backward") {
-                        const isForward = strategy === "forward";
+                    } else if (strategy === "forward") {
                         let lastVal: any = null;
-                        let consecCount = 0;
-
-                        fillSequence(result, null, {
-                            mode: "independent",
-                            reverse: !isForward,
-                            step: ({ originalValue }) => {
-                                if (originalValue != null) {
-                                    lastVal = originalValue;
-                                    consecCount = 0;
-                                    return originalValue;
-                                }
-                                if (lastVal !== null && (limit === undefined || consecCount < limit)) {
-                                    consecCount++;
-                                    return lastVal;
-                                }
-                                return null;
+                        let consec = 0;
+                        for (let i = 0; i < height; i++) {
+                            if (result[i] != null) {
+                                lastVal = result[i];
+                                consec = 0;
+                            } else if (lastVal !== null && (limit === undefined || consec < limit)) {
+                                result[i] = lastVal;
+                                consec++;
                             }
-                        });
+                        }
+                    } else if (strategy === "backward") {
+                        let lastVal: any = null;
+                        let consec = 0;
+                        for (let i = height - 1; i >= 0; i--) {
+                            if (result[i] != null) {
+                                lastVal = result[i];
+                                consec = 0;
+                            } else if (lastVal !== null && (limit === undefined || consec < limit)) {
+                                result[i] = lastVal;
+                                consec++;
+                            }
+                        }
                     } else {
                         throw new InvalidArgumentError(`Unsupported fill_null strategy: "${strategy}"`);
                     }
                 } else {
                     const resolved = this._resolve(value, columns, height);
                     const isArr = isArrayOrTypedArray(resolved);
-
-                    fillSequence(result, null, {
-                        mode: "independent",
-                        step: ({ index, originalValue }) => originalValue == null ? (isArr ? resolved[index] : resolved) : originalValue
-                    });
+                    for (let i = 0; i < height; i++) {
+                        if (result[i] == null) {
+                            result[i] = isArr ? resolved[i] : resolved;
+                        }
+                    }
                 }
                 return result;
             }) as this;

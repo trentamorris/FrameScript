@@ -22,16 +22,17 @@ import {
 } from "../utils";
 
 const TYPED_ARRAY_MAP: Record<string, RegisteredDataType> = {
-    Float64Array: DataTypeRegistry.Float64,
-    Float32Array: DataTypeRegistry.Float32,
-    Int32Array: DataTypeRegistry.Int32,
-    Int16Array: DataTypeRegistry.Int16,
     Int8Array: DataTypeRegistry.Int8,
+    Uint8Array: DataTypeRegistry.UInt8,
+    Uint8ClampedArray: DataTypeRegistry.UInt8,
+    Int16Array: DataTypeRegistry.Int16,
+    Uint16Array: DataTypeRegistry.UInt16,
+    Int32Array: DataTypeRegistry.Int32,
+    Uint32Array: DataTypeRegistry.UInt32,
     BigInt64Array: DataTypeRegistry.Int64,
     BigUint64Array: DataTypeRegistry.UInt64,
-    BigUint64: DataTypeRegistry.UInt64,
-    Uint32Array: DataTypeRegistry.UInt32,
-    Uint16Array: DataTypeRegistry.UInt16,
+    Float32Array: DataTypeRegistry.Float32,
+    Float64Array: DataTypeRegistry.Float64
 };
 
 /**

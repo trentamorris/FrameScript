@@ -390,23 +390,23 @@ export function changeCase(str: any, options: ChangeCaseOptions): string {
 }
 
 
-const BUFFER_REF = typeof globalThis !== "undefined" ? (globalThis as any).Buffer : undefined;
-const HAS_BUFFER = typeof BUFFER_REF !== "undefined";
+const _BUFFER_REF = typeof globalThis !== "undefined" ? (globalThis as any).Buffer : undefined;
+const _HAS_BUFFER = typeof _BUFFER_REF !== "undefined";
 
-const HAS_NATIVE_HEX = typeof Uint8Array !== "undefined" && typeof (Uint8Array as any).fromHex === "function";
-const HAS_NATIVE_BASE64 = typeof Uint8Array !== "undefined" && typeof (Uint8Array as any).fromBase64 === "function";
-const MAX_BYTE_CHUNK_SIZE = 8192;
-const HEX_TABLE: string[] = new Array(256);
+const _HAS_NATIVE_HEX = typeof Uint8Array !== "undefined" && typeof (Uint8Array as any).fromHex === "function";
+const _HAS_NATIVE_BASE64 = typeof Uint8Array !== "undefined" && typeof (Uint8Array as any).fromBase64 === "function";
+const _MAX_BYTE_CHUNK_SIZE = 8192;
+const _HEX_TABLE: string[] = new Array(256);
 for (let i = 0; i < 256; i++) {
-    HEX_TABLE[i] = i.toString(16).padStart(2, "0");
+    _HEX_TABLE[i] = i.toString(16).padStart(2, "0");
 }
 
-const B64_TO_B64URL_MAP: Record<string, string> = { "+": "-", "/": "_", "=": "" };
-const B64URL_TO_B64_MAP: Record<string, string> = { "-": "+", "_": "/" };
-const B64_URL_ENCODE_REGEX = /[+/=]/g;
-const B64_URL_DECODE_REGEX = /[-_]/g;
-const STRICT_B64_REGEX = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
-const HEX_REGEX = /^[0-9a-fA-F]*$/;
+const _B64_TO_B64URL_MAP: Record<string, string> = { "+": "-", "/": "_", "=": "" };
+const _B64URL_TO_B64_MAP: Record<string, string> = { "-": "+", "_": "/" };
+const _B64_URL_ENCODE_REGEX = /[+/=]/g;
+const _B64_URL_DECODE_REGEX = /[-_]/g;
+const _STRICT_B64_REGEX = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+const _HEX_REGEX = /^[0-9a-fA-F]*$/;
 
 // ============================================================================
 // ENCODING FUNCTIONS
@@ -445,17 +445,17 @@ export function encodeBytesToBase64(bytes: unknown): string {
     const validBytes = toValidBinary(bytes);
     if (!validBytes) return "";
 
-    if (HAS_NATIVE_BASE64 && typeof (Uint8Array as any).prototype.toBase64 === "function") {
+    if (_HAS_NATIVE_BASE64 && typeof (Uint8Array as any).prototype.toBase64 === "function") {
         return (validBytes as any).toBase64();
     }
-    if (HAS_BUFFER) {
-        return BUFFER_REF.from(validBytes).toString("base64");
+    if (_HAS_BUFFER) {
+        return _BUFFER_REF.from(validBytes).toString("base64");
     }
 
     let bin = "";
     const len = validBytes.length;
-    for (let i = 0; i < len; i += MAX_BYTE_CHUNK_SIZE) {
-        const chunk = validBytes.subarray(i, i + MAX_BYTE_CHUNK_SIZE);
+    for (let i = 0; i < len; i += _MAX_BYTE_CHUNK_SIZE) {
+        const chunk = validBytes.subarray(i, i + _MAX_BYTE_CHUNK_SIZE);
         bin += String.fromCharCode.apply(null, chunk as unknown as number[]);
     }
     return btoa(bin);
@@ -467,7 +467,7 @@ export function encodeBytesToBase64(bytes: unknown): string {
  */
 export function encodeBase64ToBase64URL(b64: string): string {
     if (typeof b64 !== "string") b64 = String(b64);
-    return b64.replace(B64_URL_ENCODE_REGEX, (char) => B64_TO_B64URL_MAP[char]);
+    return b64.replace(_B64_URL_ENCODE_REGEX, (char) => _B64_TO_B64URL_MAP[char]);
 }
 
 /**
@@ -475,13 +475,13 @@ export function encodeBase64ToBase64URL(b64: string): string {
  */
 export function encodeHex(str: string): string {
     if (typeof str !== "string") str = String(str);
-    if (HAS_BUFFER) return BUFFER_REF.from(str, "utf-8").toString("hex");
+    if (_HAS_BUFFER) return _BUFFER_REF.from(str, "utf-8").toString("hex");
 
     const bytes = encodeJsonToBytes(str);
     const len = bytes.length;
     let hex = "";
     for (let i = 0; i < len; i++) {
-        hex += HEX_TABLE[bytes[i]];
+        hex += _HEX_TABLE[bytes[i]];
     }
     return hex;
 }
@@ -495,7 +495,7 @@ export function encodeBase64(str: string): string {
     return encodeBytesToBase64(bytes);
 }
 
-const ENCODERS: Record<StringEncoding, (str: string) => string> = {
+const _ENCODERS: Record<StringEncoding, (str: string) => string> = {
     hex: encodeHex,
     base64: encodeBase64
 };
@@ -505,7 +505,7 @@ const ENCODERS: Record<StringEncoding, (str: string) => string> = {
  */
 export function encodeString(str: string | null | undefined, encoding: StringEncoding): string | null {
     if (str == null) return null;
-    const encoder = ENCODERS[encoding];
+    const encoder = _ENCODERS[encoding];
     if (!encoder) {
         throw new Error(`Unsupported encoding: '${encoding}'. Supported encodings are 'hex' and 'base64'.`);
     }
@@ -522,7 +522,7 @@ export function encodeString(str: string | null | undefined, encoding: StringEnc
  */
 export function decodeBase64URLToBase64(b64Url: string): string {
     if (typeof b64Url !== "string") b64Url = String(b64Url);
-    const clean = b64Url.replace(B64_URL_DECODE_REGEX, (char) => B64URL_TO_B64_MAP[char]);
+    const clean = b64Url.replace(_B64_URL_DECODE_REGEX, (char) => _B64URL_TO_B64_MAP[char]);
     const mod = clean.length % 4;
     return mod === 0 ? clean : clean.padEnd(clean.length + (4 - mod), "=");
 }
@@ -534,16 +534,16 @@ export function decodeBase64ToBytes(b64: string, strict: boolean = true): Uint8A
     if (typeof b64 !== "string") b64 = String(b64);
 
     if (b64 !== "") {
-        if (b64.length % 4 !== 0 || !STRICT_B64_REGEX.test(b64)) {
+        if (b64.length % 4 !== 0 || !_STRICT_B64_REGEX.test(b64)) {
             throw new Error("Invalid base64 encoding format");
         }
     }
 
-    if (HAS_NATIVE_BASE64) {
+    if (_HAS_NATIVE_BASE64) {
         return (Uint8Array as any).fromBase64(b64, { strict });
     }
-    if (HAS_BUFFER) {
-        return new Uint8Array(BUFFER_REF.from(b64, "base64"));
+    if (_HAS_BUFFER) {
+        return new Uint8Array(_BUFFER_REF.from(b64, "base64"));
     }
     const bin = atob(b64);
     const len = bin.length;
@@ -568,15 +568,15 @@ export function decodeHexToBytes(hex: string): Uint8Array {
     if (typeof hex !== "string") hex = String(hex);
     const cleanHex = hex.trim();
 
-    if (cleanHex.length % 2 !== 0 || !HEX_REGEX.test(cleanHex)) {
+    if (cleanHex.length % 2 !== 0 || !_HEX_REGEX.test(cleanHex)) {
         throw new Error("Invalid hex string format");
     }
 
-    if (HAS_NATIVE_HEX) {
+    if (_HAS_NATIVE_HEX) {
         return (Uint8Array as any).fromHex(cleanHex);
     }
-    if (HAS_BUFFER) {
-        const buf = BUFFER_REF.from(cleanHex, "hex");
+    if (_HAS_BUFFER) {
+        const buf = _BUFFER_REF.from(cleanHex, "hex");
         if (buf.length !== cleanHex.length / 2) {
             throw new Error("Invalid hex string format");
         }
@@ -625,8 +625,7 @@ export function decodeBase64(str: string, strict: boolean = true): string | null
         return null;
     }
 }
-
-const DECODERS: Record<StringEncoding, (str: string, strict: boolean) => string | null> = {
+const _DECODERS: Record<StringEncoding, (str: string, strict?: boolean) => string | null> = {
     hex: decodeHex,
     base64: decodeBase64
 };
@@ -640,7 +639,7 @@ export function decodeString(
     options: { strict?: boolean } | boolean = {}
 ): string | null {
     if (str == null) return null;
-    const decoder = DECODERS[encoding];
+    const decoder = _DECODERS[encoding];
     if (!decoder) {
         throw new Error(`Unsupported encoding: '${encoding}'. Supported encodings are 'hex' and 'base64'.`);
     }
@@ -656,16 +655,16 @@ export function decodeString(
 
 
 // Lone surrogate check to prevent native RegExp.escape from throwing a TypeError on unpaired surrogates.
-const LONE_SURROGATE_REGEX = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/;
+const _LONE_SURROGATE_REGEX = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/;
 
 // Shared control & lone-surrogate pattern fragment (C0 controls, DEL, lone surrogates)
-const BASE_CONTROL_PATTERN = "\\x00-\\x1F\\x7F\\u{D800}-\\u{DFFF}";
+const _BASE_CONTROL_PATTERN = "\\x00-\\x1F\\x7F\\u{D800}-\\u{DFFF}";
 
 // TC39 mode: Syntax characters + C0 controls + DEL + lone/unpaired surrogates
-const TC39_REGEX = new RegExp(`[${BASE_CONTROL_PATTERN}\\\\^$*+?.()|[\\]{}/#,=<>&!%:;@~'"\`-]`, "gu");
+const _TC39_REGEX = new RegExp(`[${_BASE_CONTROL_PATTERN}\\\\^$*+?.()|[\\]{}/#,=<>&!%:;@~'"\`-]`, "gu");
 
 // nonAlphanumeric mode: C0 controls/surrogates + ASCII non-alphanumerics (< 0x80)
-const NON_ALPHANUMERIC_ASCII_REGEX = new RegExp(`[${BASE_CONTROL_PATTERN}]|[\\x20-\\x2F\\x3A-\\x40\\x5B-\\x5E\\x5F\\x60\\x7B-\\x7E]`, "gu");
+const _NON_ALPHANUMERIC_ASCII_REGEX = new RegExp(`[${_BASE_CONTROL_PATTERN}]|[\\x20-\\x2F\\x3A-\\x40\\x5B-\\x5E\\x5F\\x60\\x7B-\\x7E]`, "gu");
 
 export type UnicodeSurrogateType = "all" | "high" | "low";
 
@@ -714,13 +713,13 @@ export function escapeRegExp(
     const mode = options?.mode ?? "tc39";
 
     if (mode === "tc39") {
-        if (typeof (RegExp as any).escape === "function" && !LONE_SURROGATE_REGEX.test(str)) {
+        if (typeof (RegExp as any).escape === "function" && !_LONE_SURROGATE_REGEX.test(str)) {
             return (RegExp as any).escape(str);
         }
-        return str.replace(TC39_REGEX, _replaceRegexChar);
+        return str.replace(_TC39_REGEX, _replaceRegexChar);
     }
 
-    return str.replace(NON_ALPHANUMERIC_ASCII_REGEX, _replaceRegexChar);
+    return str.replace(_NON_ALPHANUMERIC_ASCII_REGEX, _replaceRegexChar);
 }
 
 export function toCleanRegExp(

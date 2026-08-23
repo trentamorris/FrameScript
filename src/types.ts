@@ -71,21 +71,6 @@ export interface IExpr {
 export type TimeUnit = "s" | "ms" | "us" | "ns";
 export type DatetimeTimeUnit = "ms" | "us" | "ns";
 
-export type DateDiffUnit =
-    | "ms" | "milliseconds"
-    | "s" | "seconds"
-    | "m" | "minutes"
-    | "h" | "hours"
-    | "d" | "days"
-    | "w" | "weeks"
-    | "mo" | "months"
-    | "q" | "quarters"
-    | "y" | "years";
-
-export interface DateDiffOptions {
-    roundMode?: "exact" | "floor" | "ceil" | "round" | "trunc";
-}
-
 export interface StrptimeOptions {
     format: string;
     strict?: boolean;

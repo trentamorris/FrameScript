@@ -130,9 +130,9 @@ export class StringExprNamespace {
      */
     contains_any(patterns: (string | RegExp)[]) {
         return this._patternGuard(patterns, () => {
-            const list = Array.isArray(patterns) ? patterns : [patterns];
+            const list = toValidArray(patterns);
+            const len = list.length;
             return this._deriveString((str) => {
-                const len = list.length;
                 for (let i = 0; i < len; i++) {
                     if (this._matchPattern(str, list[i])) return true;
                 }

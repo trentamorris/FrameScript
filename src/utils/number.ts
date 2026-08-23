@@ -7,10 +7,10 @@ import {
     INT64_MIN, INT64_MAX, UINT64_MIN, UINT64_MAX
 } from "../constants";
 
-const STRICT_SCIENTIFIC_REGEX = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
-const NON_BASE10_INJECTION_REGEX = /0[xobXOB]/;
-const WHITESPACE_UNDERSCORE_REGEX = /[\s_\u200B-\u200D\uFEFF]/g;
-const EXPONENT_INDICATOR_REGEX = /[eE]/;
+const _STRICT_SCIENTIFIC_REGEX = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
+const _NON_BASE10_INJECTION_REGEX = /0[xobXOB]/;
+const _WHITESPACE_UNDERSCORE_REGEX = /[\s_\u200B-\u200D\uFEFF]/g;
+const _EXPONENT_INDICATOR_REGEX = /[eE]/;
 
 // ============================================================================
 // /** Generic Number Helpers */
@@ -50,13 +50,13 @@ function _validateGroupLengths(parts: string[]): boolean {
     return true;
 }
 
-const LEADING_SIGN_REGEX = /^[+-]/;
-const ALL_DOTS_REGEX = /\./g;
-const ALL_COMMAS_REGEX = /,/g;
+const _LEADING_SIGN_REGEX = /^[+-]/;
+const _ALL_DOTS_REGEX = /\./g;
+const _ALL_COMMAS_REGEX = /,/g;
 
 function _cleanNumericString(str: string, strict: boolean): string | null {
 
-    if (NON_BASE10_INJECTION_REGEX.test(str)) return null;
+    if (_NON_BASE10_INJECTION_REGEX.test(str)) return null;
 
     let clean = str.trim();
     if (clean === "") return null;
@@ -71,7 +71,7 @@ function _cleanNumericString(str: string, strict: boolean): string | null {
     }
 
     if (!strict) {
-        clean = clean.replace(WHITESPACE_UNDERSCORE_REGEX, "");
+        clean = clean.replace(_WHITESPACE_UNDERSCORE_REGEX, "");
     }
 
     const hasDot = clean.includes(".");
@@ -87,11 +87,11 @@ function _cleanNumericString(str: string, strict: boolean): string | null {
 
         const parts = clean.slice(0, limitIdx).split(splitChar);
         if (parts.length > 1 && !_validateGroupLengths(parts)) return null;
-        if (parts[0].replace(LEADING_SIGN_REGEX, "").length > 3) return null;
+        if (parts[0].replace(_LEADING_SIGN_REGEX, "").length > 3) return null;
 
         return isCommaDecimal
-            ? clean.replace(ALL_DOTS_REGEX, "").replace(ALL_COMMAS_REGEX, ".")
-            : clean.replace(ALL_COMMAS_REGEX, "");
+            ? clean.replace(_ALL_DOTS_REGEX, "").replace(_ALL_COMMAS_REGEX, ".")
+            : clean.replace(_ALL_COMMAS_REGEX, "");
     }
 
     if (hasComma || hasDot) {
@@ -99,7 +99,7 @@ function _cleanNumericString(str: string, strict: boolean): string | null {
         const parts = clean.split(char);
 
         if (parts.length > 2 || (char === "," && parts.length === 2 && parts[1].length === 3)) {
-            const leadLength = parts[0].replace(LEADING_SIGN_REGEX, "").length;
+            const leadLength = parts[0].replace(_LEADING_SIGN_REGEX, "").length;
 
             if (leadLength === 0) {
                 if (char === "," || parts.length > 2) return null;
@@ -107,11 +107,11 @@ function _cleanNumericString(str: string, strict: boolean): string | null {
                 return null;
             } else {
                 if (!_validateGroupLengths(parts)) return null;
-                return clean.replace(hasComma ? ALL_COMMAS_REGEX : ALL_DOTS_REGEX, "");
+                return clean.replace(hasComma ? _ALL_COMMAS_REGEX : _ALL_DOTS_REGEX, "");
             }
         }
         if (hasComma) {
-            return clean.replace(ALL_COMMAS_REGEX, ".");
+            return clean.replace(_ALL_COMMAS_REGEX, ".");
         }
     }
 
@@ -157,9 +157,9 @@ export function toValidNumber(
                 if (lower === "-infinity") return -Infinity;
             }
 
-            const hasExponent = EXPONENT_INDICATOR_REGEX.test(clean);
+            const hasExponent = _EXPONENT_INDICATOR_REGEX.test(clean);
             if (hasExponent && !floatScientific) return null;
-            if (!STRICT_SCIENTIFIC_REGEX.test(clean)) return null;
+            if (!_STRICT_SCIENTIFIC_REGEX.test(clean)) return null;
 
             const parsed = Number(clean);
             return isValidNumber(parsed, { allowNonFiniteNumbers }) ? parsed : null;
@@ -383,9 +383,9 @@ export function toValidBigInt(
         bigintVal = v;
     } else if (typeof v === "string") {
         let clean = _cleanNumericString(v, false);
-        if (clean === null || !STRICT_SCIENTIFIC_REGEX.test(clean)) return null;
+        if (clean === null || !_STRICT_SCIENTIFIC_REGEX.test(clean)) return null;
 
-        if (EXPONENT_INDICATOR_REGEX.test(clean)) {
+        if (_EXPONENT_INDICATOR_REGEX.test(clean)) {
             const eIdx = clean.search(/[eE]/);
             let mantissaStr = clean.slice(0, eIdx);
             const expStr = clean.slice(eIdx + 1);
