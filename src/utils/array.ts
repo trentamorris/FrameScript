@@ -26,10 +26,10 @@ export function toValidArray<T>(val: T | T[] | null | undefined): T[] {
     return [val];
 }
 
-export function getArrayElement(arr: any[] | AnyTypedArray, index: number, null_on_oob: boolean): any {
+export function getArrayElement(arr: any[] | AnyTypedArray, index: number, nullOnOob: boolean): any {
     const len = arr.length;
     const isOob = index < -len || index >= len;
-    if (isOob && !null_on_oob) {
+    if (isOob && !nullOnOob) {
         throw new ComputeError(`Index ${index} is out of bounds for array of length ${len}`);
     }
     return isOob ? null : (arr.at(index) ?? null);
@@ -468,7 +468,7 @@ export interface StepSliceArrayOptions {
      * If false, throws an error when the starting offset is out of bounds.
      * @default true
      */
-    null_on_oob?: boolean;
+    nullOnOob?: boolean;
 }
 
 export function stepSliceArray<T>(
@@ -478,7 +478,7 @@ export function stepSliceArray<T>(
         offsetStart = 0,
         offsetEnd,
         maxItemsGathered,
-        null_on_oob = true
+        nullOnOob = true
     }: StepSliceArrayOptions = {}
 ): T[] | null {
     if (arr == null) {
@@ -497,7 +497,7 @@ export function stepSliceArray<T>(
         : (offsetStart >= len || offsetStart < -len);
 
     if (isOob) {
-        if (!null_on_oob) {
+        if (!nullOnOob) {
             throw new ComputeError(`Start offset ${offsetStart} is out of bounds for array of length ${len}`);
         }
         return null;

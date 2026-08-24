@@ -59,15 +59,16 @@ export class ComparisonExpr extends ExprBase {
      * @param closed Control boundary inclusivity: "both", "left", "right", or "none" (default: "both").
      * @returns ColumnExpression
      * @example
+     * <!-- doc:base_numbers_3x2 -->
      * >>> df.withColumns($df.col("a").between(1, 2).alias("in_range"))
      * shape: (3, 3)
-     * ┌───┬───┬──────────┐
-     * │ a │ b │ in_range │
-     * ├───┼───┼──────────┤
-     * │ 1 │ x │ true     │
-     * │ 2 │ y │ true     │
-     * │ 3 │ z │ false    │
-     * └───┴───┴──────────┘
+     * ┌───┬────┬──────────┐
+     * │ a │ b  │ in_range │
+     * ├───┼────┼──────────┤
+     * │ 1 │ 10 │ true     │
+     * │ 2 │ 20 │ true     │
+     * │ 3 │ 30 │ false    │
+     * └───┴────┴──────────┘
      */
     between(lower: any, upper: any, closed: "both" | "left" | "right" | "none" = "both") {
         const isLeftClosed = closed === "both" || closed === "left";
@@ -84,18 +85,7 @@ export class ComparisonExpr extends ExprBase {
      * @param val The value or column expression to compare against.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({
-     * ...   a: [1, 2, 3]
-     * ... })
-     * shape: (3, 1)
-     * ┌───┐
-     * │ a │
-     * ├───┤
-     * │ 1 │
-     * │ 2 │
-     * │ 3 │
-     * └───┘
-     * 
+     * <!-- doc:base_numbers_3x1 -->
      * >>> df.withColumns($df.col("a").eq(2).alias("is_two"))
      * shape: (3, 2)
      * ┌───┬────────┐
@@ -115,7 +105,7 @@ export class ComparisonExpr extends ExprBase {
      * @param val The value or column expression to compare against.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [1, null, 3] })
+     * <!-- doc:base_nulls_3x2 -->
      * >>> df.withColumns($df.col("a").eqMissing(null).alias("is_missing"))
      * shape: (3, 2)
      * ┌──────┬────────────┐
@@ -138,16 +128,16 @@ export class ComparisonExpr extends ExprBase {
      * @param val The value or column expression to compare against.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ price: [90, 100, 110] })
-     * >>> df.withColumns($df.col("price").ge(100).alias("ge_100"))
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("a").ge(2).alias("ge_two"))
      * shape: (3, 2)
-     * ┌───────┬────────┐
-     * │ price │ ge_100 │
-     * ├───────┼────────┤
-     * │ 90    │ false  │
-     * │ 100   │ true   │
-     * │ 110   │ true   │
-     * └───────┴────────┘
+     * ┌───┬────────┐
+     * │ a │ ge_two │
+     * ├───┼────────┤
+     * │ 1 │ false  │
+     * │ 2 │ true   │
+     * │ 3 │ true   │
+     * └───┴────────┘
      */
     ge(val: any) {
         return derive(this, kleeneBinary(this, val, (v, r) => v >= r));
@@ -158,16 +148,16 @@ export class ComparisonExpr extends ExprBase {
      * @param val The value or column expression to compare against.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ price: [90, 100, 110] })
-     * >>> df.withColumns($df.col("price").gt(100).alias("gt_100"))
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("a").gt(2).alias("gt_two"))
      * shape: (3, 2)
-     * ┌───────┬────────┐
-     * │ price │ gt_100 │
-     * ├───────┼────────┤
-     * │ 90    │ false  │
-     * │ 100   │ false  │
-     * │ 110   │ true   │
-     * └───────┴────────┘
+     * ┌───┬────────┐
+     * │ a │ gt_two │
+     * ├───┼────────┤
+     * │ 1 │ false  │
+     * │ 2 │ false  │
+     * │ 3 │ true   │
+     * └───┴────────┘
      */
     gt(val: any) {
         return derive(this, kleeneBinary(this, val, (v, r) => v > r));
@@ -177,14 +167,14 @@ export class ComparisonExpr extends ExprBase {
      * Aggregation: Checks if any value in the group is null.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ group: ["A", "A"], val: [10, null] })
-     * >>> df.groupBy("group").agg($df.col("val").hasNulls().alias("hasNulls"))
-     * shape: (1, 2)
-     * ┌───────┬───────────┐
-     * │ group │ hasNulls │
-     * ├───────┼───────────┤
-     * │ "A"   │ true      │
-     * └───────┴───────────┘
+     * <!-- doc:base_nulls_3x2 -->
+     * >>> df.select($df.col("a").hasNulls().alias("has_nulls"))
+     * shape: (1, 1)
+     * ┌───────────┐
+     * │ has_nulls │
+     * ├───────────┤
+     * │ true      │
+     * └───────────┘
      */
     hasNulls() {
         return (this as any).anyNull();
@@ -196,15 +186,16 @@ export class ComparisonExpr extends ExprBase {
      * @param options Tolerance values absolute (absTol) and relative (relTol), and NaN options.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [1.000000001, 2.0] })
+     * <!-- doc:base_numbers_3x1 -->
      * >>> df.withColumns($df.col("a").isClose(1.0).alias("close"))
-     * shape: (2, 2)
-     * ┌─────────────┬───────┐
-     * │ a           │ close │
-     * ├─────────────┼───────┤
-     * │ 1.000000001 │ true  │
-     * │ 2.0         │ false │
-     * └─────────────┴───────┘
+     * shape: (3, 2)
+     * ┌───┬───────┐
+     * │ a │ close │
+     * ├───┼───────┤
+     * │ 1 │ true  │
+     * │ 2 │ false │
+     * │ 3 │ false │
+     * └───┴───────┘
      */
     isClose(
         other: any,
@@ -246,15 +237,15 @@ export class ComparisonExpr extends ExprBase {
      * Checks if values occur more than once in the column.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [1, 2, 2] })
+     * <!-- doc:base_numbers_3x1 -->
      * >>> df.withColumns($df.col("a").isDuplicated().alias("dup"))
      * shape: (3, 2)
      * ┌───┬───────┐
      * │ a │ dup   │
      * ├───┼───────┤
      * │ 1 │ false │
-     * │ 2 │ true  │
-     * │ 2 │ true  │
+     * │ 2 │ false │
+     * │ 3 │ false │
      * └───┴───────┘
      */
     isDuplicated() {
@@ -274,16 +265,15 @@ export class ComparisonExpr extends ExprBase {
      * @param options Config options including whether to ignore nulls inside arrays.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: ["", "hello", []] })
-     * >>> df.withColumns($df.col("a").isEmpty().alias("empty"))
-     * shape: (3, 2)
-     * ┌─────────┬───────┐
-     * │ a       │ empty │
-     * ├─────────┼───────┤
-     * │ ""      │ true  │
-     * │ "hello" │ false │
-     * │ []      │ true  │
-     * └─────────┴───────┘
+     * <!-- doc:base_strings_3x1 -->
+     * >>> df.withColumns($df.col("s").isEmpty().alias("empty"))
+     * shape: (2, 2)
+     * ┌─────────────┬───────┐
+     * │ s           │ empty │
+     * ├─────────────┼───────┤
+     * │ "  hello  " │ false │
+     * │ "  world  " │ false │
+     * └─────────────┴───────┘
      */
     isEmpty({ ignoreNulls = false }: { ignoreNulls?: boolean } = {}) {
         return derive(this, kleeneUnary((v) => {
@@ -304,16 +294,16 @@ export class ComparisonExpr extends ExprBase {
      * Checks if values are finite numbers (not NaN or Infinity).
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [1.5, Infinity, NaN] })
+     * <!-- doc:base_numbers_3x1 -->
      * >>> df.withColumns($df.col("a").isFinite().alias("finite"))
      * shape: (3, 2)
-     * ┌──────────┬────────┐
-     * │ a        │ finite │
-     * ├──────────┼────────┤
-     * │ 1.5      │ true   │
-     * │ Infinity │ false  │
-     * │ NaN      │ false  │
-     * └──────────┴────────┘
+     * ┌───┬────────┐
+     * │ a │ finite │
+     * ├───┼────────┤
+     * │ 1 │ true   │
+     * │ 2 │ true   │
+     * │ 3 │ true   │
+     * └───┴────────┘
      */
     isFinite() {
         return derive(this, kleeneUnary(Number.isFinite));
@@ -325,15 +315,15 @@ export class ComparisonExpr extends ExprBase {
      * @param values An array of candidate values or a single value to match against.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ category: ["toys", "books", "food"] })
-     * >>> df.withColumns($df.col("category").isIn(["toys", "books"]).alias("in_list"))
+     * <!-- doc:base_strings_3x1 -->
+     * >>> df.withColumns($df.col("s").isIn(["apple", "banana"]).alias("in_list"))
      * shape: (3, 2)
      * ┌──────────┬─────────┐
-     * │ category │ in_list │
+     * │ s        │ in_list │
      * ├──────────┼─────────┤
-     * │ "toys"   │ true    │
-     * │ "books"  │ true    │
-     * │ "food"   │ false   │
+     * │ "apple"  │ true    │
+     * │ "banana" │ true    │
+     * │ "cherry" │ false   │
      * └──────────┴─────────┘
      */
     isIn(values: any[] | any) {
@@ -344,16 +334,16 @@ export class ComparisonExpr extends ExprBase {
      * Checks if values are positive or negative Infinity.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [1.5, Infinity, -Infinity] })
+     * <!-- doc:base_numbers_3x1 -->
      * >>> df.withColumns($df.col("a").isInfinite().alias("inf"))
      * shape: (3, 2)
-     * ┌───────────┬───────┐
-     * │ a         │ inf   │
-     * ├───────────┼───────┤
-     * │ 1.5       │ false │
-     * │ Infinity  │ true  │
-     * │ -Infinity │ true  │
-     * └───────────┴───────┘
+     * ┌───┬───────┐
+     * │ a │ inf   │
+     * ├───┼───────┤
+     * │ 1 │ false │
+     * │ 2 │ false │
+     * │ 3 │ false │
+     * └───┴───────┘
      */
     isInfinite() {
         return derive(this, kleeneUnary((v) => v === Infinity || v === -Infinity));
@@ -364,15 +354,16 @@ export class ComparisonExpr extends ExprBase {
      * Checks if values are NaN.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [1.5, NaN] })
+     * <!-- doc:base_numbers_3x1 -->
      * >>> df.withColumns($df.col("a").isNan().alias("nan"))
-     * shape: (2, 2)
-     * ┌─────┬───────┐
-     * │ a   │ nan   │
-     * ├─────┼───────┤
-     * │ 1.5 │ false │
-     * │ NaN │ true  │
-     * └─────┴───────┘
+     * shape: (3, 2)
+     * ┌───┬───────┐
+     * │ a │ nan   │
+     * ├───┼───────┤
+     * │ 1 │ false │
+     * │ 2 │ false │
+     * │ 3 │ false │
+     * └───┴───────┘
      */
     isNan() {
         return derive(this, kleeneUnary(Number.isNaN));
@@ -382,15 +373,16 @@ export class ComparisonExpr extends ExprBase {
      * Checks if values are not NaN.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [1.5, NaN] })
+     * <!-- doc:base_numbers_3x1 -->
      * >>> df.withColumns($df.col("a").isNotNan().alias("not_nan"))
-     * shape: (2, 2)
-     * ┌─────┬─────────┐
-     * │ a   │ not_nan │
-     * ├─────┼─────────┤
-     * │ 1.5 │ true    │
-     * │ NaN │ false   │
-     * └─────┴─────────┘
+     * shape: (3, 2)
+     * ┌───┬─────────┐
+     * │ a │ not_nan │
+     * ├───┼─────────┤
+     * │ 1 │ true    │
+     * │ 2 │ true    │
+     * │ 3 │ true    │
+     * └───┴─────────┘
      */
     isNotNan() {
         return (this as any).isNan().not();
@@ -400,15 +392,16 @@ export class ComparisonExpr extends ExprBase {
      * Checks if column values are non-null and valid (not null, undefined, or missing).
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ email: ["alice@example.com", null] })
-     * >>> df.withColumns($df.col("email").isNotNull().alias("valid"))
-     * shape: (2, 2)
-     * ┌───────────────────┬───────┐
-     * │ email             │ valid │
-     * ├───────────────────┼───────┤
-     * │ alice@example.com │ true  │
-     * │ null              │ false │
-     * └───────────────────┴───────┘
+     * <!-- doc:base_nulls_3x2 -->
+     * >>> df.withColumns($df.col("a").isNotNull().alias("valid"))
+     * shape: (3, 2)
+     * ┌──────┬───────┐
+     * │ a    │ valid │
+     * ├──────┼───────┤
+     * │ 1    │ true  │
+     * │ null │ false │
+     * │ 3    │ true  │
+     * └──────┴───────┘
      */
     isNotNull() {
         return (this as any).isNull().not();
@@ -418,15 +411,16 @@ export class ComparisonExpr extends ExprBase {
      * Checks if column values are null, undefined, or missing.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ email: ["alice@example.com", null] })
-     * >>> df.withColumns($df.col("email").isNull().alias("missing"))
-     * shape: (2, 2)
-     * ┌───────────────────┬─────────┐
-     * │ email             │ missing │
-     * ├───────────────────┼─────────┤
-     * │ alice@example.com │ false   │
-     * │ null              │ true    │
-     * └───────────────────┴─────────┘
+     * <!-- doc:base_nulls_3x2 -->
+     * >>> df.withColumns($df.col("a").isNull().alias("missing"))
+     * shape: (3, 2)
+     * ┌──────┬─────────┐
+     * │ a    │ missing │
+     * ├──────┼─────────┤
+     * │ 1    │ false   │
+     * │ null │ true    │
+     * │ 3    │ false   │
+     * └──────┴─────────┘
      */
     isNull() {
         return this.eqMissing(null);
@@ -436,16 +430,16 @@ export class ComparisonExpr extends ExprBase {
      * Checks if values occur exactly once in the column.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [1, 2, 2] })
+     * <!-- doc:base_numbers_3x1 -->
      * >>> df.withColumns($df.col("a").isUnique().alias("uniq"))
      * shape: (3, 2)
-     * ┌───┬───────┐
-     * │ a │ uniq  │
-     * ├───┼───────┤
-     * │ 1 │ true  │
-     * │ 2 │ false │
-     * │ 2 │ false │
-     * └───┴───────┘
+     * ┌───┬──────┐
+     * │ a │ uniq │
+     * ├───┼──────┤
+     * │ 1 │ true │
+     * │ 2 │ true │
+     * │ 3 │ true │
+     * └───┴──────┘
      */
     isUnique() {
         return (this as any).isDuplicated().not();
@@ -456,16 +450,16 @@ export class ComparisonExpr extends ExprBase {
      * @param val The value or column expression to compare against.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ price: [40, 50, 60] })
-     * >>> df.withColumns($df.col("price").le(50).alias("le_50"))
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("a").le(2).alias("le_two"))
      * shape: (3, 2)
-     * ┌───────┬───────┐
-     * │ price │ le_50 │
-     * ├───────┼───────┤
-     * │ 40    │ true  │
-     * │ 50    │ true  │
-     * │ 60    │ false │
-     * └───────┴───────┘
+     * ┌───┬────────┐
+     * │ a │ le_two │
+     * ├───┼────────┤
+     * │ 1 │ true   │
+     * │ 2 │ true   │
+     * │ 3 │ false  │
+     * └───┴────────┘
      */
     le(val: any) {
         return derive(this, kleeneBinary(this, val, (v, r) => v <= r));
@@ -476,16 +470,16 @@ export class ComparisonExpr extends ExprBase {
      * @param val The value or column expression to compare against.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ price: [40, 50, 60] })
-     * >>> df.withColumns($df.col("price").lt(50).alias("lt_50"))
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("a").lt(2).alias("lt_two"))
      * shape: (3, 2)
-     * ┌───────┬───────┐
-     * │ price │ lt_50 │
-     * ├───────┼───────┤
-     * │ 40    │ true  │
-     * │ 50    │ false │
-     * │ 60    │ false │
-     * └───────┴───────┘
+     * ┌───┬────────┐
+     * │ a │ lt_two │
+     * ├───┼────────┤
+     * │ 1 │ true   │
+     * │ 2 │ false  │
+     * │ 3 │ false  │
+     * └───┴────────┘
      */
     lt(val: any) {
         return derive(this, kleeneBinary(this, val, (v, r) => v < r));
@@ -496,15 +490,16 @@ export class ComparisonExpr extends ExprBase {
      * @param val The value or column expression to compare against.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ category: ["electronics", "toys"] })
-     * >>> df.withColumns($df.col("category").ne("electronics").alias("not_elec"))
-     * shape: (2, 2)
-     * ┌─────────────┬──────────┐
-     * │ category    │ not_elec │
-     * ├─────────────┼──────────┤
-     * │ electronics │ false    │
-     * │ toys        │ true     │
-     * └─────────────┴──────────┘
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("a").ne(2).alias("not_two"))
+     * shape: (3, 2)
+     * ┌───┬─────────┐
+     * │ a │ not_two │
+     * ├───┼─────────┤
+     * │ 1 │ true    │
+     * │ 2 │ false   │
+     * │ 3 │ true    │
+     * └───┴─────────┘
      */
     ne(val: any) {
         return derive(this, kleeneBinary(this, val, (v, r) => v !== r));
@@ -515,7 +510,7 @@ export class ComparisonExpr extends ExprBase {
      * @param val The value or column expression to compare against.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [1, null, 3] })
+     * <!-- doc:base_nulls_3x2 -->
      * >>> df.withColumns($df.col("a").neMissing(null).alias("not_missing"))
      * shape: (3, 2)
      * ┌──────┬─────────────┐
@@ -535,15 +530,15 @@ export class ComparisonExpr extends ExprBase {
      * @param values An array of candidate values or a single value to match against.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ category: ["toys", "books", "food"] })
-     * >>> df.withColumns($df.col("category").notIn(["toys", "books"]).alias("notIn"))
+     * <!-- doc:base_strings_3x1 -->
+     * >>> df.withColumns($df.col("s").notIn(["apple", "banana"]).alias("not_in"))
      * shape: (3, 2)
      * ┌──────────┬────────┐
-     * │ category │ notIn │
+     * │ s        │ not_in │
      * ├──────────┼────────┤
-     * │ toys     │ false  │
-     * │ books    │ false  │
-     * │ food     │ true   │
+     * │ "apple"  │ false  │
+     * │ "banana" │ false  │
+     * │ "cherry" │ true   │
      * └──────────┴────────┘
      */
     notIn(values: any[] | any) {

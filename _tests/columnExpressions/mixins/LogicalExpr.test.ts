@@ -160,9 +160,9 @@ try {
         $df.col("name").hasNulls().alias("name_has_nulls"),
         $df.col("id").hasNulls().alias("id_has_nulls"),
 
-        // n_unique checks
-        $df.col("duplicates").n_unique().eq(3).alias("dup_distinct_3"),
-        $df.col("duplicates").n_unique().eq(4).alias("dup_distinct_4")
+        // nUnique checks
+        $df.col("duplicates").nUnique().eq(3).alias("dup_distinct_3"),
+        $df.col("duplicates").nUnique().eq(4).alias("dup_distinct_4")
     ]).toDicts() as any[];
 
     console.log("Boolean aggregations results:");
@@ -281,16 +281,16 @@ try {
     if (edgeResults[0].list_empty_ignore_nulls !== true) throw new Error("list_empty_ignore_nulls index 0 failed");
     if (edgeResults[1].list_empty_ignore_nulls !== false) throw new Error("list_empty_ignore_nulls index 1 failed");
     if (edgeResults[2].list_empty_ignore_nulls !== true) throw new Error("list_empty_ignore_nulls index 2 failed");
-    // n_unique checks (default is standard reference checks)
+    // nUnique checks (default is standard reference checks)
     const distinctResults = edgeDf.select([
-        $df.col("dateVal").n_unique().alias("date_distinct_default"),
-        $df.col("binaryVal").n_unique().alias("binary_distinct_default"),
-        $df.col("numVal").n_unique().alias("num_distinct_default"),
-        $df.col("nullVal").n_unique().alias("null_distinct_default"),
+        $df.col("dateVal").nUnique().alias("date_distinct_default"),
+        $df.col("binaryVal").nUnique().alias("binary_distinct_default"),
+        $df.col("numVal").nUnique().alias("num_distinct_default"),
+        $df.col("nullVal").nUnique().alias("null_distinct_default"),
 
-        // n_unique in strict mode (robust value checks)
-        $df.col("dateVal").n_unique({ strict: true }).eq(2).alias("date_distinct_strict"),
-        $df.col("binaryVal").n_unique({ strict: true }).eq(2).alias("binary_distinct_strict")
+        // nUnique in strict mode (robust value checks)
+        $df.col("dateVal").nUnique({ strict: true }).eq(2).alias("date_distinct_strict"),
+        $df.col("binaryVal").nUnique({ strict: true }).eq(2).alias("binary_distinct_strict")
     ]).toDicts() as any[];
 
     // In default mode, unique Date instances and TypedArray instances are counted separately (identity checks)

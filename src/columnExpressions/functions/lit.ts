@@ -16,15 +16,7 @@ export type LitOptions = Pick<SeqRangeOptions, "dtype" | "name">;
  * @category ColumnExpression
  * @syntax $df.{symbol}(...)
  * @example
- * >>> const df = $df.data({ a: [1, 2] })
- * >>> df
- * shape: (2, 1)
- * ┌───┐
- * │ a │
- * ├───┤
- * │ 1 │
- * │ 2 │
- * └───┘
+ * <!-- doc:base_2x2 -->
  * >>> df.select($df.lit(42).alias("answer"))
  * shape: (2, 1)
  * ┌────────┐

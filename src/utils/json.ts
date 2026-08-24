@@ -495,7 +495,7 @@ export function evaluateJsonToken(item: any, tok: JsonToken, next: any[]): void 
                 step,
                 offsetStart: start,
                 offsetEnd: tok.end,
-                null_on_oob: true
+                nullOnOob: true
             });
             if (sliced) {
                 for (let i = 0; i < sliced.length; i++) next.push(sliced[i]);

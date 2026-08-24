@@ -11,22 +11,14 @@ import { ELEMENT_MARKER } from "../constants";
  * @category ColumnExpression
  * @syntax $df.{symbol}(...)
  * @example
- * >>> const df = $df.data({ a: [[1, 5, 10], [2, 8]] })
- * >>> df
- * shape: (2, 1)
- * ┌────────────┐
- * │ a          │
- * ├────────────┤
- * │ [1, 5, 10] │
- * │ [2, 8]     │
- * └────────────┘
- * >>> df.select($df.col("a").arr.filter($df.element().gt(5)).alias("filtered"))
+ * <!-- doc:base_array_nested_2rows -->
+ * >>> df.select($df.col("a").arr.filter($df.element().gt(2)).alias("filtered"))
  * shape: (2, 1)
  * ┌──────────┐
  * │ filtered │
  * ├──────────┤
- * │ [10]     │
- * │ [8]      │
+ * │ [3]      │
+ * │ [4, 5]   │
  * └──────────┘
  */
 export function element<T = any>(): ColumnExpr<T> {

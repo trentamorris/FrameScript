@@ -44,8 +44,8 @@ try {
         $df.col("date_str").dt.day().alias("day"),
         $df.col("date_str").dt.daysInMonth().alias("daysInMonth"),
         $df.col("date_str").dt.weekday().alias("weekday"),
-        $df.col("date_str").dt.is_leap_year().alias("is_leap"),
-        $df.col("date_str").dt.ordinal_day().alias("ordinal"),
+        $df.col("date_str").dt.isLeapYear().alias("is_leap"),
+        $df.col("date_str").dt.ordinalDay().alias("ordinal"),
         $df.col("date_str").dt.quarter().alias("quarter"),
 
         // Time component checks on datetime
@@ -77,17 +77,17 @@ try {
 
         // New Polars operations
         $df.col("date_str").dt.week().alias("week"),
-        $df.col("date_str").dt.iso_week().alias("iso_week"),
+        $df.col("date_str").dt.isoWeek().alias("iso_week"),
         $df.col("date_str").dt.century().alias("century"),
         $df.col("date_str").dt.millennium().alias("millennium"),
-        $df.col("date_str").dt.month_start().alias("m_start"),
-        $df.col("date_str").dt.month_end().alias("m_end"),
+        $df.col("date_str").dt.monthStart().alias("m_start"),
+        $df.col("date_str").dt.monthEnd().alias("m_end"),
         $df.col("datetime_str").dt.strftime({ format: "%Y/%m/%d %H:%M:%S.%ms" }).alias("formatted_str"),
         $df.col("datetime_str").dt.strftime({ format: "%F %T %% %A %B %j %I:%M %p", locale: "en-US" }).alias("formatted_shorthands"),
         $df.col("datetime_str").dt.strftime({ format: "%A %B", locale: "fr-FR" }).alias("formatted_fr"),
         $df.col("datetime_str").dt.strftime({ format: "%A %B", locale: "de-DE" }).alias("formatted_de"),
         $df.col("datetime_str").dt.strftime({ format: "%Y-%m-%d" }).alias("to_str_formatted"),
-        $df.col("date_str").dt.iso_year().alias("iso_yr"),
+        $df.col("date_str").dt.isoYear().alias("iso_yr"),
         $df.col("date_str").dt.isBusinessDay().alias("is_biz"),
         $df.col("date_str").dt.isBusinessDay({ holidays: ["2024-02-29"] }).alias("is_biz_holiday")
     ]).toDicts() as any[];
@@ -317,15 +317,15 @@ try {
     const dfTz = $df.data(tzData, { date: $df.DataType.Date });
 
     const projectedTz = dfTz.select([
-        $df.col("date").dt.utc_offset("Pacific/Apia", { type: "base" }).alias("samoa_base"),
-        $df.col("date").dt.utc_offset("America/New_York", { type: "base" }).alias("ny_base"),
-        $df.col("date").dt.utc_offset("America/New_York", { type: "total" }).alias("ny_dst"),
-        $df.col("date").dt.utc_offset("America/New_York", { type: "daylightSavingTime" }).alias("ny_dst_only"),
-        $df.col("date").dt.utc_offset("America/New_York", { type: "total", format: "iso" }).alias("ny_dst_iso"),
-        $df.col("date").dt.utc_offset("America/New_York", { type: "total", format: "basic" }).alias("ny_dst_basic"),
-        $df.col("date").dt.utc_offset("America/New_York", { type: "total", format: "minutes" }).alias("ny_dst_min"),
-        $df.col("date").dt.utc_offset("America/New_York", { type: "total", format: "hours" }).alias("ny_dst_hr"),
-        $df.col("date").dt.utc_offset("America/New_York").alias("ny_no_opts")
+        $df.col("date").dt.utcOffset("Pacific/Apia", { type: "base" }).alias("samoa_base"),
+        $df.col("date").dt.utcOffset("America/New_York", { type: "base" }).alias("ny_base"),
+        $df.col("date").dt.utcOffset("America/New_York", { type: "total" }).alias("ny_dst"),
+        $df.col("date").dt.utcOffset("America/New_York", { type: "daylightSavingTime" }).alias("ny_dst_only"),
+        $df.col("date").dt.utcOffset("America/New_York", { type: "total", format: "iso" }).alias("ny_dst_iso"),
+        $df.col("date").dt.utcOffset("America/New_York", { type: "total", format: "basic" }).alias("ny_dst_basic"),
+        $df.col("date").dt.utcOffset("America/New_York", { type: "total", format: "minutes" }).alias("ny_dst_min"),
+        $df.col("date").dt.utcOffset("America/New_York", { type: "total", format: "hours" }).alias("ny_dst_hr"),
+        $df.col("date").dt.utcOffset("America/New_York").alias("ny_no_opts")
     ]).toDicts() as any[];
 
     // Samoa before shift (Dec 29, 2011) base offset = -11 hours
@@ -566,8 +566,8 @@ try {
     }, { date: $df.DataType.Datetime });
 
     const leapRes = dfLeapTest.select([
-        $df.col("date").dt.is_leap_year().alias("leap_utc"),
-        $df.col("date").dt.is_leap_year("America/New_York").alias("leap_ny")
+        $df.col("date").dt.isLeapYear().alias("leap_utc"),
+        $df.col("date").dt.isLeapYear("America/New_York").alias("leap_ny")
     ]).toDicts() as any[];
 
     if (leapRes[0].leap_utc !== true) throw new Error("Year 2000 should be leap year (divisible by 400)");

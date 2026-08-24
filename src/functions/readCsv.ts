@@ -15,6 +15,16 @@ import { parseCSV, inferAndCoerceCSVColumn } from "../utils";
  * @param [options.schema] Optional column schema to coerce types.
  * @param [options.inferSchema] When `true` (default), automatically infers column types.
  * @returns DataFrame
+ * @example
+ * <!-- doc:base_2x2 -->
+ * >>> $df.readCsv("a,b\n1,x\n2,y")
+ * shape: (2, 2)
+ * ┌───┬───┐
+ * │ a │ b │
+ * ├───┼───┤
+ * │ 1 │ x │
+ * │ 2 │ y │
+ * └───┴───┘
  */
 export function readCsv<T extends RowRecord = any>(
     content: string,

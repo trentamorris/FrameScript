@@ -33,9 +33,9 @@ try {
     if (r2[0].a_val !== 1 || r2[0].b_val !== "foo") throw new Error("r2 row 0 mismatch");
     if (r2[2].a_val !== null || r2[2].b_val !== null) throw new Error("r2 row 2 mismatch");
 
-    // 3. rename_fields
+    // 3. renameFields
     const r3 = df.select([
-        $df.col("s").struct.rename_fields({ a: "a_new", b: "b_new" }).alias("renamed")
+        $df.col("s").struct.renameFields({ a: "a_new", b: "b_new" }).alias("renamed")
     ]).toDicts() as any[];
 
     if (r3[0].renamed.a_new !== 1 || r3[0].renamed.b_new !== "foo" || "a" in r3[0].renamed) {
@@ -43,9 +43,9 @@ try {
     }
     if (r3[2].renamed !== null) throw new Error("r3 row 2 mismatch");
 
-    // 4. with_fields with array of aliased expressions
+    // 4. withFields with array of aliased expressions
     const r4 = df.select([
-        $df.col("s").struct.with_fields([
+        $df.col("s").struct.withFields([
             $df.lit(100).alias("c"),
             $df.col("s").struct.a.mul(10).alias("a")
         ]).alias("updated")
@@ -56,9 +56,9 @@ try {
     }
     if (r4[2].updated !== null) throw new Error("r4 row 2 mismatch");
 
-    // 5. with_fields with Record object
+    // 5. withFields with Record object
     const r5 = df.select([
-        $df.col("s").struct.with_fields({
+        $df.col("s").struct.withFields({
             c: $df.lit(200),
             a: $df.col("s").struct.a.mul(20)
         }).alias("updated")

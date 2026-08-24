@@ -10,23 +10,15 @@ import { ALL_COLUMNS_MARKER } from "../constants";
  * @category ColumnExpression
  * @syntax $df.{symbol}(...)
  * @example
- * >>> const df = $df.data({ id: [101, 102], val: [10, 20] })
- * >>> df
- * shape: (2, 2)
- * ┌─────┬─────┐
- * │ id  │ val │
- * ├─────┼─────┤
- * │ 101 │ 10  │
- * │ 102 │ 20  │
- * └─────┴─────┘
- * >>> df.select($df.exclude("id"))
+ * <!-- doc:base_2x2 -->
+ * >>> df.select($df.exclude("a"))
  * shape: (2, 1)
- * ┌─────┐
- * │ val │
- * ├─────┤
- * │ 10  │
- * │ 20  │
- * └─────┘
+ * ┌───┐
+ * │ b │
+ * ├───┤
+ * │ x │
+ * │ y │
+ * └───┘
  */
 export function exclude(columns: string | string[]): ColumnExpr<any> {
     const expr = new ColumnExpr(ALL_COLUMNS_MARKER);

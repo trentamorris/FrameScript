@@ -712,14 +712,14 @@ try {
 
     // 18e. EscapeRegexOptions Mode Tests
     if (escapeRegExp("hello world!", { mode: "tc39" }) !== "hello world\\!") throw new Error("escapeRegExp({ mode: 'tc39' }) failed");
-    if (escapeRegExp("hello world!", { mode: "non_alphanumeric_ascii" }) !== "hello\\ world\\!") throw new Error("escapeRegExp({ mode: 'non_alphanumeric_ascii' }) failed");
+    if (escapeRegExp("hello world!", { mode: "nonAlphanumericAscii" }) !== "hello\\ world\\!") throw new Error("escapeRegExp({ mode: 'nonAlphanumericAscii' }) failed");
     if (escapeRegExp("hello world!") !== "hello world\\!") throw new Error("escapeRegExp default mode failed");
 
     // Exhaustive Non-Alphanumeric ASCII Mode test
     const asciiChars = ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
-    const escapedAscii = escapeRegExp(asciiChars, { mode: "non_alphanumeric_ascii" });
+    const escapedAscii = escapeRegExp(asciiChars, { mode: "nonAlphanumericAscii" });
     const expectedNonAlpha = '\\ \\!\\\"\\#\\$\\%\\&\\\'\\(\\)\\*\\+\\,\\-\\.\\/0123456789\\:\\;\\<\\=\\>\\?\\@ABCDEFGHIJKLMNOPQRSTUVWXYZ\\[\\\\\\]\\^\\_\\`abcdefghijklmnopqrstuvwxyz\\{\\|\\}\\~';
-    if (escapedAscii !== expectedNonAlpha) throw new Error(`escapeRegExp non_alphanumeric_ascii exhaustive failed. Got: '${escapedAscii}'`);
+    if (escapedAscii !== expectedNonAlpha) throw new Error(`escapeRegExp nonAlphanumericAscii exhaustive failed. Got: '${escapedAscii}'`);
 
     // 18f. Dynamic Functional RegExp Matching & Replacement Roundtrip Tests
     const testCases = [
@@ -775,18 +775,18 @@ try {
         if (!reg.test(ch)) throw new Error(`escapeRegExp control char roundtrip failed for \\x${ch.charCodeAt(0).toString(16).padStart(2, "0")}: escaped='${escaped}'`);
     }
 
-    // 18i. non_alphanumeric_ascii mode — control chars produce \\xHH (not raw chars or \\0)
-    if (escapeRegExp("\x00", { mode: "non_alphanumeric_ascii" }) !== "\\x00") throw new Error("escapeRegExp non_alphanumeric_ascii \\x00 failed");
-    if (escapeRegExp("\x01", { mode: "non_alphanumeric_ascii" }) !== "\\x01") throw new Error("escapeRegExp non_alphanumeric_ascii \\x01 failed");
-    if (escapeRegExp("\t\n", { mode: "non_alphanumeric_ascii" }) !== "\\t\\n") throw new Error("escapeRegExp non_alphanumeric_ascii named controls failed");
-    if (escapeRegExp("\x7f", { mode: "non_alphanumeric_ascii" }) !== "\\x7f") throw new Error("escapeRegExp non_alphanumeric_ascii \\x7f failed");
+    // 18i. nonAlphanumericAscii mode — control chars produce \\xHH (not raw chars or \\0)
+    if (escapeRegExp("\x00", { mode: "nonAlphanumericAscii" }) !== "\\x00") throw new Error("escapeRegExp nonAlphanumericAscii \\x00 failed");
+    if (escapeRegExp("\x01", { mode: "nonAlphanumericAscii" }) !== "\\x01") throw new Error("escapeRegExp nonAlphanumericAscii \\x01 failed");
+    if (escapeRegExp("\t\n", { mode: "nonAlphanumericAscii" }) !== "\\t\\n") throw new Error("escapeRegExp nonAlphanumericAscii named controls failed");
+    if (escapeRegExp("\x7f", { mode: "nonAlphanumericAscii" }) !== "\\x7f") throw new Error("escapeRegExp nonAlphanumericAscii \\x7f failed");
 
-    // 18j. non_alphanumeric_ascii mode — Unicode ≥ \u0080 must pass through unescaped to prevent identity escape errors
-    if (escapeRegExp("éñ", { mode: "non_alphanumeric_ascii" }) !== "éñ") throw new Error("escapeRegExp non_alphanumeric_ascii Latin-1 ext passthrough failed");
-    if (escapeRegExp("日本語", { mode: "non_alphanumeric_ascii" }) !== "日本語") throw new Error("escapeRegExp non_alphanumeric_ascii CJK passthrough failed");
-    if (escapeRegExp("👾", { mode: "non_alphanumeric_ascii" }) !== "👾") throw new Error("escapeRegExp non_alphanumeric_ascii emoji passthrough failed");
+    // 18j. nonAlphanumericAscii mode — Unicode ≥ \u0080 must pass through unescaped to prevent identity escape errors
+    if (escapeRegExp("éñ", { mode: "nonAlphanumericAscii" }) !== "éñ") throw new Error("escapeRegExp nonAlphanumericAscii Latin-1 ext passthrough failed");
+    if (escapeRegExp("日本語", { mode: "nonAlphanumericAscii" }) !== "日本語") throw new Error("escapeRegExp nonAlphanumericAscii CJK passthrough failed");
+    if (escapeRegExp("👾", { mode: "nonAlphanumericAscii" }) !== "👾") throw new Error("escapeRegExp nonAlphanumericAscii emoji passthrough failed");
     const nonAsciiTestStr = "Price $10 😀 & 50%";
-    const escapedNonAlpha = escapeRegExp(nonAsciiTestStr, { mode: "non_alphanumeric_ascii" });
+    const escapedNonAlpha = escapeRegExp(nonAsciiTestStr, { mode: "nonAlphanumericAscii" });
     if (escapedNonAlpha !== "Price\\ \\$10\\ 😀\\ \\&\\ 50\\%") throw new Error(`escapeRegExp identity escape protection failed: '${escapedNonAlpha}'`);
     const legacyReg = new RegExp("^" + escapedNonAlpha + "$");
     if (!legacyReg.test(nonAsciiTestStr)) throw new Error("escapeRegExp legacy non-unicode RegExp roundtrip failed");
@@ -798,8 +798,8 @@ try {
     if (escapeRegExp("\uD83D\uDE00") !== "\uD83D\uDE00") throw new Error("escapeRegExp surrogate pair handling failed");
     if (escapeRegExp("\uD800\uD800") !== "\\ud800\\ud800") throw new Error("escapeRegExp consecutive lone high surrogates failed");
     if (escapeRegExp("foo \uD83D\uDE00 bar") !== "foo \uD83D\uDE00 bar") throw new Error("escapeRegExp emoji with surrounding ascii failed");
-    if (escapeRegExp("foo \uD83D\uDE00 bar", { mode: "non_alphanumeric_ascii" }) !== "foo\\ \uD83D\uDE00\\ bar") {
-        throw new Error("escapeRegExp non_alphanumeric_ascii with surrogate pair failed");
+    if (escapeRegExp("foo \uD83D\uDE00 bar", { mode: "nonAlphanumericAscii" }) !== "foo\\ \uD83D\uDE00\\ bar") {
+        throw new Error("escapeRegExp nonAlphanumericAscii with surrogate pair failed");
     }
 
     // 18l. Verify native RegExp.escape bypass on lone surrogates when RegExp.escape is mocked
@@ -825,10 +825,10 @@ try {
         (RegExp as any).escape = origRegExpEscape;
     }
     // Mixed: ASCII specials escaped, Unicode passthrough
-    if (escapeRegExp("café!", { mode: "non_alphanumeric_ascii" }) !== "café\\!") throw new Error("escapeRegExp non_alphanumeric_ascii mixed ASCII+Unicode failed");
-    if (escapeRegExp("日本.語", { mode: "non_alphanumeric_ascii" }) !== "日本\\.語") throw new Error("escapeRegExp non_alphanumeric_ascii CJK+dot failed");
+    if (escapeRegExp("café!", { mode: "nonAlphanumericAscii" }) !== "café\\!") throw new Error("escapeRegExp nonAlphanumericAscii mixed ASCII+Unicode failed");
+    if (escapeRegExp("日本.語", { mode: "nonAlphanumericAscii" }) !== "日本\\.語") throw new Error("escapeRegExp nonAlphanumericAscii CJK+dot failed");
 
-    // 18k. Lone Surrogate Escaping (tc39 & non_alphanumeric_ascii modes)
+    // 18k. Lone Surrogate Escaping (tc39 & nonAlphanumericAscii modes)
     // High surrogate boundary
     if (escapeRegExp("\uD800") !== "\\ud800") throw new Error("escapeRegExp lone high surrogate \\uD800 failed");
     // Low surrogate boundary
@@ -836,9 +836,9 @@ try {
     // Mid-range surrogates
     if (escapeRegExp("\uD83D") !== "\\ud83d") throw new Error("escapeRegExp lone surrogate \\uD83D failed");
     if (escapeRegExp("\uDC00") !== "\\udc00") throw new Error("escapeRegExp lone surrogate \\uDC00 failed");
-    // non_alphanumeric_ascii mode — surrogates must also be escaped
-    if (escapeRegExp("\uD800", { mode: "non_alphanumeric_ascii" }) !== "\\ud800") throw new Error("escapeRegExp non_alphanumeric_ascii lone surrogate \\uD800 failed");
-    if (escapeRegExp("\uDFFF", { mode: "non_alphanumeric_ascii" }) !== "\\udfff") throw new Error("escapeRegExp non_alphanumeric_ascii lone surrogate \\uDFFF failed");
+    // nonAlphanumericAscii mode — surrogates must also be escaped
+    if (escapeRegExp("\uD800", { mode: "nonAlphanumericAscii" }) !== "\\ud800") throw new Error("escapeRegExp nonAlphanumericAscii lone surrogate \\uD800 failed");
+    if (escapeRegExp("\uDFFF", { mode: "nonAlphanumericAscii" }) !== "\\udfff") throw new Error("escapeRegExp nonAlphanumericAscii lone surrogate \\uDFFF failed");
     // Lone surrogate mixed into a normal string
     if (escapeRegExp("foo\uD800bar") !== "foo\\ud800bar") throw new Error("escapeRegExp surrogate mid-string failed");
     if (escapeRegExp("\uD800.txt") !== "\\ud800\\.txt") throw new Error("escapeRegExp surrogate + metachar failed");
@@ -878,8 +878,8 @@ try {
         const result = escapeRegExp(pair);
         // codePointAt on a 2-char match would give U+1FXXX, NOT in surrogate range — must pass through
         if (result !== pair) throw new Error(`escapeRegExp codePointAt: valid pair '${label}' was incorrectly escaped to '${result}'`);
-        // Also check non_alphanumeric_ascii mode
-        const resultNA = escapeRegExp(pair, { mode: "non_alphanumeric_ascii" });
+        // Also check nonAlphanumericAscii mode
+        const resultNA = escapeRegExp(pair, { mode: "nonAlphanumericAscii" });
         if (resultNA !== pair) throw new Error(`escapeRegExp codePointAt non_alpha: valid pair '${label}' was incorrectly escaped to '${resultNA}'`);
     }
     // Lone surrogate adjacent to a valid pair — only the lone surrogate gets escaped
@@ -1087,10 +1087,10 @@ try {
     if (!unicodeReg.test(unicodeStr)) throw new Error("escapeRegExp unicode string under 'u' flag failed");
 
     // 23g. Non-alphanumeric ASCII mode preserving non-ASCII unicode chars
-    const nonAlphaUnicode = escapeRegExp("café", { mode: "non_alphanumeric_ascii" });
-    if (nonAlphaUnicode !== "café") throw new Error("non_alphanumeric_ascii mode corrupted unicode string: " + nonAlphaUnicode);
+    const nonAlphaUnicode = escapeRegExp("café", { mode: "nonAlphanumericAscii" });
+    if (nonAlphaUnicode !== "café") throw new Error("nonAlphanumericAscii mode corrupted unicode string: " + nonAlphaUnicode);
     const unicodeRegNonAlpha = new RegExp(nonAlphaUnicode, "u");
-    if (!unicodeRegNonAlpha.test("café")) throw new Error("non_alphanumeric_ascii unicode under 'u' flag failed");
+    if (!unicodeRegNonAlpha.test("café")) throw new Error("nonAlphanumericAscii unicode under 'u' flag failed");
 
     // 24. Comprehensive Regex Utility Edge Cases (toCleanRegExp, extractRegexEngine, extractRegexGroups)
     // 24a. Null / Undefined input and pattern handling
@@ -2028,23 +2028,23 @@ try {
     if (escapeRegExp("Hello 😀 World") !== "Hello 😀 World") throw new Error("escapeRegExp tc39: emoji in string should be unchanged");
 
     // 33-10. Non-alphanumeric ASCII mode — alphanumeric left alone
-    if (escapeRegExp("abc123", { mode: "non_alphanumeric_ascii" }) !== "abc123") {
+    if (escapeRegExp("abc123", { mode: "nonAlphanumericAscii" }) !== "abc123") {
         throw new Error("escapeRegExp non_alpha: alphanumeric should be unchanged");
     }
 
     // 33-11. Non-alphanumeric ASCII mode — punctuation escaped
-    if (escapeRegExp("a.b", { mode: "non_alphanumeric_ascii" }) !== "a\\.b") {
+    if (escapeRegExp("a.b", { mode: "nonAlphanumericAscii" }) !== "a\\.b") {
         throw new Error("escapeRegExp non_alpha: dot not escaped");
     }
-    if (escapeRegExp("price: $10.00 (sale)", { mode: "non_alphanumeric_ascii" }) !== "price\\:\\ \\$10\\.00\\ \\(sale\\)") {
+    if (escapeRegExp("price: $10.00 (sale)", { mode: "nonAlphanumericAscii" }) !== "price\\:\\ \\$10\\.00\\ \\(sale\\)") {
         throw new Error("escapeRegExp non_alpha: punctuation/symbols not escaped");
     }
 
     // 33-12. Non-alphanumeric ASCII mode — high Unicode (> 0x7F) left alone
-    if (escapeRegExp("café", { mode: "non_alphanumeric_ascii" }) !== "café") {
+    if (escapeRegExp("café", { mode: "nonAlphanumericAscii" }) !== "café") {
         throw new Error("escapeRegExp non_alpha: accented chars should be unchanged");
     }
-    if (escapeRegExp("日本語", { mode: "non_alphanumeric_ascii" }) !== "日本語") {
+    if (escapeRegExp("日本語", { mode: "nonAlphanumericAscii" }) !== "日本語") {
         throw new Error("escapeRegExp non_alpha: CJK chars should be unchanged");
     }
 
@@ -2134,8 +2134,8 @@ try {
     const offsetReplacer = (_match: string, p1: string, _p2: string, offset: number) => `${p1}@${offset}`;
     if (replaceString("apple: $5, banana: $10", /(\w+): \$(\d+)/g, offsetReplacer, { n: 2 }) !== "apple@0, banana@11") throw new Error("replaceString offset replacer failed");
 
-    // 34-16. Escaping Mode 'non_alphanumeric_ascii'
-    if (replaceString("foo bar.baz", "foo bar.baz", "MATCH", { literal: true, mode: "non_alphanumeric_ascii" }) !== "MATCH") throw new Error("replaceString non_alphanumeric_ascii mode failed");
+    // 34-16. Escaping Mode 'nonAlphanumericAscii'
+    if (replaceString("foo bar.baz", "foo bar.baz", "MATCH", { literal: true, mode: "nonAlphanumericAscii" }) !== "MATCH") throw new Error("replaceString nonAlphanumericAscii mode failed");
 
     // 34-18. Additional edge case tests ($ token escaping in literal mode, early exit n loop, surrogate zero-length replace)
     if (replaceString("hello world", "world", "[$0]", { literal: true }) !== "hello [$0]") throw new Error("replaceString literal mode replacement $0 should not expand match");

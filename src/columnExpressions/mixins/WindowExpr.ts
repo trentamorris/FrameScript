@@ -40,8 +40,6 @@ function _computeRank(
     return valueToRank.get(value) ?? null;
 }
 
-
-
 /**
  * @namespace $df.col
  * @category ColumnExpression
@@ -49,23 +47,6 @@ function _computeRank(
  */
 export class WindowExpr extends ExprBase {
     public _partitionBy: (string | IExpr)[] | null = (this as any)._partitionBy || null;
-
-    _window(evaluateWindow: (this: IExpr, groupPreValues: any[], partitionIndices: number[], currentIndex: number) => any) {
-        const newInst = derive(this);
-        newInst._partitionOpsIndex = this._ops.length;
-        newInst._groupingOpsIndex = this._ops.length;
-        newInst._evaluateWindow = evaluateWindow;
-        return newInst;
-    }
-
-    _rolling(windowSize: number, aggFn: (vals: any[]) => any) {
-        return this._window(function (this: IExpr, groupPreValues: any[], _partitionIndices: number[], currentIndex: number) {
-            const start = Math.max(0, currentIndex - windowSize + 1);
-            const end = currentIndex + 1;
-            const windowVals = groupPreValues.slice(start, end);
-            return aggFn(windowVals);
-        });
-    }
 
     _cum(
         reverse: boolean,
@@ -93,13 +74,30 @@ export class WindowExpr extends ExprBase {
         return this._partitionBy !== null || (this as any)._evaluateWindow !== undefined || (this as any)._aggFn !== null;
     }
 
+    _rolling(windowSize: number, aggFn: (vals: any[]) => any) {
+        return this._window(function (this: IExpr, groupPreValues: any[], _partitionIndices: number[], currentIndex: number) {
+            const start = Math.max(0, currentIndex - windowSize + 1);
+            const end = currentIndex + 1;
+            const windowVals = groupPreValues.slice(start, end);
+            return aggFn(windowVals);
+        });
+    }
+
+    _window(evaluateWindow: (this: IExpr, groupPreValues: any[], partitionIndices: number[], currentIndex: number) => any) {
+        const newInst = derive(this);
+        newInst._partitionOpsIndex = this._ops.length;
+        newInst._groupingOpsIndex = this._ops.length;
+        newInst._evaluateWindow = evaluateWindow;
+        return newInst;
+    }
+
     /**
      * Window: Computes cumulative count.
      * @param reverse Flag indicating whether to compute from reverse direction.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ val: [10, 20, 30] })
-     * >>> df.withColumns($df.col("val").cum_count().alias("c_count"))
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("val").cumCount().alias("c_count"))
      * shape: (3, 2)
      * ┌─────┬─────────┐
      * │ val │ c_count │
@@ -109,7 +107,7 @@ export class WindowExpr extends ExprBase {
      * │ 30  │ 3       │
      * └─────┴─────────┘
      */
-    cum_count(reverse: boolean = false) {
+    cumCount(reverse: boolean = false) {
         return this._cum(reverse, 0, (acc) => acc + 1);
     }
 
@@ -118,18 +116,18 @@ export class WindowExpr extends ExprBase {
      * @param reverse Flag indicating whether to compute in reverse direction.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ val: [1, 3, 2] })
-     * >>> df.withColumns($df.col("val").cum_max().alias("c_max"))
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("val").cumMax().alias("c_max"))
      * shape: (3, 2)
      * ┌─────┬───────┐
      * │ val │ c_max │
      * ├─────┼───────┤
-     * │ 1   │ 1     │
-     * │ 3   │ 3     │
-     * │ 2   │ 3     │
+     * │ 10  │ 10    │
+     * │ 20  │ 20    │
+     * │ 30  │ 30    │
      * └─────┴───────┘
      */
-    cum_max(reverse: boolean = false) {
+    cumMax(reverse: boolean = false) {
         return this._cum(reverse, null, (acc, val) => (acc === null || val > acc ? val : acc));
     }
 
@@ -138,18 +136,18 @@ export class WindowExpr extends ExprBase {
      * @param reverse Flag indicating whether to compute in reverse direction.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ val: [3, 1, 2] })
-     * >>> df.withColumns($df.col("val").cum_min().alias("c_min"))
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("val").cumMin().alias("c_min"))
      * shape: (3, 2)
      * ┌─────┬───────┐
      * │ val │ c_min │
      * ├─────┼───────┤
-     * │ 3   │ 3     │
-     * │ 1   │ 1     │
-     * │ 2   │ 1     │
+     * │ 10  │ 10    │
+     * │ 20  │ 10    │
+     * │ 30  │ 10    │
      * └─────┴───────┘
      */
-    cum_min(reverse: boolean = false) {
+    cumMin(reverse: boolean = false) {
         return this._cum(reverse, null, (acc, val) => (acc === null || val < acc ? val : acc));
     }
 
@@ -158,19 +156,19 @@ export class WindowExpr extends ExprBase {
      * @param reverse Flag indicating whether to compute in reverse direction.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ val: [1, 2, 3, 4] })
-     * >>> df.withColumns($df.col("val").cum_prod().alias("c_prod"))
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("a").cumProd().alias("c_prod"))
      * shape: (4, 2)
-     * ┌─────┬────────┐
-     * │ val │ c_prod │
-     * ├─────┼────────┤
-     * │ 1   │ 1      │
-     * │ 2   │ 2      │
-     * │ 3   │ 6      │
-     * │ 4   │ 24     │
-     * └─────┴────────┘
+     * ┌───┬────────┐
+     * │ a │ c_prod │
+     * ├───┼────────┤
+     * │ 1 │ 1      │
+     * │ 2 │ 2      │
+     * │ 3 │ 6      │
+     * │ 4 │ 24     │
+     * └───┴────────┘
      */
-    cum_prod(reverse: boolean = false) {
+    cumProd(reverse: boolean = false) {
         return this._cum(reverse, 1, (acc, val) => acc * val, (acc, hasValid) => (hasValid ? acc : null));
     }
 
@@ -179,8 +177,8 @@ export class WindowExpr extends ExprBase {
      * @param reverse Flag indicating whether to compute in reverse direction.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ val: [10, 20, 30] })
-     * >>> df.withColumns($df.col("val").cum_sum().alias("c_sum"))
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("val").cumSum().alias("c_sum"))
      * shape: (3, 2)
      * ┌─────┬───────┐
      * │ val │ c_sum │
@@ -190,7 +188,7 @@ export class WindowExpr extends ExprBase {
      * │ 30  │ 60    │
      * └─────┴───────┘
      */
-    cum_sum(reverse: boolean = false) {
+    cumSum(reverse: boolean = false) {
         return this._cum(reverse, 0, (acc, val) => acc + val);
     }
 
@@ -198,18 +196,17 @@ export class WindowExpr extends ExprBase {
      * Window: Computes dense rank (ranks without gaps) within group partition.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ score: [100, 100, 90] })
-     * >>> df.withColumns($df.col("score").dense_rank().alias("dr"))
-     * shape: (3, 2)
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("score").denseRank().alias("dr"))
+     * shape: (2, 2)
      * ┌───────┬────┐
      * │ score │ dr │
      * ├───────┼────┤
-     * │ 100   │ 2  │
-     * │ 100   │ 2  │
-     * │ 90    │ 1  │
+     * │ 75    │ 1  │
+     * │ 95    │ 2  │
      * └───────┴────┘
      */
-    dense_rank() {
+    denseRank() {
         return this._window(function (this: IExpr, groupPreValues: any[], _partitionIndices: number[], currentIndex: number) {
             return _computeRank(groupPreValues, groupPreValues[currentIndex], { dense: true });
         });
@@ -221,7 +218,7 @@ export class WindowExpr extends ExprBase {
      * @param defaultVal Fallback fill value for empty slots (default null).
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ val: [10, 20, 30] })
+     * <!-- doc:base_numbers_3x1 -->
      * >>> df.withColumns($df.col("val").lag(1, 0).alias("prev"))
      * shape: (3, 2)
      * ┌─────┬──────┐
@@ -248,7 +245,7 @@ export class WindowExpr extends ExprBase {
      * @param defaultVal Fallback fill value for empty slots (default null).
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ val: [10, 20, 30] })
+     * <!-- doc:base_numbers_3x1 -->
      * >>> df.withColumns($df.col("val").lead(1, 0).alias("next"))
      * shape: (3, 2)
      * ┌─────┬──────┐
@@ -274,16 +271,16 @@ export class WindowExpr extends ExprBase {
      * @param columns Column expression or array of columns to partition by.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ cat: ["A", "A", "B"], val: [10, 20, 30] })
-     * >>> df.withColumns($df.col("val").sum().over("cat").alias("cat_sum"))
+     * <!-- doc:base_grouped_3x2 -->
+     * >>> df.withColumns($df.col("val").sum().over("group").alias("cat_sum"))
      * shape: (3, 3)
-     * ┌─────┬─────┬─────────┐
-     * │ cat │ val │ cat_sum │
-     * ├─────┼─────┼─────────┤
-     * │ A   │ 10  │ 30      │
-     * │ A   │ 20  │ 30      │
-     * │ B   │ 30  │ 30      │
-     * └─────┴─────┴─────────┘
+     * ┌───────┬─────┬─────────┐
+     * │ group │ val │ cat_sum │
+     * ├───────┼─────┼─────────┤
+     * │ A     │ 10  │ 30      │
+     * │ A     │ 20  │ 30      │
+     * │ B     │ 30  │ 30      │
+     * └───────┴─────┴─────────┘
      */
     over(columns: string | IExpr | (string | IExpr)[]) {
         const newInst = derive(this);
@@ -296,15 +293,14 @@ export class WindowExpr extends ExprBase {
      * Window: Computes rank within group partition.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ score: [100, 80, 90] })
+     * <!-- doc:base_numbers_3x1 -->
      * >>> df.withColumns($df.col("score").rank().alias("rank"))
-     * shape: (3, 2)
+     * shape: (2, 2)
      * ┌───────┬──────┐
      * │ score │ rank │
      * ├───────┼──────┤
-     * │ 100   │ 3    │
-     * │ 80    │ 1    │
-     * │ 90    │ 2    │
+     * │ 75    │ 1    │
+     * │ 95    │ 2    │
      * └───────┴──────┘
      */
     rank() {
@@ -318,19 +314,18 @@ export class WindowExpr extends ExprBase {
      * @param windowSize Size of rolling window.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ val: [1, 5, 2, 8] })
-     * >>> df.withColumns($df.col("val").rolling_max(2).alias("r_max"))
-     * shape: (4, 2)
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("val").rollingMax(2).alias("r_max"))
+     * shape: (3, 2)
      * ┌─────┬───────┐
      * │ val │ r_max │
      * ├─────┼───────┤
-     * │ 1   │ 1     │
-     * │ 5   │ 5     │
-     * │ 2   │ 5     │
-     * │ 8   │ 8     │
+     * │ 10  │ 10    │
+     * │ 20  │ 20    │
+     * │ 30  │ 30    │
      * └─────┴───────┘
      */
-    rolling_max(windowSize: number) {
+    rollingMax(windowSize: number) {
         return this._rolling(windowSize, v => getArrayStats(v).max);
     }
 
@@ -339,8 +334,8 @@ export class WindowExpr extends ExprBase {
      * @param windowSize Size of rolling window.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ val: [10, 20, 30] })
-     * >>> df.withColumns($df.col("val").rolling_mean(2).alias("r_mean"))
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("val").rollingMean(2).alias("r_mean"))
      * shape: (3, 2)
      * ┌─────┬────────┐
      * │ val │ r_mean │
@@ -350,7 +345,7 @@ export class WindowExpr extends ExprBase {
      * │ 30  │ 25     │
      * └─────┴────────┘
      */
-    rolling_mean(windowSize: number) {
+    rollingMean(windowSize: number) {
         return this._rolling(windowSize, v => getArrayStats(v).mean);
     }
 
@@ -359,15 +354,15 @@ export class WindowExpr extends ExprBase {
      * @param windowSize Size of rolling window.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ val: [10, 30, 20] })
-     * >>> df.withColumns($df.col("val").rolling_median(2).alias("r_med"))
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("val").rollingMedian(2).alias("r_med"))
      * shape: (3, 2)
      * ┌─────┬───────┐
      * │ val │ r_med │
      * ├─────┼───────┤
      * │ 10  │ 10    │
-     * │ 30  │ 20    │
-     * │ 20  │ 25    │
+     * │ 20  │ 15    │
+     * │ 30  │ 25    │
      * └─────┴───────┘
      */
     rollingMedian(windowSize: number) {
@@ -379,18 +374,18 @@ export class WindowExpr extends ExprBase {
      * @param windowSize Size of rolling window.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ val: [10, 5, 20] })
-     * >>> df.withColumns($df.col("val").rolling_min(2).alias("r_min"))
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("val").rollingMin(2).alias("r_min"))
      * shape: (3, 2)
      * ┌─────┬───────┐
      * │ val │ r_min │
      * ├─────┼───────┤
      * │ 10  │ 10    │
-     * │ 5   │ 5     │
-     * │ 20  │ 5     │
+     * │ 20  │ 10    │
+     * │ 30  │ 20    │
      * └─────┴───────┘
      */
-    rolling_min(windowSize: number) {
+    rollingMin(windowSize: number) {
         return this._rolling(windowSize, v => getArrayStats(v).min);
     }
 
@@ -400,8 +395,8 @@ export class WindowExpr extends ExprBase {
      * @param windowSize Size of rolling window.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ val: [10, 20, 30] })
-     * >>> df.withColumns($df.col("val").rolling_quantile(0.5, 2).alias("r_quant"))
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("val").rollingQuantile(0.5, 2).alias("r_quant"))
      * shape: (3, 2)
      * ┌─────┬─────────┐
      * │ val │ r_quant │
@@ -411,7 +406,7 @@ export class WindowExpr extends ExprBase {
      * │ 30  │ 25      │
      * └─────┴─────────┘
      */
-    rolling_quantile(quantile: number, windowSize: number) {
+    rollingQuantile(quantile: number, windowSize: number) {
         return this._rolling(windowSize, v => computeQuantile(v, quantile));
     }
 
@@ -420,18 +415,18 @@ export class WindowExpr extends ExprBase {
      * @param windowSize Size of rolling window.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ val: [10, 20, 15] })
-     * >>> df.withColumns($df.col("val").rolling_rank(2).alias("r_rank"))
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("val").rollingRank(2).alias("r_rank"))
      * shape: (3, 2)
      * ┌─────┬────────┐
      * │ val │ r_rank │
      * ├─────┼────────┤
      * │ 10  │ 1      │
      * │ 20  │ 2      │
-     * │ 15  │ 1      │
+     * │ 30  │ 2      │
      * └─────┴────────┘
      */
-    rolling_rank(windowSize: number) {
+    rollingRank(windowSize: number) {
         return this._rolling(windowSize, (vals) => {
             return _computeRank(vals, vals[vals.length - 1], { ignoreNulls: true });
         });
@@ -442,8 +437,8 @@ export class WindowExpr extends ExprBase {
      * @param windowSize Size of rolling window.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ val: [10, 20, 30] })
-     * >>> df.withColumns($df.col("val").rolling_std(2).alias("r_std"))
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("val").rollingStd(2).alias("r_std"))
      * shape: (3, 2)
      * ┌─────┬────────┐
      * │ val │ r_std  │
@@ -453,7 +448,7 @@ export class WindowExpr extends ExprBase {
      * │ 30  │ 7.071  │
      * └─────┴────────┘
      */
-    rolling_std(windowSize: number) {
+    rollingStd(windowSize: number) {
         return this._rolling(windowSize, v => getArrayStats(v).std);
     }
 
@@ -462,8 +457,8 @@ export class WindowExpr extends ExprBase {
      * @param windowSize Size of rolling window.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ val: [10, 20, 30] })
-     * >>> df.withColumns($df.col("val").rolling_sum(2).alias("r_sum"))
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("val").rollingSum(2).alias("r_sum"))
      * shape: (3, 2)
      * ┌─────┬───────┐
      * │ val │ r_sum │
@@ -473,7 +468,7 @@ export class WindowExpr extends ExprBase {
      * │ 30  │ 50    │
      * └─────┴───────┘
      */
-    rolling_sum(windowSize: number) {
+    rollingSum(windowSize: number) {
         return this._rolling(windowSize, v => getArrayStats(v).sum);
     }
 
@@ -481,18 +476,18 @@ export class WindowExpr extends ExprBase {
      * Window: Computes 1-indexed row number count within group partitions.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ cat: ["A", "A", "B"] })
-     * >>> df.withColumns($df.col("cat").row_number().over("cat").alias("rn"))
-     * shape: (3, 2)
-     * ┌─────┬────┐
-     * │ cat │ rn │
-     * ├─────┼────┤
-     * │ A   │ 1  │
-     * │ A   │ 2  │
-     * │ B   │ 1  │
-     * └─────┴────┘
+     * <!-- doc:base_grouped_3x2 -->
+     * >>> df.withColumns($df.col("val").rowNumber().over("group").alias("rn"))
+     * shape: (3, 3)
+     * ┌───────┬─────┬────┐
+     * │ group │ val │ rn │
+     * ├───────┼─────┼────┤
+     * │ A     │ 10  │ 1  │
+     * │ A     │ 20  │ 2  │
+     * │ B     │ 30  │ 1  │
+     * └───────┴─────┴────┘
      */
-    row_number() {
+    rowNumber() {
         const newInst = this._window(function (this: IExpr, _groupPreValues: any[], _partitionIndices: number[], currentIndex: number) {
             return currentIndex + 1;
         });

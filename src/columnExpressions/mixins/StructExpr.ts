@@ -36,14 +36,14 @@ export class StructExprNamespace {
      * @param name Name of the field key to extract.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ user: [{ name: "Alice", id: 1 }] })
+     * <!-- doc:base_struct_single -->
      * >>> df.withColumns($df.col("user").struct.field("name").alias("user_name"))
      * shape: (1, 2)
-     * ┌─────────────────────────┬───────────┐
-     * │ user                    │ user_name │
-     * ├─────────────────────────┼───────────┤
-     * │ { name: "Alice", id: 1 }│ Alice     │
-     * └─────────────────────────┴───────────┘
+     * ┌───────────────────────────┬───────────┐
+     * │ user                      │ user_name │
+     * ├───────────────────────────┼───────────┤
+     * │ { name: "Alice", id: 1 }  │ Alice     │
+     * └───────────────────────────┴───────────┘
      */
     field(name: string) {
         const derived = derive(this.expr, (vArray) => {
@@ -65,16 +65,16 @@ export class StructExprNamespace {
      * @param mapping Key-value map of current field names to new field names.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ user: [{ first: "Alice" }] })
-     * >>> df.withColumns($df.col("user").struct.rename_fields({ first: "first_name" }).alias("user_renamed"))
+     * <!-- doc:base_struct_single -->
+     * >>> df.withColumns($df.col("user").struct.renameFields({ name: "first_name" }).alias("user_renamed"))
      * shape: (1, 2)
-     * ┌───────────────────┬─────────────────────────┐
-     * │ user              │ user_renamed            │
-     * ├───────────────────┼─────────────────────────┤
-     * │ { first: "Alice" }│ { first_name: "Alice" } │
-     * └───────────────────┴─────────────────────────┘
+     * ┌───────────────────────────┬────────────────────────────────┐
+     * │ user                      │ user_renamed                   │
+     * ├───────────────────────────┼────────────────────────────────┤
+     * │ { name: "Alice", id: 1 }  │ { id: 1, first_name: "Alice" } │
+     * └───────────────────────────┴────────────────────────────────┘
      */
-    rename_fields(mapping: Record<string, string>) {
+    renameFields(mapping: Record<string, string>) {
         return derive(this.expr, (vArray) => {
             const height = vArray.length;
             const result = new Array(height);
@@ -116,16 +116,16 @@ export class StructExprNamespace {
      * @returns ColumnExpression
      * @throws {Error} If expressions passed without an alias or name.
      * @example
-     * >>> const df = $df.data({ user: [{ name: "Alice" }], age: [30] })
-     * >>> df.withColumns($df.col("user").struct.with_fields({ user_age: $df.col("age") }).alias("updated_user"))
-     * shape: (1, 3)
-     * ┌─────────────────┬─────┬───────────────────────────────┐
-     * │ user            │ age │ updated_user                  │
-     * ├─────────────────┼─────┼───────────────────────────────┤
-     * │ { name: "Alice"}│ 30  │ { name: "Alice", user_age: 30}│
-     * └─────────────────┴─────┴───────────────────────────────┘
+     * <!-- doc:base_struct_single -->
+     * >>> df.withColumns($df.col("user").struct.withFields({ is_active: $df.lit(true) }).alias("updated_user"))
+     * shape: (1, 2)
+     * ┌──────────────────────────────┬───────────────────────────────────────────┐
+     * │ user                         │ updated_user                              │
+     * ├──────────────────────────────┼───────────────────────────────────────────┤
+     * │ { name: "Alice", age: 30 }   │ { name: "Alice", age: 30, is_active: true }│
+     * └──────────────────────────────┴───────────────────────────────────────────┘
      */
-    with_fields(fields: IntoExpr[] | Record<string, IntoExpr>) {
+    withFields(fields: IntoExpr[] | Record<string, IntoExpr>) {
         return derive(this.expr, (vArray, columns) => {
             const height = vArray.length;
             const result = new Array(height);
@@ -138,7 +138,7 @@ export class StructExprNamespace {
                     const expr = _toColExpr(f);
                     const name = expr._outputName || expr._colName;
                     if (!name) {
-                        throw new InvalidArgumentError("Expressions passed to struct.with_fields must have a name/alias.");
+                        throw new InvalidArgumentError("Expressions passed to struct.withFields must have a name/alias.");
                     }
                     resolved.push({ name, expr });
                 }
@@ -186,7 +186,7 @@ export class StructExprNamespace {
      * Expands nested struct attributes into distinct columns in the DataFrame schema.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ user: [{ name: "Alice", age: 30 }] })
+     * <!-- doc:base_struct_single -->
      * >>> df.select($df.col("user").struct.unnest())
      * shape: (1, 2)
      * ┌───────┬─────┐
@@ -215,7 +215,14 @@ export class StructExpr extends ExprBase {
      * @syntax $df.col(<column_name>).struct
      * @returns StructExprNamespace
      * @example
+     * <!-- doc:base_struct_single -->
      * >>> df.select($df.col("user").struct.field("name"))
+     * shape: (1, 1)
+     * ┌─────────┐
+     * │ name    │
+     * ├─────────┤
+     * │ "Alice" │
+     * └─────────┘
      */
     get struct() {
         return new StructExprNamespace(this);

@@ -34,3 +34,10 @@ This document outlines core engineering principles and standards for writing cle
 - **Enclosing Containing Scope**: If a type, utility, or variable is shared across multiple files or modules, place it in the outermost file or directory that encompasses all its usages (e.g. in the module's own types file if used only within that module, or up to the root-level `types.ts` if shared across sibling modules like DataFrame and ColumnExpressions). This prevents global clutter and enforces a clean, modular hierarchy.
 - **Dedicated Types & Utils Files**: Place all type definitions in a dedicated `types.ts` file, and all helper/formatting utilities in a `utils.ts` file (or `utils/` directory) within the relevant containing scope. This keeps the core business logic files clean and strictly focused on a single responsibility.
 
+## 9. Naming Conventions & Member Ordering
+- **camelCase Everywhere**: All variables, functions, method names, and named argument properties must follow `camelCase`.
+- **SCREAMING_SNAKE_CASE for Constants**: Constants must be uppercase with underscores separating words (e.g. `MS_PER_SECOND`, `TEXT_ENCODER`, `COALESCE_MARKER`).
+- **Internal / Private Functions & Methods**: All internal helper functions and private class members must be prefixed with an underscore (e.g. `_deriveDate`, `_matchPattern`, `_buildSet`).
+- **Class Member Organization**:
+  1. Internal / private helper methods (prefixed with `_`) appear first at the top of the class in **alphabetical order**.
+  2. Standard public class methods / getters follow in **alphabetical order**.

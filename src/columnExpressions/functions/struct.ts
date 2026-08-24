@@ -13,15 +13,7 @@ import { STRUCT_MARKER } from "../constants";
  * @category ColumnExpression
  * @syntax $df.{symbol}(...)
  * @example
- * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
- * >>> df
- * shape: (2, 2)
- * ┌─────┬─────┐
- * │ a   │ b   │
- * ├─────┼─────┤
- * │ 1   │ x   │
- * │ 2   │ y   │
- * └─────┴─────┘
+ * <!-- doc:base_2x2 -->
  * >>> df.select($df.struct({ x: "a", y: "b" }).alias("coord"))
  * shape: (2, 1)
  * ┌──────────────────┐
@@ -45,7 +37,7 @@ export function struct(
         resolvedFields = [fields, ...moreFields];
     }
 
-    const expr = lit({}).struct.with_fields(resolvedFields) as ColumnExpr<any>;
+    const expr = lit({}).struct.withFields(resolvedFields) as ColumnExpr<any>;
     delete expr._isLiteral;
     delete expr._literalValue;
     (expr as any)._colName = STRUCT_MARKER;

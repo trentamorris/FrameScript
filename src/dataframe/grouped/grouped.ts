@@ -39,7 +39,7 @@ export class GroupedData<T, K extends keyof T> {
      * Converts group keys back into a single distinct DataFrame without aggregations.
      * @returns DataFrame
      * @example
-     * >>> const df = $df.data({ group: ["A", "A", "B"], val: [1, 2, 3] })
+     * <!-- doc:base_grouped_3x2 -->
      * >>> df.groupBy("group").toDataframe()
      * shape: (2, 1)
      * ┌───────┐
@@ -86,7 +86,7 @@ export class GroupedData<T, K extends keyof T> {
      * @param exprs One or more aggregation column expressions.
      * @returns DataFrame
      * @example
-     * >>> const df = $df.data({ group: ["A", "A", "B"], val: [10, 20, 30] })
+     * <!-- doc:base_grouped_3x2 -->
      * >>> df.groupBy("group").agg($df.col("val").sum().alias("sum_val"))
      * shape: (2, 2)
      * ┌───────┬─────────┐

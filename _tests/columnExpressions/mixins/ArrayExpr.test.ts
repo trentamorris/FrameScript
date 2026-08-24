@@ -69,7 +69,7 @@ try {
 
         // unique
         $df.col("tags").arr.unique().alias("unique_tags"),
-        $df.col("tags").arr.n_unique().alias("n_unique_tags"),
+        $df.col("tags").arr.nUnique().alias("n_unique_tags"),
 
         // slice
         $df.col("numbers").arr.slice(2, 5).alias("slice_nums"),
@@ -79,21 +79,21 @@ try {
         $df.col("tags").arr.countMatches("apple").alias("apple_count"),
         $df.col("tags").arr.countMatches("pear").alias("pear_count"),
 
-        // gather / gather_every
+        // gather / gatherEvery
         $df.col("numbers").arr.gather([0, 2, -2]).alias("gather_nums"),
         $df.col("tags").arr.gather(1).alias("gather_single"),
         $df.col("numbers").arr.gather([0, 100]).alias("gather_oob_null"),
-        $df.col("numbers").arr.gather_every({ step: 2 }).alias("every_2"),
-        $df.col("numbers").arr.gather_every({ step: 3, offsetStart: 1 }).alias("every_3_offset_1"),
-        $df.col("numbers").arr.gather_every({ step: 2, offsetStart: -1 }).alias("every_2_neg_offset"),
-        $df.col("numbers").arr.gather_every({ step: -2, offsetStart: -1 }).alias("every_neg_2_neg_offset"),
-        $df.col("numbers").arr.gather_every({ step: 2, offsetStart: -4 }).alias("every_pos_2_neg_offset"),
-        $df.col("numbers").arr.gather_every({ step: -2, offsetStart: 4 }).alias("every_neg_2_offset_4"),
-        $df.col("numbers").arr.gather_every({ step: 2, offsetStart: 1, offsetEnd: 7 }).alias("every_pos_step_start_end"),
-        $df.col("numbers").arr.gather_every({ step: -2, offsetStart: 7, offsetEnd: 1 }).alias("every_neg_step_start_end"),
-        $df.col("numbers").arr.gather_every({ step: 2, offsetStart: -9, offsetEnd: -3 }).alias("every_pos_step_neg_start_end"),
-        $df.col("numbers").arr.gather_every({ step: -2, offsetStart: -3, offsetEnd: -9 }).alias("every_neg_step_neg_start_end"),
-        $df.col("numbers").arr.gather_every({ step: 2, maxItemsGathered: 3 }).alias("every_2_limit_3"),
+        $df.col("numbers").arr.gatherEvery({ step: 2 }).alias("every_2"),
+        $df.col("numbers").arr.gatherEvery({ step: 3, offsetStart: 1 }).alias("every_3_offset_1"),
+        $df.col("numbers").arr.gatherEvery({ step: 2, offsetStart: -1 }).alias("every_2_neg_offset"),
+        $df.col("numbers").arr.gatherEvery({ step: -2, offsetStart: -1 }).alias("every_neg_2_neg_offset"),
+        $df.col("numbers").arr.gatherEvery({ step: 2, offsetStart: -4 }).alias("every_pos_2_neg_offset"),
+        $df.col("numbers").arr.gatherEvery({ step: -2, offsetStart: 4 }).alias("every_neg_2_offset_4"),
+        $df.col("numbers").arr.gatherEvery({ step: 2, offsetStart: 1, offsetEnd: 7 }).alias("every_pos_step_start_end"),
+        $df.col("numbers").arr.gatherEvery({ step: -2, offsetStart: 7, offsetEnd: 1 }).alias("every_neg_step_start_end"),
+        $df.col("numbers").arr.gatherEvery({ step: 2, offsetStart: -9, offsetEnd: -3 }).alias("every_pos_step_neg_start_end"),
+        $df.col("numbers").arr.gatherEvery({ step: -2, offsetStart: -3, offsetEnd: -9 }).alias("every_neg_step_neg_start_end"),
+        $df.col("numbers").arr.gatherEvery({ step: 2, maxItemsGathered: 3 }).alias("every_2_limit_3"),
 
         // Robustness features: TypedArray & String Coercion
         $df.col("typed_array").arr.lengths().alias("typed_len"),
@@ -101,7 +101,7 @@ try {
         $df.col("string_nums").arr.sum().alias("coerced_sum"),
         $df.col("string_nums").arr.mean().alias("coerced_mean"),
         $df.col("numbers").arr.gather(new Int32Array([0, 2, -2])).alias("gather_typed_indices"),
-        $df.col("typed_array").arr.contains_all(new Int32Array([10, 30])).alias("typed_contains_all"),
+        $df.col("typed_array").arr.containsAll(new Int32Array([10, 30])).alias("typed_containsAll"),
         $df.col("typed_array").arr.containsAny(new Int32Array([10, 40])).alias("typed_contains_any"),
         $df.col("numbers").arr.argMax().alias("max_index_nums"),
         $df.col("numbers").arr.argMin().alias("min_index_nums"),
@@ -202,7 +202,7 @@ try {
         throw new Error(`Expected slice_nums_neg [2, null], got ${r0.slice_nums_neg}`);
     }
 
-    // gather / gather_every Row 0
+    // gather / gatherEvery Row 0
     if (r0.gather_nums[0] !== 3 || r0.gather_nums[1] !== 4 || r0.gather_nums[2] !== 6) throw new Error("r0.gather_nums failed");
     if (r0.gather_single.length !== 1 || r0.gather_single[0] !== "banana") throw new Error("r0.gather_single failed");
     if (r0.gather_oob_null[0] !== 3 || r0.gather_oob_null[1] !== null) throw new Error("r0.gather_oob_null failed");
@@ -227,7 +227,7 @@ try {
     if (r0.gather_typed_indices[0] !== 3 || r0.gather_typed_indices[1] !== 4 || r0.gather_typed_indices[2] !== 6) {
         throw new Error(`Expected gather_typed_indices [3, 4, 6], got ${JSON.stringify(r0.gather_typed_indices)}`);
     }
-    if (r0.typed_contains_all !== true) throw new Error(`Expected r0.typed_contains_all true, got ${r0.typed_contains_all}`);
+    if (r0.typed_containsAll !== true) throw new Error(`Expected r0.typed_containsAll true, got ${r0.typed_containsAll}`);
     if (r0.typed_contains_any !== true) throw new Error(`Expected r0.typed_contains_any true, got ${r0.typed_contains_any}`);
 
     // Assert Row 1
@@ -250,7 +250,7 @@ try {
     if (r1.joined_nums_default !== "10--5-20-0") throw new Error(`Expected r1.joined_nums_default '10--5-20-0', got ${r1.joined_nums_default}`);
     if (r1.joined_nums_ignore !== "10--5-20-0") throw new Error(`Expected r1.joined_nums_ignore '10--5-20-0', got ${r1.joined_nums_ignore}`);
 
-    // gather / gather_every Row 1
+    // gather / gatherEvery Row 1
     if (r1.gather_nums[0] !== 10 || r1.gather_nums[1] !== 20 || r1.gather_nums[2] !== 20) throw new Error("r1.gather_nums failed");
     if (r1.gather_single.length !== 1 || r1.gather_single[0] !== "ts") throw new Error("r1.gather_single failed");
     if (r1.gather_oob_null[0] !== 10 || r1.gather_oob_null[1] !== null) throw new Error("r1.gather_oob_null failed");
@@ -266,7 +266,7 @@ try {
     if (r1.gather_typed_indices[0] !== 10 || r1.gather_typed_indices[1] !== 20 || r1.gather_typed_indices[2] !== 20) {
         throw new Error(`Expected gather_typed_indices [10, 20, 20], got ${JSON.stringify(r1.gather_typed_indices)}`);
     }
-    if (r1.typed_contains_all !== false) throw new Error(`Expected r1.typed_contains_all false, got ${r1.typed_contains_all}`);
+    if (r1.typed_containsAll !== false) throw new Error(`Expected r1.typed_containsAll false, got ${r1.typed_containsAll}`);
     if (r1.typed_contains_any !== false) throw new Error(`Expected r1.typed_contains_any false, got ${r1.typed_contains_any}`);
     if (r1.max_index_nums !== 2) throw new Error(`Expected r1.max_index_nums 2, got ${r1.max_index_nums}`);
     if (r1.min_index_nums !== 1) throw new Error(`Expected r1.min_index_nums 1, got ${r1.min_index_nums}`);
@@ -278,7 +278,7 @@ try {
     if (r1.dropped_nulls_nums.length !== 4) throw new Error("r1.dropped_nulls_nums failed");
     if (r1.filtered_nums.length !== 2 || r1.filtered_nums[0] !== 10 || r1.filtered_nums[1] !== 20) throw new Error("r1.filtered_nums failed");
 
-    // Test null_on_oob = false throws
+    // Test nullOnOob = false throws
     let threwOob = false;
     try {
         df.select([
@@ -290,11 +290,11 @@ try {
         }
     }
     if (!threwOob) {
-        throw new Error("Expected index out of bounds to throw when null_on_oob is false");
+        throw new Error("Expected index out of bounds to throw when nullOnOob is false");
     }
-    console.log("✓ null_on_oob=false bounds check passed");
+    console.log("✓ nullOnOob=false bounds check passed");
 
-    // Test null_on_oob = false throws in gather
+    // Test nullOnOob = false throws in gather
     let threwGatherOob = false;
     try {
         df.select([
@@ -306,9 +306,9 @@ try {
         }
     }
     if (!threwGatherOob) {
-        throw new Error("Expected index out of bounds to throw in gather when null_on_oob is false");
+        throw new Error("Expected index out of bounds to throw in gather when nullOnOob is false");
     }
-    console.log("✓ gather null_on_oob=false bounds check passed");
+    console.log("✓ gather nullOnOob=false bounds check passed");
 
     // ----------------------------------------------------
     // START COMPLEX ELEMENT OPERATIONS TESTS
@@ -344,7 +344,7 @@ try {
         $df.col("tags").arr.eval($df.when($df.element().isNull()).then("N/A").otherwise($df.element().str.toUpperCase())).alias("upper_tags"),
 
         // Date Exprs on Element
-        $df.col("dates").arr.eval($df.element().str.to_datetime().dt.day()).alias("date_days"),
+        $df.col("dates").arr.eval($df.element().str.toDatetime().dt.day()).alias("date_days"),
 
         // Conditional expression logic on elements
         $df.col("numbers").arr.eval(

@@ -38,7 +38,7 @@ export class ArrayExprNamespace {
      * @param expr Aggregation expression (e.g. $df.element().sum() or $df.element().max())
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 2, 3], [4, 5]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.agg($df.element().sum()).alias("sum_a"))
      * shape: (2, 2)
      * ┌───────────┬───────┐
@@ -72,7 +72,7 @@ export class ArrayExprNamespace {
      * Returns true if all items in nested list cells are truthy.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[true, true], [true, false]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.all().alias("all_true"))
      * shape: (2, 2)
      * ┌───────────────┬──────────┐
@@ -90,15 +90,15 @@ export class ArrayExprNamespace {
      * Returns true if any item in nested list cells is truthy.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[true, false], [false, false]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.any().alias("any_true"))
      * shape: (2, 2)
-     * ┌────────────────┬──────────┐
-     * │ a              │ any_true │
-     * ├────────────────┼──────────┤
-     * │ [true, false]  │ true     │
-     * │ [false, false] │ false    │
-     * └────────────────┴──────────┘
+     * ┌───────────────┬──────────┐
+     * │ a             │ any_true │
+     * ├───────────────┼──────────┤
+     * │ [true, true]  │ true     │
+     * │ [true, false] │ true     │
+     * └───────────────┴──────────┘
      */
     any() {
         return this._deriveArray((arr) => isArrayOfType(arr, (x) => !!x, { mode: "some" }));
@@ -108,14 +108,14 @@ export class ArrayExprNamespace {
      * Finds the index of the maximum value in each array.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 5, 2], [10, 4]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.argMax().alias("max_idx"))
      * shape: (2, 2)
      * ┌───────────┬─────────┐
      * │ a         │ max_idx │
      * ├───────────┼─────────┤
-     * │ [1, 5, 2] │ 1       │
-     * │ [10, 4]   │ 0       │
+     * │ [1, 2, 3] │ 2       │
+     * │ [4, 5]    │ 1       │
      * └───────────┴─────────┘
      */
     argMax() {
@@ -126,14 +126,14 @@ export class ArrayExprNamespace {
      * Finds the index of the minimum value in each array.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[5, 1, 2], [10, 4]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.argMin().alias("min_idx"))
      * shape: (2, 2)
      * ┌───────────┬─────────┐
      * │ a         │ min_idx │
      * ├───────────┼─────────┤
-     * │ [5, 1, 2] │ 1       │
-     * │ [10, 4]   │ 1       │
+     * │ [1, 2, 3] │ 0       │
+     * │ [4, 5]    │ 0       │
      * └───────────┴─────────┘
      */
     argMin() {
@@ -145,7 +145,7 @@ export class ArrayExprNamespace {
      * @param item The element to search for.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 2, 3], [4, 5]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.contains(3).alias("has_three"))
      * shape: (2, 2)
      * ┌───────────┬───────────┐
@@ -164,17 +164,17 @@ export class ArrayExprNamespace {
      * @param items Array of elements that must all be present.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 2, 3], [1, 5]] })
-     * >>> df.withColumns($df.col("a").arr.contains_all([1, 2]).alias("has_all"))
+     * <!-- doc:base_array_nested_2rows -->
+     * >>> df.withColumns($df.col("a").arr.containsAll([1, 2]).alias("has_all"))
      * shape: (2, 2)
      * ┌───────────┬─────────┐
      * │ a         │ has_all │
      * ├───────────┼─────────┤
      * │ [1, 2, 3] │ true    │
-     * │ [1, 5]    │ false   │
+     * │ [4, 5]    │ false   │
      * └───────────┴─────────┘
      */
-    contains_all(items: ArrayLike<any>) {
+    containsAll(items: ArrayLike<any>) {
         return this._deriveArray((arr) => isArrayOfType(items, (x) => Array.prototype.includes.call(arr, x), { mode: "every" }));
     }
 
@@ -183,7 +183,7 @@ export class ArrayExprNamespace {
      * @param items Array of elements where at least one must be present.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 2], [3, 4]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.containsAny([2, 3]).alias("has_any"))
      * shape: (2, 2)
      * ┌────────┬─────────┐
@@ -203,15 +203,15 @@ export class ArrayExprNamespace {
      * @param options Statistics and matching options.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 2, 2, 3], [4, 5]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.countMatches(2).alias("twos"))
      * shape: (2, 2)
-     * ┌──────────────┬──────┐
-     * │ a            │ twos │
-     * ├──────────────┼──────┤
-     * │ [1, 2, 2, 3] │ 2    │
-     * │ [4, 5]       │ 0    │
-     * └──────────────┴──────┘
+     * ┌───────────┬──────┐
+     * │ a         │ twos │
+     * ├───────────┼──────┤
+     * │ [1, 2, 3] │ 1    │
+     * │ [4, 5]    │ 0    │
+     * └───────────┴──────┘
      */
     countMatches(item: any, options: UniqueArrayStatsOptions = {}) {
         return this._deriveArray((arr) => getUniqueArrayStats(arr, options).frequencies.get(item) ?? 0);
@@ -222,15 +222,15 @@ export class ArrayExprNamespace {
      * @param expr The boolean column expression to filter by.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 5, 10], [2, 8]] })
-     * >>> df.withColumns($df.col("a").arr.filter($df.element().gt(4)).alias("filtered"))
+     * <!-- doc:base_array_nested_2rows -->
+     * >>> df.withColumns($df.col("a").arr.filter($df.element().gt(2)).alias("filtered"))
      * shape: (2, 2)
-     * ┌────────────┬──────────┐
-     * │ a          │ filtered │
-     * ├────────────┼──────────┤
-     * │ [1, 5, 10] │ [5, 10]  │
-     * │ [2, 8]     │ [8]      │
-     * └────────────┴──────────┘
+     * ┌───────────┬──────────┐
+     * │ a         │ filtered │
+     * ├───────────┼──────────┤
+     * │ [1, 2, 3] │ [3]      │
+     * │ [4, 5]    │ [4, 5]   │
+     * └───────────┴──────────┘
      */
     filter(expr: IExpr) {
         return derive(this.expr, (vArray, columns) => {
@@ -270,16 +270,15 @@ export class ArrayExprNamespace {
      * @param options Config options including handling of empty arrays and nulls.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ id: [1, 2], values: [[10, 20], [30]] })
-     * >>> df.select([$df.col("id"), $df.col("values").arr.explode()])
-     * shape: (3, 2)
-     * ┌─────┬────────┐
-     * │ id  │ values │
-     * ├─────┼────────┤
-     * │ 1   │ 10     │
-     * │ 1   │ 20     │
-     * │ 2   │ 30     │
-     * └─────┴────────┘
+     * <!-- doc:base_array_nested_2rows -->
+     * >>> df.select([$df.col("group"), $df.col("values").arr.explode()])
+     * shape: (2, 2)
+     * ┌───────┬────────┐
+     * │ group │ values │
+     * ├───────┼────────┤
+     * │ A     │ 1      │
+     * │ A     │ 2      │
+     * └───────┴────────┘
      */
     explode({ emptyAsNull = true, keepNulls = true }: ExplodeOptions = {}) {
         return derive(this.expr, (vArray) => {
@@ -341,49 +340,49 @@ export class ArrayExprNamespace {
 
     /**
      * Returns the first element of each list.
-     * @param null_on_oob If true, returns null if the list is empty (default: true).
+     * @param nullOnOob If true, returns null if the list is empty (default: true).
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[10, 20], [30]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.first().alias("first_a"))
      * shape: (2, 2)
-     * ┌──────────┬─────────┐
-     * │ a        │ first_a │
-     * ├──────────┼─────────┤
-     * │ [10, 20] │ 10      │
-     * │ [30]     │ 30      │
-     * └──────────┴─────────┘
+     * ┌───────────┬─────────┐
+     * │ a         │ first_a │
+     * ├───────────┼─────────┤
+     * │ [1, 2, 3] │ 1       │
+     * │ [4, 5]    │ 4       │
+     * └───────────┴─────────┘
      */
-    first(null_on_oob: boolean = true) {
-        return this.get(0, null_on_oob);
+    first(nullOnOob: boolean = true) {
+        return this.get(0, nullOnOob);
     }
 
     /**
      * Gathers specific indices from each nested list.
      * @param indices Index or array of indices to extract.
-     * @param null_on_oob If true, returns null for indices out of bounds (default: true).
+     * @param nullOnOob If true, returns null for indices out of bounds (default: true).
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[10, 20, 30], [40, 50]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.gather([0, 2]).alias("g"))
      * shape: (2, 2)
-     * ┌──────────────┬──────────┐
-     * │ a            │ g        │
-     * ├──────────────┼──────────┤
-     * │ [10, 20, 30] │ [10, 30] │
-     * │ [40, 50]     │ [40, null]│
-     * └──────────────┴──────────┘
+     * ┌───────────┬──────────┐
+     * │ a         │ g        │
+     * ├───────────┼──────────┤
+     * │ [1, 2, 3] │ [1, 3]   │
+     * │ [4, 5]    │ [4, null]│
+     * └───────────┴──────────┘
      */
     gather(
         indices: number | ArrayLike<number>,
-        null_on_oob: boolean = true
+        nullOnOob: boolean = true
     ) {
         return this._deriveArray((arr) => {
             const idxs = typeof indices === "number" ? [indices] : indices;
             const numIndices = idxs.length;
             const res = new Array(numIndices);
             for (let i = 0; i < numIndices; i++) {
-                res[i] = getArrayElement(arr, idxs[i], null_on_oob);
+                res[i] = getArrayElement(arr, idxs[i], nullOnOob);
             }
             return res;
         });
@@ -394,38 +393,38 @@ export class ArrayExprNamespace {
      * @param options Config options including offset, limit, and step size.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 2, 3, 4], [5, 6, 7]] })
-     * >>> df.withColumns($df.col("a").arr.gather_every({ step: 2 }).alias("ge"))
+     * <!-- doc:base_array_nested_2rows -->
+     * >>> df.withColumns($df.col("a").arr.gatherEvery({ step: 2 }).alias("ge"))
      * shape: (2, 2)
-     * ┌──────────────┬────────┐
-     * │ a            │ ge     │
-     * ├──────────────┼────────┤
-     * │ [1, 2, 3, 4] │ [1, 3] │
-     * │ [5, 6, 7]    │ [5, 7] │
-     * └──────────────┴────────┘
+     * ┌───────────┬────────┐
+     * │ a         │ ge     │
+     * ├───────────┼────────┤
+     * │ [1, 2, 3] │ [1, 3] │
+     * │ [4, 5]    │ [4]    │
+     * └───────────┴────────┘
      */
-    gather_every(options: StepSliceArrayOptions = {}) {
+    gatherEvery(options: StepSliceArrayOptions = {}) {
         return this._deriveArray((arr) => stepSliceArray(arr, options));
     }
 
     /**
      * Extracts a single list element by its index position.
      * @param index The 0-based or negative index position to extract.
-     * @param null_on_oob If true, returns null if index is out of bounds (default: true).
+     * @param nullOnOob If true, returns null if index is out of bounds (default: true).
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[10, 20], [30]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.get(1).alias("second"))
      * shape: (2, 2)
-     * ┌──────────┬────────┐
-     * │ a        │ second │
-     * ├──────────┼────────┤
-     * │ [10, 20] │ 20     │
-     * │ [30]     │ null   │
-     * └──────────┴────────┘
+     * ┌───────────┬────────┐
+     * │ a         │ second │
+     * ├───────────┼────────┤
+     * │ [1, 2, 3] │ 2      │
+     * │ [4, 5]    │ 5      │
+     * └───────────┴────────┘
      */
-    get(index: number, null_on_oob: boolean = true) {
-        return this._deriveArray((arr) => getArrayElement(arr, index, null_on_oob));
+    get(index: number, nullOnOob: boolean = true) {
+        return this._deriveArray((arr) => getArrayElement(arr, index, nullOnOob));
     }
 
     /**
@@ -434,15 +433,15 @@ export class ArrayExprNamespace {
      * @param options String conversion options.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [["a", "b"], ["c"]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.join("-").alias("joined"))
      * shape: (2, 2)
-     * ┌──────────┬────────┐
-     * │ a        │ joined │
-     * ├──────────┼────────┤
-     * │ ["a","b"]│ "a-b"  │
-     * │ ["c"]    │ "c"    │
-     * └──────────┴────────┘
+     * ┌────────────┬────────┐
+     * │ a          │ joined │
+     * ├────────────┼────────┤
+     * │ ["a", "b"] │ "a-b"  │
+     * │ ["c"]      │ "c"    │
+     * └────────────┴────────┘
      */
     join(separator: string = ",", options: JoinArrayOptions = {}) {
         return this._deriveArray((arr) => joinArray(arr, separator, options));
@@ -450,21 +449,21 @@ export class ArrayExprNamespace {
 
     /**
      * Returns the last element of each list.
-     * @param null_on_oob If true, returns null if the list is empty (default: true).
+     * @param nullOnOob If true, returns null if the list is empty (default: true).
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[10, 20], [30]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.last().alias("last_a"))
      * shape: (2, 2)
-     * ┌──────────┬────────┐
-     * │ a        │ last_a │
-     * ├──────────┼────────┤
-     * │ [10, 20] │ 20     │
-     * │ [30]     │ 30     │
-     * └──────────┴────────┐
+     * ┌───────────┬────────┐
+     * │ a         │ last_a │
+     * ├───────────┼────────┤
+     * │ [1, 2, 3] │ 3      │
+     * │ [4, 5]    │ 5      │
+     * └───────────┴────────┘
      */
-    last(null_on_oob: boolean = true) {
-        return this.get(-1, null_on_oob);
+    last(nullOnOob: boolean = true) {
+        return this.get(-1, nullOnOob);
     }
 
     /**
@@ -478,15 +477,15 @@ export class ArrayExprNamespace {
      * Returns the length of each list inside the column cell.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[10, 20], [30, 40, 50]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.lengths().alias("len_a"))
      * shape: (2, 2)
-     * ┌──────────────┬───────┐
-     * │ a            │ len_a │
-     * ├──────────────┼───────┤
-     * │ [10, 20]     │ 2     │
-     * │ [30, 40, 50] │ 3     │
-     * └──────────────┴───────┘
+     * ┌───────────┬───────┐
+     * │ a         │ len_a │
+     * ├───────────┼───────┤
+     * │ [1, 2, 3] │ 3     │
+     * │ [4, 5]    │ 2     │
+     * └───────────┴───────┘
      */
     lengths() {
         return this._deriveArray((arr) => arr.length);
@@ -496,14 +495,14 @@ export class ArrayExprNamespace {
      * Returns the maximum value of elements inside each list.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 5, 2], [10, 4]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.max().alias("max_a"))
      * shape: (2, 2)
      * ┌───────────┬───────┐
      * │ a         │ max_a │
      * ├───────────┼───────┤
-     * │ [1, 5, 2] │ 5     │
-     * │ [10, 4]   │ 10    │
+     * │ [1, 2, 3] │ 3     │
+     * │ [4, 5]    │ 5     │
      * └───────────┴───────┘
      */
     max() {
@@ -514,14 +513,14 @@ export class ArrayExprNamespace {
      * Returns average of elements inside each list.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 5, 9], [10, 40]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.mean().alias("mean_a"))
      * shape: (2, 2)
      * ┌───────────┬────────┐
      * │ a         │ mean_a │
      * ├───────────┼────────┤
-     * │ [1, 5, 9] │ 5      │
-     * │ [10, 40]  │ 25     │
+     * │ [1, 2, 3] │ 2      │
+     * │ [4, 5]    │ 4.5    │
      * └───────────┴────────┘
      */
     mean() {
@@ -532,15 +531,15 @@ export class ArrayExprNamespace {
      * Returns statistical median inside each list.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 3, 5, 7], [10, 20, 30]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.median().alias("med"))
      * shape: (2, 2)
-     * ┌────────────────┬──────┐
-     * │ a              │ med  │
-     * ├────────────────┼──────┤
-     * │ [1, 3, 5, 7]   │ 4    │
-     * │ [10, 20, 30]   │ 20   │
-     * └────────────────┴──────┘
+     * ┌───────────┬──────┐
+     * │ a         │ med  │
+     * ├───────────┼──────┤
+     * │ [1, 2, 3] │ 2    │
+     * │ [4, 5]    │ 4.5  │
+     * └───────────┴──────┘
      */
     median() {
         return this._deriveArray((arr) => computeQuantile(arr, 0.5));
@@ -550,14 +549,14 @@ export class ArrayExprNamespace {
      * Returns minimum of elements inside each list.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 5, 2], [10, 4]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.min().alias("min_a"))
      * shape: (2, 2)
      * ┌───────────┬───────┐
      * │ a         │ min_a │
      * ├───────────┼───────┤
-     * │ [1, 5, 2] │ 1     │
-     * │ [10, 4]   │ 4     │
+     * │ [1, 2, 3] │ 1     │
+     * │ [4, 5]    │ 4     │
      * └───────────┴───────┘
      */
     min() {
@@ -568,15 +567,15 @@ export class ArrayExprNamespace {
      * Returns the mode value inside each list.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 2, 2, 3], [5, 5, 6]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.mode().alias("mode_a"))
      * shape: (2, 2)
-     * ┌──────────────┬────────┐
-     * │ a            │ mode_a │
-     * ├──────────────┼────────┤
-     * │ [1, 2, 2, 3] │ 2      │
-     * │ [5, 5, 6]    │ 5      │
-     * └──────────────┴────────┘
+     * ┌───────────┬───────────┐
+     * │ a         │ mode_a    │
+     * ├───────────┼───────────┤
+     * │ [1, 2, 3] │ [1, 2, 3] │
+     * │ [4, 5]    │ [4, 5]    │
+     * └───────────┴───────────┘
      */
     mode() {
         return this._deriveArray((arr) => computeMode(arr));
@@ -587,17 +586,17 @@ export class ArrayExprNamespace {
      * @param options Formatting/statistics parameters.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 2, 2, 3], [4, 5]] })
-     * >>> df.withColumns($df.col("a").arr.n_unique().alias("unique_len"))
+     * <!-- doc:base_array_nested_2rows -->
+     * >>> df.withColumns($df.col("a").arr.nUnique().alias("unique_len"))
      * shape: (2, 2)
-     * ┌──────────────┬────────────┐
-     * │ a            │ unique_len │
-     * ├──────────────┼────────────┤
-     * │ [1, 2, 2, 3] │ 3          │
-     * │ [4, 5]       │ 2          │
-     * └──────────────┴────────────┘
+     * ┌───────────┬────────────┐
+     * │ a         │ unique_len │
+     * ├───────────┼────────────┤
+     * │ [1, 2, 3] │ 3          │
+     * │ [4, 5]    │ 2          │
+     * └───────────┴────────────┘
      */
-    n_unique(options: UniqueArrayStatsOptions = {}) {
+    nUnique(options: UniqueArrayStatsOptions = {}) {
         return this._deriveArray((arr) => getUniqueArrayStats(arr, options).count);
     }
 
@@ -605,7 +604,7 @@ export class ArrayExprNamespace {
      * Reverses elements of list columns.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 2, 3], [4, 5]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.reverse().alias("reversed"))
      * shape: (2, 2)
      * ┌───────────┬───────────┐
@@ -624,7 +623,7 @@ export class ArrayExprNamespace {
      * @param n Positive or negative offsets shift amount (default: 1).
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 2, 3], [4, 5]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.shift(1).alias("shifted"))
      * shape: (2, 2)
      * ┌───────────┬──────────────────┐
@@ -644,15 +643,15 @@ export class ArrayExprNamespace {
      * @param end The slice ending index.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 2, 3, 4], [5, 6]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.slice(1, 3).alias("sliced"))
      * shape: (2, 2)
-     * ┌──────────────┬────────┐
-     * │ a            │ sliced │
-     * ├──────────────┼────────┤
-     * │ [1, 2, 3, 4] │ [2, 3] │
-     * │ [5, 6]       │ [6]    │
-     * └──────────────┴────────┘
+     * ┌───────────┬────────┐
+     * │ a         │ sliced │
+     * ├───────────┼────────┤
+     * │ [1, 2, 3] │ [2, 3] │
+     * │ [4, 5]    │ [5]    │
+     * └───────────┴────────┘
      */
     slice(start?: number, end?: number) {
         return this._deriveArray((arr) => arr.slice(start, end));
@@ -665,7 +664,7 @@ export class ArrayExprNamespace {
      * @param items The elements to insert.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 2, 3], [4, 5]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.splice(1, 1, 10, 20).alias("spliced"))
      * shape: (2, 2)
      * ┌───────────┬─────────────────┐
@@ -688,14 +687,14 @@ export class ArrayExprNamespace {
      * @param options Sort customization parameters (e.g. descending flag).
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[3, 1, 2], [5, 4]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.sort().alias("sorted"))
      * shape: (2, 2)
      * ┌───────────┬───────────┐
      * │ a         │ sorted    │
      * ├───────────┼───────────┤
-     * │ [3, 1, 2] │ [1, 2, 3] │
-     * │ [5, 4]    │ [4, 5]    │
+     * │ [1, 2, 3] │ [1, 2, 3] │
+     * │ [4, 5]    │ [4, 5]    │
      * └───────────┴───────────┘
      */
     sort(options?: SortArrayOptions) {
@@ -706,15 +705,15 @@ export class ArrayExprNamespace {
      * Returns sample standard deviation of elements inside each list.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 2, 3], [10, 20]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.std().alias("std_dev"))
      * shape: (2, 2)
-     * ┌───────────┬─────────┐
-     * │ a         │ std_dev │
-     * ├───────────┼─────────┤
-     * │ [1, 2, 3] │ 1       │
-     * │ [10, 20]  │ 7.071   │
-     * └───────────┴─────────┘
+     * ┌───────────┬──────────┐
+     * │ a         │ std_dev  │
+     * ├───────────┼──────────┤
+     * │ [1, 2, 3] │ 1        │
+     * │ [4, 5]    │ 0.707107 │
+     * └───────────┴──────────┘
      */
     std() {
         return this._deriveArray((arr) => getArrayStats(arr).std);
@@ -724,14 +723,14 @@ export class ArrayExprNamespace {
      * Returns sum of elements inside each list.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 2, 3], [10, 20]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.sum().alias("sum_a"))
      * shape: (2, 2)
      * ┌───────────┬───────┐
      * │ a         │ sum_a │
      * ├───────────┼───────┤
      * │ [1, 2, 3] │ 6     │
-     * │ [10, 20]  │ 30    │
+     * │ [4, 5]    │ 9     │
      * └───────────┴───────┘
      */
     sum() {
@@ -743,7 +742,7 @@ export class ArrayExprNamespace {
      * @param options Config flags including custom field names or upper bound size.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 2], [3, 4]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.toStruct({ fields: ["x", "y"] }).alias("struct_a"))
      * shape: (2, 2)
      * ┌────────┬────────────────┐
@@ -806,15 +805,15 @@ export class ArrayExprNamespace {
      * @param options Custom uniqueness matching configuration.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 2, 2, 3], [4, 4, 5]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.unique().alias("unique_a"))
      * shape: (2, 2)
-     * ┌──────────────┬───────────┐
-     * │ a            │ unique_a  │
-     * ├──────────────┼───────────┤
-     * │ [1, 2, 2, 3] │ [1, 2, 3] │
-     * │ [4, 4, 5]    │ [4, 5]    │
-     * └──────────────┴───────────┘
+     * ┌───────────┬───────────┐
+     * │ a         │ unique_a  │
+     * ├───────────┼───────────┤
+     * │ [1, 2, 3] │ [1, 2, 3] │
+     * │ [4, 5]    │ [4, 5]    │
+     * └───────────┴───────────┘
      */
     unique(options: UniqueArrayStatsOptions = {}) {
         return this._deriveArray((arr) => getUniqueArrayStats(arr, options).values);
@@ -824,14 +823,14 @@ export class ArrayExprNamespace {
      * Returns sample variance of elements inside each list.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 2, 3], [10, 20]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.variance().alias("var_a"))
      * shape: (2, 2)
      * ┌───────────┬───────┐
      * │ a         │ var_a │
      * ├───────────┼───────┤
      * │ [1, 2, 3] │ 1     │
-     * │ [10, 20]  │ 50    │
+     * │ [4, 5]    │ 0.5   │
      * └───────────┴───────┘
      */
     variance() {
@@ -843,7 +842,7 @@ export class ArrayExprNamespace {
      * @param expr The sub-expression to evaluate inside each nested list.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({ a: [[1, 2], [3, 4]] })
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.withColumns($df.col("a").arr.eval($df.element().mul(10)).alias("multiplied"))
      * shape: (2, 2)
      * ┌────────┬────────────┐
@@ -888,7 +887,15 @@ export class ArrayExpr extends ExprBase {
      * @syntax $df.col(<column_name>).arr
      * @returns ArrayExprNamespace
      * @example
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.select($df.col("a").arr.len())
+     * shape: (2, 1)
+     * ┌─────┐
+     * │ len │
+     * ├─────┤
+     * │ 3   │
+     * │ 2   │
+     * └─────┘
      */
     get arr() {
         return new ArrayExprNamespace(this);

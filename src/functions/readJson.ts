@@ -14,6 +14,16 @@ import { DataFrameError } from "../exceptions";
  * @param [options.trimBeforeParse] When `true` (default), trims whitespace before parsing.
  * @param [options.schema] Optional column schema to coerce types.
  * @returns A new DataFrame instance populated with the parsed records.
+ * @example
+ * <!-- doc:base_2x2 -->
+ * >>> $df.readJson('[{"a":1,"b":"x"},{"a":2,"b":"y"}]')
+ * shape: (2, 2)
+ * ┌───┬───┐
+ * │ a │ b │
+ * ├───┼───┤
+ * │ 1 │ x │
+ * │ 2 │ y │
+ * └───┴───┘
  */
 export function readJson(
     content: string,

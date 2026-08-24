@@ -99,26 +99,19 @@ export class WhenThen extends ColumnExpr<any> {
  * @category ColumnExpression
  * @syntax $df.{symbol}(...)
  * @example
- * >>> const df = $df.data({ score: [75, 95] })
- * >>> df
- * shape: (2, 1)
- * ┌───────┐
- * │ score │
- * ├───────┤
- * │ 75    │
- * │ 95    │
- * └───────┘
+ * <!-- doc:base_numbers_3x1 -->
  * >>> df.select(
- * ...   $df.when($df.col("score").gt(90)).then("A")
- * ...     .otherwise("B").alias("grade")
+ * ...   $df.when($df.col("a").gt(2)).then("High")
+ * ...     .otherwise("Low").alias("tier")
  * ... )
- * shape: (2, 1)
- * ┌───────┐
- * │ grade │
- * ├───────┤
- * │ B     │
- * │ A     │
- * └───────┘
+ * shape: (3, 1)
+ * ┌──────┐
+ * │ tier │
+ * ├──────┤
+ * │ Low  │
+ * │ Low  │
+ * │ High │
+ * └──────┘
  */
 export function when(predicate: WhenArg): WhenThenChain {
     return new WhenThenChain([predicate]);

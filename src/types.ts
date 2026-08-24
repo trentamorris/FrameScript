@@ -93,13 +93,13 @@ export interface StringDecodeOptions extends StringEncodeOptions {
     strict?: boolean;
 }
 
-export type EscapeRegexMode = "tc39" | "non_alphanumeric_ascii";
+export type EscapeRegexMode = "tc39" | "nonAlphanumericAscii";
 
 export interface EscapeRegexOptions {
     /**
      * Escaping mode:
      * - "tc39" (default): TC39 ECMAScript standard specification (syntax metacharacters + set operators).
-     * - "non_alphanumeric_ascii": Escapes all non-alphanumeric ASCII characters ([^A-Za-z0-9]) matching Polars / Rust regex::escape.
+     * - "nonAlphanumericAscii": Escapes all non-alphanumeric ASCII characters ([^A-Za-z0-9]) matching Polars / Rust regex::escape.
      */
     mode?: EscapeRegexMode;
 }

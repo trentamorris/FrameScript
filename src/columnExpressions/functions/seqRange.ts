@@ -53,22 +53,15 @@ export type SeqRangeOptions = {
  * @category ColumnExpression
  * @syntax $df.{symbol}(...)
  * @example
- * >>> const df = $df.data({ a: [10, 20] })
- * >>> df
- * shape: (2, 1)
- * ┌────┐
- * │ a  │
- * ├────┤
- * │ 10 │
- * │ 20 │
- * └────┘
+ * <!-- doc:base_numbers_3x1 -->
  * >>> df.select($df.seqRange(1, { step: 2 }).alias("odd"))
- * shape: (2, 1)
+ * shape: (3, 1)
  * ┌─────┐
  * │ odd │
  * ├─────┤
  * │ 1   │
  * │ 3   │
+ * │ 5   │
  * └─────┘
  */
 export function seqRange(

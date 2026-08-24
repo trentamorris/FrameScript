@@ -90,7 +90,7 @@ try {
         "dept",
         $df.col("salary").lag(1).over("dept").alias("salary_lag_1"),
         $df.col("salary").lead(1).over("dept").alias("salary_lead_1"),
-        $df.col("salary").row_number().over("dept").alias("row_num")
+        $df.col("salary").rowNumber().over("dept").alias("row_num")
     ).toDicts();
 
     console.log("\nResult of positional window functions (lag(1), lead(1), row_number()):");
@@ -121,14 +121,14 @@ try {
     const dfExtended = df.select(
         "name",
         "dept",
-        $df.col("salary").dense_rank().over("dept").alias("dense_rank"),
-        $df.col("salary").cum_sum().over("dept").alias("cum_sum"),
-        $df.col("salary").cum_sum(true).over("dept").alias("cum_sum_reverse"),
-        $df.col("salary").cum_count().over("dept").alias("cum_count"),
-        $df.col("salary").cum_count(true).over("dept").alias("cum_count_reverse"),
-        $df.col("salary").rolling_mean(2).over("dept").alias("rolling_mean_2"),
-        $df.col("salary").rolling_quantile(0.5, 2).over("dept").alias("rolling_median_2"),
-        $df.col("salary").rolling_rank(2).over("dept").alias("rolling_rank_2")
+        $df.col("salary").denseRank().over("dept").alias("dense_rank"),
+        $df.col("salary").cumSum().over("dept").alias("cum_sum"),
+        $df.col("salary").cumSum(true).over("dept").alias("cum_sum_reverse"),
+        $df.col("salary").cumCount().over("dept").alias("cum_count"),
+        $df.col("salary").cumCount(true).over("dept").alias("cum_count_reverse"),
+        $df.col("salary").rollingMean(2).over("dept").alias("rolling_mean_2"),
+        $df.col("salary").rollingQuantile(0.5, 2).over("dept").alias("rolling_median_2"),
+        $df.col("salary").rollingRank(2).over("dept").alias("rolling_rank_2")
     ).toDicts();
 
     console.log("\nResult of extended window functions (dense_rank(), cum_sum(), cum_sum_reverse, cum_count(), cum_count_reverse, rolling_mean(2), rolling_quantile(0.5, 2), rolling_rank(2)):");
@@ -206,7 +206,7 @@ try {
     // 6. Test post-operations on rolling functions (e.g. rolling_mean(2).gt(3500))
     const dfRollingPost = df.select(
         "name",
-        $df.col("salary").rolling_mean(2).over("dept").gt(3500).alias("rolling_mean_gt_3500")
+        $df.col("salary").rollingMean(2).over("dept").gt(3500).alias("rolling_mean_gt_3500")
     ).toDicts();
 
     console.log("\nResult of rolling_mean(2).over('dept').gt(3500):");

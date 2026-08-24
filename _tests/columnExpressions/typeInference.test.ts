@@ -136,7 +136,7 @@ try {
         // Windowed shifted date: (start_dt + shift_dur).over("dept") => Datetime
         $df.col("start_dt").add($df.col("shift_dur")).over("dept").alias("windowed_shifted"),
         // Windowed row_number: row_number().over("dept") => Int32/Float64
-        $df.col("start_dt").row_number().over("dept").alias("rn"),
+        $df.col("start_dt").rowNumber().over("dept").alias("rn"),
         // Windowed comparison: (start_dt < end_dt).over("dept") => Boolean
         $df.col("start_dt").lt($df.col("end_dt")).over("dept").alias("is_valid_range")
     );

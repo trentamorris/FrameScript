@@ -38,14 +38,13 @@ export interface DurationOptions {
  * @category ColumnExpression
  * @syntax $df.duration(options)
  * @example
- * >>> const df = $df.data({ dt: ["2026-01-01"], add: [1, 2] })
- * >>> df.select($df.col("dt").cast($df.DataType.Datetime).add($df.duration({ days: "add" })).alias("add_days"))
- * shape: (2, 1)
+ * <!-- doc:base_temporal_single -->
+ * >>> df.select($df.col("date").cast($df.DataType.Datetime).add($df.duration({ days: 1 })).alias("plus_1_day"))
+ * shape: (1, 1)
  * ┌──────────────────────────┐
- * │ add_days                 │
+ * │ plus_1_day               │
  * ├──────────────────────────┤
- * │ 2026-01-02T00:00:00.000Z │
- * │ 2026-01-03T00:00:00.000Z │
+ * │ 2026-05-21T10:00:00.123Z │
  * └──────────────────────────┘
  */
 export function duration(options: DurationOptions = {}): ColumnExpr<any> {

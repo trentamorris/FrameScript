@@ -137,7 +137,7 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
 
 ### 📚 Modular Documentation Infrastructure
 - [x] **Centralized Example Reuse (`doc-examples.ts`)**:
-  * [x] Extracted repetitive ASCII JSDoc input tables into root `doc-examples.ts` with `<!-- @doc:KEY -->` tags, significantly reducing source file lengths while dynamically hydrating `docs.json`.
+  * [x] Extracted repetitive ASCII JSDoc input tables into root `doc-examples.ts` with `<!-- doc:KEY -->` tags, significantly reducing source file lengths while dynamically hydrating `docs.json`.
 
 ### 🧪 Test Suite Architecture & 1:1 Directory Mirroring
 - [x] **Align `_tests/` Directory Structure Directly with `src/`**:

@@ -14,9 +14,7 @@ export class ManipulationExpr extends ExprBase {
          * @param options Configuration options including fill value, strategy ("forward", "backward", "zero", "one", "mean", "min", "max"), and optional limit.
          * @returns ColumnExpression
          * @example
-         * >>> const df = $df.data({
-         * ...   a: [1, null, 3]
-         * ... })
+         * <!-- doc:base_nulls_3x2 -->
          * >>> df.withColumns($df.col("a").fillNull({ value: 0 }).alias("filled"))
          * shape: (3, 2)
          * ┌──────┬────────┐
@@ -88,9 +86,7 @@ export class ManipulationExpr extends ExprBase {
          * Reverses the order of values in the column.
          * @returns ColumnExpression
          * @example
-         * >>> const df = $df.data({
-         * ...   a: [1, 2, 3]
-         * ... })
+         * <!-- doc:base_numbers_3x1 -->
          * >>> df.withColumns($df.col("a").reverse().alias("reversed"))
          * shape: (3, 2)
          * ┌───┬──────────┐

@@ -13,10 +13,7 @@ export class LogicalExpr extends ExprBase {
      * @param other The other boolean column expression or literal value to compare.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({
-     * ...   a: [true, true, false, null],
-     * ...   b: [true, false, false, true]
-     * ... })
+     * <!-- doc:base_bool_4x2 -->
      * >>> df.withColumns($df.col("a").and($df.col("b")).alias("and_res"))
      * shape: (4, 3)
      * ┌───────┬───────┬─────────┐
@@ -49,18 +46,17 @@ export class LogicalExpr extends ExprBase {
      * Logical negation.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({
-     * ...   is_active: [true, false, null]
-     * ... })
-     * >>> df.withColumns($df.col("is_active").not().alias("is_inactive"))
-     * shape: (3, 2)
-     * ┌───────────┬─────────────┐
-     * │ is_active │ is_inactive │
-     * ├───────────┼─────────────┤
-     * │ true      │ false       │
-     * │ false     │ true        │
-     * │ null      │ null        │
-     * └───────────┴─────────────┘
+     * <!-- doc:base_bool_4x2 -->
+     * >>> df.withColumns($df.col("a").not().alias("not_a"))
+     * shape: (4, 3)
+     * ┌───────┬───────┬───────┐
+     * │ a     │ b     │ not_a │
+     * ├───────┼───────┼───────┤
+     * │ true  │ true  │ false │
+     * │ true  │ false │ false │
+     * │ false │ false │ true  │
+     * │ null  │ true  │ null  │
+     * └───────┴───────┴───────┘
      */
     not() {
         return derive(this, kleeneUnary((v) => !v));
@@ -71,19 +67,16 @@ export class LogicalExpr extends ExprBase {
      * @param other The other boolean column expression or literal value to compare.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({
-     * ...   a: [true, false, false, null],
-     * ...   b: [false, false, true, false]
-     * ... })
+     * <!-- doc:base_bool_4x2 -->
      * >>> df.withColumns($df.col("a").or($df.col("b")).alias("or_res"))
      * shape: (4, 3)
      * ┌───────┬───────┬────────┐
      * │ a     │ b     │ or_res │
      * ├───────┼───────┼────────┤
+     * │ true  │ true  │ true   │
      * │ true  │ false │ true   │
      * │ false │ false │ false  │
-     * │ false │ true  │ true   │
-     * │ null  │ false │ null   │
+     * │ null  │ true  │ true   │
      * └───────┴───────┴────────┘
      */
     or(other: any) {
@@ -108,10 +101,7 @@ export class LogicalExpr extends ExprBase {
      * @param other The other boolean column expression or literal value to compare.
      * @returns ColumnExpression
      * @example
-     * >>> const df = $df.data({
-     * ...   a: [true, true, false, false],
-     * ...   b: [true, false, true, false]
-     * ... })
+     * <!-- doc:base_bool_4x2 -->
      * >>> df.withColumns($df.col("a").xor($df.col("b")).alias("xor_res"))
      * shape: (4, 3)
      * ┌───────┬───────┬─────────┐

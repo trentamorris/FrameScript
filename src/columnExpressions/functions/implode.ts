@@ -10,23 +10,14 @@ import type { IntoExpr } from "../../types";
  * @category ColumnExpression
  * @syntax $df.{symbol}(...)
  * @example
- * >>> const df = $df.data({ group: ["A", "A", "B"], val: [1, 2, 3] })
- * >>> df
- * shape: (3, 2)
- * ┌───────┬─────┐
- * │ group │ val │
- * ├───────┼─────┤
- * │ A     │ 1   │
- * │ A     │ 2   │
- * │ B     │ 3   │
- * └───────┴─────┘
+ * <!-- doc:base_grouped_3x2 -->
  * >>> df.groupBy("group").agg($df.implode("val").alias("imploded"))
  * shape: (2, 2)
  * ┌───────┬──────────┐
  * │ group │ imploded │
  * ├───────┼──────────┤
- * │ A     │ [1, 2]   │
- * │ B     │ [3]      │
+ * │ A     │ [10, 20] │
+ * │ B     │ [30]     │
  * └───────┴──────────┘
  */
 export function implode(column: IntoExpr | IntoExpr[]): ColumnExpr<any> {

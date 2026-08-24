@@ -43,8 +43,8 @@ try {
 
         // Padding & Zfill
         $df.col("digits").str.zfill(4).alias("zfilled"),
-        $df.col("digits").str.pad_start(5, "*").alias("padded_start"),
-        $df.col("digits").str.pad_end(5, "-").alias("padded_end"),
+        $df.col("digits").str.padStart(5, "*").alias("padded_start"),
+        $df.col("digits").str.padEnd(5, "-").alias("padded_end"),
 
         // Slice & Split & Explode & Head/Tail
         $df.col("phrase").str.slice(0, 8).alias("sliced"),
@@ -67,8 +67,8 @@ try {
         $df.col("digits").str.stripChars(/[0-9]/, { returnStringOnNull: true }).alias("stripped_digits_regex"),
 
         // Prefix/Suffix removal
-        $df.col("prefix_suffix").str.strip_prefix("pre-").alias("stripped_prefix"),
-        $df.col("prefix_suffix").str.strip_suffix("-suf").alias("stripped_suffix"),
+        $df.col("prefix_suffix").str.stripPrefix("pre-").alias("stripped_prefix"),
+        $df.col("prefix_suffix").str.stripSuffix("-suf").alias("stripped_suffix"),
 
         // Regex / Matches
         $df.col("phrase").str.contains("awesome").alias("contains_str"),
@@ -78,11 +78,11 @@ try {
         $df.col("phrase").str.endsWith("!").alias("ends_with_excl"),
         $df.col("phrase").str.startsWith("DF").alias("starts_with_df"),
         $df.col("phrase").str.replace("is", "was").alias("replaced"),
-        $df.col("phrase").str.replace_all("e", "3").alias("replaced_all"),
+        $df.col("phrase").str.replaceAll("e", "3").alias("replaced_all"),
         $df.col("phrase").str.replace(/IS/i, "was").alias("replaced_ci"),
-        $df.col("phrase").str.replace_all(/E/gi, "3").alias("replaced_all_ci"),
+        $df.col("phrase").str.replaceAll(/E/gi, "3").alias("replaced_all_ci"),
         $df.col("phrase").str.replace("awesome", (m) => m.toUpperCase()).alias("replaced_fn"),
-        $df.col("phrase").str.replace_all("e", (_m) => "3").alias("replaced_all_fn")
+        $df.col("phrase").str.replaceAll("e", (_m) => "3").alias("replaced_all_fn")
     ]).toDicts() as any[];
 
     console.log("Coerced Expr.str results:");
@@ -181,11 +181,11 @@ try {
     const castDf = $df.data(castData, castSchema);
     const castProjected = castDf.select([
         $df.col("date_str").str.strptime({ format: "%Y-%m-%d %H:%M:%S" }).alias("parsed_datetime"),
-        $df.col("iso_date").str.to_date().alias("parsed_date"),
-        $df.col("iso_datetime").str.to_datetime().alias("parsed_iso_datetime"),
-        $df.col("decimal_str").str.to_decimal(10, 2).alias("parsed_decimal"),
-        $df.col("int_str").str.to_integer().alias("parsed_int"),
-        $df.col("time_str").str.to_time().alias("parsed_time"),
+        $df.col("iso_date").str.toDate().alias("parsed_date"),
+        $df.col("iso_datetime").str.toDatetime().alias("parsed_iso_datetime"),
+        $df.col("decimal_str").str.toDecimal(10, 2).alias("parsed_decimal"),
+        $df.col("int_str").str.toInteger().alias("parsed_int"),
+        $df.col("time_str").str.toTime().alias("parsed_time"),
         $df.col("upper_str").str.toLowerCase().alias("to_lower"),
         $df.col("lower_str").str.toUpperCase().alias("to_upper"),
         $df.col("title_str").str.toTitleCase().alias("to_title")
@@ -247,10 +247,10 @@ try {
     ];
     const caseDf = $df.data(caseData, { raw: $df.DataType.Utf8 });
     const caseRes = caseDf.select([
-        $df.col("raw").str.to_camelcase().alias("camel"),
-        $df.col("raw").str.to_kebabcase().alias("kebab"),
-        $df.col("raw").str.to_pascalcase().alias("pascal"),
-        $df.col("raw").str.to_snakecase().alias("snake")
+        $df.col("raw").str.toCamelCase().alias("camel"),
+        $df.col("raw").str.toKebabCase().alias("kebab"),
+        $df.col("raw").str.toPascalCase().alias("pascal"),
+        $df.col("raw").str.toSnakeCase().alias("snake")
     ]).toDicts() as any[];
 
     console.log("Case conversion results:");
@@ -266,10 +266,10 @@ try {
     // Assert acronym casing boundaries
     const acronymData = [{ raw: "myHTTPClient" }];
     const acroRes = $df.data(acronymData, { raw: $df.DataType.Utf8 }).select([
-        $df.col("raw").str.to_camelcase().alias("camel"),
-        $df.col("raw").str.to_kebabcase().alias("kebab"),
-        $df.col("raw").str.to_pascalcase().alias("pascal"),
-        $df.col("raw").str.to_snakecase().alias("snake")
+        $df.col("raw").str.toCamelCase().alias("camel"),
+        $df.col("raw").str.toKebabCase().alias("kebab"),
+        $df.col("raw").str.toPascalCase().alias("pascal"),
+        $df.col("raw").str.toSnakeCase().alias("snake")
     ]).toDicts()[0] as any;
 
     if (acroRes.camel !== "myHttpClient") throw new Error(`acronym camel failed: got ${acroRes.camel}`);
@@ -280,10 +280,10 @@ try {
     // Assert digit and complex acronym separation
     const complexData = [{ raw: "JSON2String" }];
     const complexRes = $df.data(complexData, { raw: $df.DataType.Utf8 }).select([
-        $df.col("raw").str.to_camelcase().alias("camel"),
-        $df.col("raw").str.to_kebabcase().alias("kebab"),
-        $df.col("raw").str.to_pascalcase().alias("pascal"),
-        $df.col("raw").str.to_snakecase().alias("snake")
+        $df.col("raw").str.toCamelCase().alias("camel"),
+        $df.col("raw").str.toKebabCase().alias("kebab"),
+        $df.col("raw").str.toPascalCase().alias("pascal"),
+        $df.col("raw").str.toSnakeCase().alias("snake")
     ]).toDicts()[0] as any;
 
     if (complexRes.camel !== "json2String") throw new Error(`complex camel failed: got ${complexRes.camel}`);
@@ -294,8 +294,8 @@ try {
     // Assert round-tripping for digit structures
     const digitData = [{ raw: "user_1_active" }];
     const digitRes = $df.data(digitData, { raw: $df.DataType.Utf8 }).select([
-        $df.col("raw").str.to_camelcase().alias("camel"),
-        $df.col("raw").str.to_snakecase().alias("snake")
+        $df.col("raw").str.toCamelCase().alias("camel"),
+        $df.col("raw").str.toSnakeCase().alias("snake")
     ]).toDicts()[0] as any;
     if (digitRes.camel !== "user1Active") throw new Error(`digit camel failed: got ${digitRes.camel}`);
     if (digitRes.snake !== "user_1_active") throw new Error(`digit snake failed: got ${digitRes.snake}`);
@@ -306,10 +306,10 @@ try {
         { raw: "데이터_table" }
     ];
     const intlRes = $df.data(intlData, { raw: $df.DataType.Utf8 }).select([
-        $df.col("raw").str.to_camelcase().alias("camel"),
-        $df.col("raw").str.to_kebabcase().alias("kebab"),
-        $df.col("raw").str.to_pascalcase().alias("pascal"),
-        $df.col("raw").str.to_snakecase().alias("snake")
+        $df.col("raw").str.toCamelCase().alias("camel"),
+        $df.col("raw").str.toKebabCase().alias("kebab"),
+        $df.col("raw").str.toPascalCase().alias("pascal"),
+        $df.col("raw").str.toSnakeCase().alias("snake")
     ]).toDicts() as any[];
 
     console.log("International Casing results:");
@@ -333,10 +333,10 @@ try {
         { raw: "user's_data" }
     ];
     const contraRes = $df.data(contraData, { raw: $df.DataType.Utf8 }).select([
-        $df.col("raw").str.to_camelcase().alias("camel"),
-        $df.col("raw").str.to_kebabcase().alias("kebab"),
-        $df.col("raw").str.to_pascalcase().alias("pascal"),
-        $df.col("raw").str.to_snakecase().alias("snake")
+        $df.col("raw").str.toCamelCase().alias("camel"),
+        $df.col("raw").str.toKebabCase().alias("kebab"),
+        $df.col("raw").str.toPascalCase().alias("pascal"),
+        $df.col("raw").str.toSnakeCase().alias("snake")
     ]).toDicts() as any[];
 
     console.log("Contraction Casing results:");
@@ -362,10 +362,10 @@ try {
         { raw: "__user_1_active__" }
     ];
     const pluralEdgeRes = $df.data(pluralEdgeData, { raw: $df.DataType.Utf8 }).select([
-        $df.col("raw").str.to_camelcase().alias("camel"),
-        $df.col("raw").str.to_kebabcase().alias("kebab"),
-        $df.col("raw").str.to_pascalcase().alias("pascal"),
-        $df.col("raw").str.to_snakecase().alias("snake")
+        $df.col("raw").str.toCamelCase().alias("camel"),
+        $df.col("raw").str.toKebabCase().alias("kebab"),
+        $df.col("raw").str.toPascalCase().alias("pascal"),
+        $df.col("raw").str.toSnakeCase().alias("snake")
     ]).toDicts() as any[];
 
     console.log("Plural Acronyms & Boundary Edge Casing results:");
@@ -403,8 +403,8 @@ try {
         { raw: 12345 } // testing loose coercion
     ];
     const pollutionRes = $df.data(pollutionData, { raw: $df.DataType.Utf8 }).select([
-        $df.col("raw").str.to_camelcase().alias("camel"),
-        $df.col("raw").str.to_snakecase().alias("snake")
+        $df.col("raw").str.toCamelCase().alias("camel"),
+        $df.col("raw").str.toSnakeCase().alias("snake")
     ]).toDicts() as any[];
 
     console.log("Pollution / Coercion / Mixed Casing results:");
@@ -680,14 +680,14 @@ try {
 
     const escapeRes = escapeDf.select([
         $df.col("raw").str.escapeRegex().alias("escaped"),
-        $df.col("raw").str.escapeRegex({ mode: "non_alphanumeric_ascii" }).alias("escaped_mode_ascii")
+        $df.col("raw").str.escapeRegex({ mode: "nonAlphanumericAscii" }).alias("escaped_mode_ascii")
     ]).toDicts() as any[];
 
     if (escapeRes[0].escaped !== "hello\\.world\\*foo\\+bar\\?baz\\^1\\$2\\|3\\(4\\)\\[5\\]\\{6\\}\\/7\\-8\\\\9") {
         throw new Error(`escapeRegex special chars failed: ${escapeRes[0].escaped}`);
     }
     if (escapeRes[1].escaped !== "plain text") throw new Error(`escapeRegex plain text failed: ${escapeRes[1].escaped}`);
-    if (escapeRes[1].escaped_mode_ascii !== "plain\\ text") throw new Error(`escapeRegex mode non_alphanumeric_ascii failed: ${escapeRes[1].escaped_mode_ascii}`);
+    if (escapeRes[1].escaped_mode_ascii !== "plain\\ text") throw new Error(`escapeRegex mode nonAlphanumericAscii failed: ${escapeRes[1].escaped_mode_ascii}`);
     if (escapeRes[2].escaped !== null) throw new Error(`escapeRegex null check failed: ${escapeRes[2].escaped}`);
 
     // =========================================

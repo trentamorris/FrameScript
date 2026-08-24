@@ -6,7 +6,7 @@ console.log("=========================================");
 
 try {
     // ------------------------------------------------------------------------
-    // 1. null_count, corr, cov, dot, spearman_corr, w_avg
+    // 1. nullCount, corr, cov, dot, spearmanCorr, wAvg
     // ------------------------------------------------------------------------
     const data = [
         { x: 1, y: 2, group: "A" },
@@ -20,13 +20,13 @@ try {
     const df = $df.data(data);
 
     const globalRes = df.select([
-        $df.col("x").null_count().alias("x_null_count"),
-        $df.col("y").null_count().alias("y_null_count"),
+        $df.col("x").nullCount().alias("x_null_count"),
+        $df.col("y").nullCount().alias("y_null_count"),
         $df.col("x").cov($df.col("y")).alias("xy_cov"),
         $df.col("x").corr($df.col("y")).alias("xy_corr"),
         $df.col("x").dot($df.col("y")).alias("xy_dot"),
-        $df.col("x").spearman_corr($df.col("y")).alias("xy_spearman"),
-        $df.col("x").w_avg($df.col("y")).alias("xy_w_avg")
+        $df.col("x").spearmanCorr($df.col("y")).alias("xy_spearman"),
+        $df.col("x").wAvg($df.col("y")).alias("xy_w_avg")
     ]).toDicts() as any[];
 
     console.log("Global Aggregation Results:", globalRes);
@@ -56,10 +56,10 @@ try {
     if (Math.abs(rGlobal.xy_spearman - 1.0) > 1e-6) throw new Error(`global xy_spearman failed: ${rGlobal.xy_spearman}`);
     if (Math.abs(rGlobal.xy_w_avg - 132/28) > 1e-6) throw new Error(`global xy_w_avg failed: ${rGlobal.xy_w_avg}`);
 
-    // Grouped null_count, corr, and cov
+    // Grouped nullCount, corr, and cov
     const groupedRes = df.groupBy("group").agg([
-        $df.col("x").null_count().alias("x_null_count"),
-        $df.col("y").null_count().alias("y_null_count"),
+        $df.col("x").nullCount().alias("x_null_count"),
+        $df.col("y").nullCount().alias("y_null_count"),
         $df.col("x").cov($df.col("y")).alias("xy_cov"),
         $df.col("x").corr($df.col("y")).alias("xy_corr")
     ]).toDicts() as any[];
@@ -81,10 +81,10 @@ try {
     if (Math.abs(groupB.xy_cov - 1.0) > 1e-6) throw new Error(`group B xy_cov failed: ${groupB.xy_cov}`);
     if (Math.abs(groupB.xy_corr - 1.0) > 1e-6) throw new Error(`group B xy_corr failed: ${groupB.xy_corr}`);
 
-    // null_count as a window function
+    // nullCount as a window function
     const windowRes = df.select([
         $df.col("group"),
-        $df.col("x").null_count().over("group").alias("x_null_by_group")
+        $df.col("x").nullCount().over("group").alias("x_null_by_group")
     ]).toDicts() as any[];
 
     if (windowRes[0].x_null_by_group !== 0) throw new Error("window group A null count failed");
@@ -100,7 +100,7 @@ try {
     const nldf = $df.data(nonLinearData);
     const nlRes = nldf.select([
         $df.col("a").corr($df.col("b")).alias("pearson"),
-        $df.col("a").spearman_corr($df.col("b")).alias("spearman")
+        $df.col("a").spearmanCorr($df.col("b")).alias("spearman")
     ]).toDicts()[0] as any;
     
     if (nlRes.pearson > 0.95) throw new Error(`Pearson correlation too high: ${nlRes.pearson}`);
@@ -140,7 +140,7 @@ try {
     ];
     const wdf = $df.data(weightData);
     
-    const meanExpr = $df.col("x").w_avg($df.col("weights"));
+    const meanExpr = $df.col("x").wAvg($df.col("weights"));
     const diffSqExpr = $df.col("x").sub(meanExpr).pow(2);
     const weightedVarExpr = diffSqExpr.dot($df.col("weights")).div($df.col("weights").sum());
 
@@ -157,7 +157,7 @@ try {
     ];
     const cwdf = $df.data(cancelWeightData);
     const cwRes = cwdf.select([
-        $df.col("x").w_avg($df.col("weights")).alias("w_avg")
+        $df.col("x").wAvg($df.col("weights")).alias("w_avg")
     ]).toDicts()[0] as any;
     if (cwRes.w_avg !== null) throw new Error(`Cancelling weights should return null: ${cwRes.w_avg}`);
 

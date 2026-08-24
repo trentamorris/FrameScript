@@ -12,16 +12,7 @@ import { COALESCE_MARKER } from "../constants";
  * @category ColumnExpression
  * @syntax $df.{symbol}(...)
  * @example
- * >>> const df = $df.data({ a: [1, null, null], b: [null, 2, null] })
- * >>> df
- * shape: (3, 2)
- * ┌──────┬──────┐
- * │ a    │ b    │
- * ├──────┼──────┤
- * │ 1    │ null │
- * │ null │ 2    │
- * │ null │ null │
- * └──────┴──────┘
+ * <!-- doc:base_nulls_3x2 -->
  * >>> df.select($df.coalesce($df.col("a"), $df.col("b"), $df.lit(3)).alias("coalesced"))
  * shape: (3, 1)
  * ┌───────────┐

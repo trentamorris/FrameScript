@@ -140,16 +140,17 @@ export class DataFrame<T extends RowRecord = any> {
      * Modifying columns or values in the cloned DataFrame will not mutate the original.
      * @returns {DataFrame<T>}
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
+     * <!-- doc:base_2x2 -->
+     * >>> const cloned = df.clone()
+     * >>> cloned
      * shape: (2, 2)
      * ┌───┬───┐
      * │ a │ b │
      * ├───┼───┤
      * │ 1 │ x │
      * │ 2 │ y │
-     * └───┴───┘*/
+     * └───┴───┘
+     */
     clone(): DataFrame<T> {
         return this.select<T>(all());
     }
@@ -158,16 +159,7 @@ export class DataFrame<T extends RowRecord = any> {
      * Gets array of column names in the DataFrame.
      * @returns Array of column name strings.
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.columns
      * ["a", "b"]
      */
@@ -185,23 +177,45 @@ export class DataFrame<T extends RowRecord = any> {
      * @returns {DataFrame}
      * 
      * @example
-     * <!-- @doc:base_concat_1x1_pair -->
-     * >>> const df1 = $df.data({ a: [1] })
-     * >>> const df2 = $df.data({ b: [2] })
-     * >>> df1
-     * shape: (1, 1)
-     * ┌───┐
-     * │ a │
-     * ├───┤
-     * │ 1 │
-     * └───┘
-     * >>> df2
-     * shape: (1, 1)
-     * ┌───┐
-     * │ b │
-     * ├───┤
-     * │ 2 │
-     * └───┘*/
+     * // 1. Vertical Concatenation (default):
+     * <!-- doc:base_concat_pair -->
+     * >>> df1.concat(df2, { how: "vertical" })
+     * shape: (4, 1)
+     * ┌──────┐
+     * │ a    │
+     * ├──────┤
+     * │ 1    │
+     * │ 2    │
+     * │ null │
+     * │ null │
+     * └──────┘
+     * 
+     * @example
+     * // 2. Horizontal Concatenation:
+     * <!-- doc:base_concat_pair -->
+     * >>> df1.concat(df2, { how: "horizontal" })
+     * shape: (2, 2)
+     * ┌───┬────┐
+     * │ a │ b  │
+     * ├───┼────┤
+     * │ 1 │ 10 │
+     * │ 2 │ 20 │
+     * └───┴────┘
+     * 
+     * @example
+     * // 3. Diagonal Concatenation (mismatched columns):
+     * <!-- doc:base_concat_pair -->
+     * >>> df1.concat(df2, { how: "diagonal" })
+     * shape: (4, 2)
+     * ┌──────┬──────┐
+     * │ a    │ b    │
+     * ├──────┼──────┤
+     * │ 1    │ null │
+     * │ 2    │ null │
+     * │ null │ 10   │
+     * │ null │ 20   │
+     * └──────┴──────┘
+     */
     concat<U extends RowRecord = any>(
         items: ConcatItem | ConcatItem[],
         options: ConcatOptions = {}
@@ -217,16 +231,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {(K | K[])[]} args Column names or arrays of column names to remove.
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.drop("b")
      * shape: (2, 1)
      * ┌───┐
@@ -245,17 +250,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {string | string[]} [subset] Column name or array of column names to check for nulls.
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_nulls_3x1 -->
-     * >>> const df = $df.data({ a: [1, null, 3] })
-     * >>> df
-     * shape: (3, 1)
-     * ┌──────┐
-     * │ a    │
-     * ├──────┤
-     * │ 1    │
-     * │ null │
-     * │ 3    │
-     * └──────┘
+     * <!-- doc:base_nulls_3x2 -->
      * >>> df.dropNulls()
      * shape: (2, 1)
      * ┌───┐
@@ -273,16 +268,7 @@ export class DataFrame<T extends RowRecord = any> {
      * Gets array of registered column DataTypes matching current schema order.
      * @returns Array of RegisteredDataType definitions.
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.dtypes
      * [Float64, Utf8]
      */
@@ -304,15 +290,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {boolean} [options.keepNulls] When `true`, retains `null` array values during explosion.
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_nested_list -->
-     * >>> const df = $df.data({ group: ["A"], values: [[1, 2]] })
-     * >>> df
-     * shape: (1, 2)
-     * ┌───────┬────────┐
-     * │ group │ values │
-     * ├───────┼────────┤
-     * │ A     │ [1, 2] │
-     * └───────┴────────┘
+     * <!-- doc:base_array_nested_2rows -->
      * >>> df.explode("values")
      * shape: (2, 2)
      * ┌───────┬────────┐
@@ -369,17 +347,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {number} [options.limit] Maximum consecutive nulls to fill when using propagation strategies.
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_nulls_3x1 -->
-     * >>> const df = $df.data({ a: [1, null, 3] })
-     * >>> df
-     * shape: (3, 1)
-     * ┌──────┐
-     * │ a    │
-     * ├──────┤
-     * │ 1    │
-     * │ null │
-     * │ 3    │
-     * └──────┘
+     * <!-- doc:base_nulls_3x2 -->
      * >>> df.fillNull({ value: 0 })
      * shape: (3, 1)
      * ┌───┐
@@ -400,17 +368,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {(IExpr | ((row: T) => any))[]} exprs Expressions or predicate functions evaluated per row.
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_numbers_3x2 -->
-     * >>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })
-     * >>> df
-     * shape: (3, 2)
-     * ┌───┬────┐
-     * │ a │ b  │
-     * ├───┼────┤
-     * │ 1 │ 10 │
-     * │ 2 │ 20 │
-     * │ 3 │ 30 │
-     * └───┴────┘
+     * <!-- doc:base_numbers_3x2 -->
      * >>> df.filter($df.col("a").gt(1))
      * shape: (2, 1)
      * ┌───┐
@@ -485,17 +443,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {K | K[]} keys Column name or array of key column names.
      * @returns {GroupedData}
      * @example
-     * <!-- @doc:base_grouped_3x2 -->
-     * >>> const df = $df.data({ group: ["A", "A", "B"], val: [10, 20, 30] })
-     * >>> df
-     * shape: (3, 2)
-     * ┌───────┬─────┐
-     * │ group │ val │
-     * ├───────┼─────┤
-     * │ A     │ 10  │
-     * │ A     │ 20  │
-     * │ B     │ 30  │
-     * └───────┴─────┘
+     * <!-- doc:base_grouped_3x2 -->
      * >>> df.groupBy("group").agg($df.col("val").sum().alias("sum"))
      * shape: (2, 2)
      * ┌─────┬─────┐
@@ -523,18 +471,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param n Number of leading rows to slice (default 10).
      * @returns DataFrame
      * @example
-     * <!-- @doc:base_numbers_4x1 -->
-     * >>> const df = $df.data({ a: [1, 2, 3, 4] })
-     * >>> df
-     * shape: (4, 1)
-     * ┌───┐
-     * │ a │
-     * ├───┤
-     * │ 1 │
-     * │ 2 │
-     * │ 3 │
-     * │ 4 │
-     * └───┘
+     * <!-- doc:base_numbers_3x1 -->
      * >>> df.head(2)
      * shape: (2, 1)
      * ┌───┐
@@ -552,16 +489,7 @@ export class DataFrame<T extends RowRecord = any> {
      * Gets height (total row count) of the DataFrame.
      * @returns Number of rows.
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.height
      * 3
      */
@@ -576,25 +504,16 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {boolean} [options.strict] When `true` (default), throws an error if row counts mismatch. Set `false` to allow null padding.
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_concat_pair -->
-     * >>> const df1 = $df.data({ a: [1, 2] })
-     * >>> const df2 = $df.data({ b: [10, 20] })
-     * >>> df1
-     * shape: (2, 1)
-     * ┌───┐
-     * │ a │
-     * ├───┤
-     * │ 1 │
-     * │ 2 │
-     * └───┘
-     * >>> df2
-     * shape: (2, 1)
-     * ┌────┐
-     * │ b  │
-     * ├────┤
-     * │ 10 │
-     * │ 20 │
-     * └────┘*/
+     * <!-- doc:base_concat_pair -->
+     * >>> df1.hstack(df2)
+     * shape: (2, 2)
+     * ┌───┬────┐
+     * │ a │ b  │
+     * ├───┼────┤
+     * │ 1 │ 10 │
+     * │ 2 │ 20 │
+     * └───┴────┘
+     */
     hstack<U extends RowRecord = any>(
         other: ConcatItem | ConcatItem[],
         options: HorizontalConcatOptions = {}
@@ -609,16 +528,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {IntoExpr} expr Value expression or column definition.
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.insertColumn(1, "c", [10, 20])
      * shape: (2, 3)
      * ┌───┬────┬───┐
@@ -655,15 +565,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @throws {DataFrameError} If shape is not (1, 1) when called without arguments.
      * @throws {ShapeError} If row or column index is out of bounds.
      * @example
-     * <!-- @doc:base_1x1 -->
-     * >>> const df = $df.data({ val: [42] })
-     * >>> df
-     * shape: (1, 1)
-     * ┌─────┐
-     * │ val │
-     * ├─────┤
-     * │ 42  │
-     * └─────┘
+     * <!-- doc:base_2x2 -->
      * >>> df.item(0, "val")
      * 42
      */
@@ -702,16 +604,10 @@ export class DataFrame<T extends RowRecord = any> {
      * Yields a generator iterating over raw column arrays.
      * @returns Generator of ColumnData arrays.
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘*/
+     * <!-- doc:base_2x2 -->
+     * >>> Array.from(df.iterColumns())
+     * [ Float64Array([1, 2]), ["x", "y"] ]
+     */
     *iterColumns(): Generator<ColumnData> {
         const cols = Object.values(this._columns);
         const colsLen = cols.length;
@@ -726,16 +622,10 @@ export class DataFrame<T extends RowRecord = any> {
      * @param [config.named] When `true`, yields row objects with column keys (`{ col: val }`). When `false` (default), yields positional arrays (`[val1, val2]`).
      * @returns Generator of rows.
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘*/
+     * <!-- doc:base_2x2 -->
+     * >>> Array.from(df.iterRows({ named: true }))
+     * [ { a: 1, b: "x" }, { a: 2, b: "y" } ]
+     */
     *iterRows({ named = false }: { named?: boolean } = {}): Generator<any[] | Record<string, any>> {
         const height = this._height;
         if (height === 0) return;
@@ -788,25 +678,16 @@ export class DataFrame<T extends RowRecord = any> {
      *   - `"right_left"` — Preserves the order of the right DataFrame first, then the left.
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_join_pair -->
-     * >>> const df1 = $df.data({ id: [1, 2], val: ["a", "b"] })
-     * >>> const df2 = $df.data({ id: [1, 2], num: [100, 200] })
-     * >>> df1
-     * shape: (2, 2)
-     * ┌────┬─────┐
-     * │ id │ val │
-     * ├────┼─────┤
-     * │ 1  │ a   │
-     * │ 2  │ b   │
-     * └────┴─────┘
-     * >>> df2
-     * shape: (2, 2)
-     * ┌────┬─────┐
-     * │ id │ num │
-     * ├────┼─────┤
-     * │ 1  │ 100 │
-     * │ 2  │ 200 │
-     * └────┴─────┘*/
+     * <!-- doc:base_join_pair -->
+     * >>> df1.join({ other: df2, on: "id" })
+     * shape: (2, 3)
+     * ┌────┬─────┬─────┐
+     * │ id │ val │ num │
+     * ├────┼─────┼─────┤
+     * │ 1  │ a   │ 100 │
+     * │ 2  │ b   │ 200 │
+     * └────┴─────┴─────┘
+     */
     join<U extends RowRecord = any, R extends RowRecord = any>(config: JoinOptions<T, U>): DataFrame<R> {
         const {
             other,
@@ -924,35 +805,17 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {boolean} [options.checkSorted] Whether to verify that join keys are sorted ascending prior to matching. Default `true`.
      * @returns A new DataFrame containing the joined results.
      * @example
-     * <!-- @doc:base_asof_pair -->
-     * >>> const trades = $df.data([
-     * ...   { time: 1000, ticker: "AAPL", price: 150.0 },
-     * ...   { time: 1005, ticker: "AAPL", price: 150.5 },
-     * ...   { time: 1015, ticker: "AAPL", price: 151.0 }
-     * ... ])
-     * >>> const quotes = $df.data([
-     * ...   { time: 998, ticker: "AAPL", bid: 149.9 },
-     * ...   { time: 1004, ticker: "AAPL", bid: 150.4 },
-     * ...   { time: 1010, ticker: "AAPL", bid: 150.8 }
-     * ... ])
-     * >>> trades
-     * shape: (3, 3)
-     * ┌──────┬────────┬───────┐
-     * │ time │ ticker │ price │
-     * ├──────┼────────┼───────┤
-     * │ 1000 │ AAPL   │ 150.0 │
-     * │ 1005 │ AAPL   │ 150.5 │
-     * │ 1015 │ AAPL   │ 151.0 │
-     * └──────┴────────┴───────┘
-     * >>> quotes
-     * shape: (3, 3)
-     * ┌──────┬────────┬───────┐
-     * │ time │ ticker │ bid   │
-     * ├──────┼────────┼───────┤
-     * │ 998  │ AAPL   │ 149.9 │
-     * │ 1004 │ AAPL   │ 150.4 │
-     * │ 1010 │ AAPL   │ 150.8 │
-     * └──────┴────────┴───────┘*/
+     * <!-- doc:base_asof_pair -->
+     * >>> trades.joinAsof({ other: quotes, on: "time", by: "ticker" })
+     * shape: (3, 4)
+     * ┌──────┬────────┬───────┬───────┐
+     * │ time │ ticker │ price │ bid   │
+     * ├──────┼────────┼───────┼───────┤
+     * │ 1000 │ AAPL   │ 150.0 │ 149.9 │
+     * │ 1005 │ AAPL   │ 150.5 │ 150.4 │
+     * │ 1015 │ AAPL   │ 151.0 │ 150.8 │
+     * └──────┴────────┴───────┴───────┘
+     */
     joinAsof<U extends RowRecord = any, R extends RowRecord = any>(options: AsofJoinOptions<T, U>): DataFrame<R> {
         const {
             other,
@@ -1040,18 +903,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {LimitPosition} [options.from] Slice direction starting point (`"start"` or `"end"`). Default `"start"`.
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_numbers_4x1 -->
-     * >>> const df = $df.data({ a: [1, 2, 3, 4] })
-     * >>> df
-     * shape: (4, 1)
-     * ┌───┐
-     * │ a │
-     * ├───┤
-     * │ 1 │
-     * │ 2 │
-     * │ 3 │
-     * │ 4 │
-     * └───┘
+     * <!-- doc:base_numbers_3x1 -->
      * >>> df.limit(2, { offset: 1 })
      * shape: (2, 1)
      * ┌────┐
@@ -1096,18 +948,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {AggFn | string} [config.agg] Aggregation function to apply when multiple values exist for a cell.
      * @returns DataFrame
      * @example
-     * <!-- @doc:base_pivot_table -->
-     * >>> const df = $df.data({ year: [2020, 2020, 2021, 2021], month: ["Jan", "Feb", "Jan", "Feb"], revenue: [100, 150, 120, 180] })
-     * >>> df
-     * shape: (4, 3)
-     * ┌──────┬───────┬─────────┐
-     * │ year │ month │ revenue │
-     * ├──────┼───────┼─────────┤
-     * │ 2020 │ Jan   │ 100     │
-     * │ 2020 │ Feb   │ 150     │
-     * │ 2021 │ Jan   │ 120     │
-     * │ 2021 │ Feb   │ 180     │
-     * └──────┴───────┴─────────┘
+     * <!-- doc:base_pivot_table -->
      * >>> df.pivot({ index: "year", columns: "month", values: "revenue" })
      * shape: (2, 3)
      * ┌──────┬─────┬─────┐
@@ -1185,16 +1026,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {Partial<Record<keyof T, string>>} [mapping] Dictionary mapping old column names to new names.
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.rename({ a: "id", b: "label" })
      * shape: (2, 2)
      * ┌────┬───────┐
@@ -1222,16 +1054,7 @@ export class DataFrame<T extends RowRecord = any> {
      * Reverses the row ordering of the DataFrame.
      * @returns DataFrame
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.reverse()
      * shape: (2, 2)
      * ┌───┬───┐
@@ -1249,16 +1072,7 @@ export class DataFrame<T extends RowRecord = any> {
      * Gets current DataFrameSchema dictionary mapping column names to DataType.
      * @returns DataFrameSchema mapping.
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.schema
      * { a: Float64, b: Utf8 }
      */
@@ -1271,16 +1085,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {(string | IExpr | Record<string, any> | (string | IExpr | Record<string, any>)[])[]} args Column names, column expressions, or object maps to evaluate.
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.select("a", $df.col("b").add(100).alias("b_plus"))
      * shape: (2, 2)
      * ┌───┬────────┐
@@ -1393,16 +1198,7 @@ export class DataFrame<T extends RowRecord = any> {
      * Gets DataFrame dimensions as [height, width] tuple.
      * @returns Tuple [height, width].
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.shape
      * [2, 2]
      */
@@ -1416,18 +1212,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {number} [end] Optional ending row index (exclusive).
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_numbers_4x1 -->
-     * >>> const df = $df.data({ a: [1, 2, 3, 4] })
-     * >>> df
-     * shape: (4, 1)
-     * ┌───┐
-     * │ a │
-     * ├───┤
-     * │ 1 │
-     * │ 2 │
-     * │ 3 │
-     * │ 4 │
-     * └───┘
+     * <!-- doc:base_numbers_3x1 -->
      * >>> df.slice(1, 3)
      * shape: (2, 1)
      * ┌────┐
@@ -1457,17 +1242,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {Partial<Record<keyof T, (a: any, b: any) => number>>} [config.custom] Optional dictionary mapping column names to custom comparator functions.
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_numbers_3x2 -->
-     * >>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })
-     * >>> df
-     * shape: (3, 2)
-     * ┌───┬────┐
-     * │ a │ b  │
-     * ├───┼────┤
-     * │ 1 │ 10 │
-     * │ 2 │ 20 │
-     * │ 3 │ 30 │
-     * └───┴────┘
+     * <!-- doc:base_numbers_3x2 -->
      * >>> df.sort({ by: "a", descending: true })
      * shape: (3, 2)
      * ┌───┬────┐
@@ -1477,14 +1252,6 @@ export class DataFrame<T extends RowRecord = any> {
      * │ 2 │ 20 │
      * │ 1 │ 10 │
      * └───┴────┘
-     * shape: (3, 1)
-     * ┌─────┐
-     * │ val │
-     * ├─────┤
-     * │ 1   │
-     * │ 2   │
-     * │ 3   │
-     * └─────┘
      */
     sort(config?: SortOptions<T>): DataFrame<T> {
         if (!config?.by || this._height === 0) return this;
@@ -1527,18 +1294,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param n Number of trailing rows to take (default 10).
      * @returns DataFrame
      * @example
-     * <!-- @doc:base_numbers_4x1 -->
-     * >>> const df = $df.data({ a: [1, 2, 3, 4] })
-     * >>> df
-     * shape: (4, 1)
-     * ┌───┐
-     * │ a │
-     * ├───┤
-     * │ 1 │
-     * │ 2 │
-     * │ 3 │
-     * │ 4 │
-     * └───┘
+     * <!-- doc:base_numbers_3x1 -->
      * >>> df.tail(2)
      * shape: (2, 1)
      * ┌───┐
@@ -1557,16 +1313,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {K | IExpr} nameOrExpr Target column name or column expression.
      * @returns {any[]} Array of column scalar values.
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.toArray("a")
      * [10, 20]
      */
@@ -1578,16 +1325,7 @@ export class DataFrame<T extends RowRecord = any> {
      * Converts columns into a JavaScript dictionary mapping column keys to raw arrays.
      * @returns Column dictionary map.
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.toDict()
      * { a: Float64Array([1, 2]), b: ["x", "y"] }
      */
@@ -1599,16 +1337,7 @@ export class DataFrame<T extends RowRecord = any> {
      * Converts rows into an array of JavaScript objects.
      * @returns Array of row record objects.
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.toDicts()
      * [{ a: 1, b: "x" }]
      */
@@ -1624,7 +1353,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {string | Iterable<string>} [options.columnNames] Column name or iterable of strings to use as transposed column headers.
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_wide_q_metrics -->
+     * <!-- doc:base_pivot_table -->
      * >>> df.transpose({ includeHeader: true, headerName: "metric" })
      * shape: (2, 3)
      * ┌────────┬──────────┬──────────┐
@@ -1704,16 +1433,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {K | K[]} [columns] Target column or array of column names to evaluate uniqueness.
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.unique()
      * shape: (2, 2)
      * ┌───┬───┐
@@ -1737,7 +1457,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {string} [config.valueName] Name for the new value column holding cell values (default `"value"`).
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_wide_q_metrics -->
+     * <!-- doc:base_pivot_table -->
      * >>> df.unpivot({ idVars: "metric", valueVars: ["q1", "q2"], varName: "quarter", valueName: "val" })
      * shape: (4, 3)
      * ┌────────┬─────────┬─────┐
@@ -1803,25 +1523,18 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {ConcatItem | ConcatItem[]} other Single DataFrame or array of DataFrames to append vertically.
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_concat_pair -->
-     * >>> const df1 = $df.data({ a: [1, 2] })
-     * >>> const df2 = $df.data({ b: [10, 20] })
-     * >>> df1
-     * shape: (2, 1)
-     * ┌───┐
-     * │ a │
-     * ├───┤
-     * │ 1 │
-     * │ 2 │
-     * └───┘
-     * >>> df2
-     * shape: (2, 1)
-     * ┌────┐
-     * │ b  │
-     * ├────┤
-     * │ 10 │
-     * │ 20 │
-     * └────┘*/
+     * <!-- doc:base_concat_pair -->
+     * >>> df1.vstack(df2)
+     * shape: (4, 1)
+     * ┌──────┐
+     * │ a    │
+     * ├──────┤
+     * │ 1    │
+     * │ 2    │
+     * │ null │
+     * │ null │
+     * └──────┘
+     */
     vstack<U extends RowRecord = any>(
         other: ConcatItem | ConcatItem[]
     ): DataFrame<U> {
@@ -1832,16 +1545,7 @@ export class DataFrame<T extends RowRecord = any> {
      * Gets width (total column count) of the DataFrame.
      * @returns Number of columns.
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.width
      * 2
      */
@@ -1854,16 +1558,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {(string | IExpr | Record<string, any> | (string | IExpr | Record<string, any>)[])[]} args Expressions or field objects defining column calculations.
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.withColumns($df.col("a").mul(10).alias("a_x10"))
      * shape: (2, 3)
      * ┌───┬───┬───────┐
@@ -1912,16 +1607,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {number} [offset] Starting numeric index offset (default 0).
      * @returns {DataFrame}
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.withRowIndex("idx")
      * shape: (2, 3)
      * ┌─────┬───┬───┐
@@ -1952,16 +1638,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {string} [options.quoteChar] Character used to enclose fields containing special characters (default `'"'`).
      * @returns {string} CSV string output.
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.writeCsv()
      * "a,b\n1,x"
      */
@@ -2030,16 +1707,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @param {((this: any, k: string, v: any) => any) | (string | number)[] | null} [options.replacerOptions.replacer] Custom replacer function or array whitelist that runs first for pre-processing.
      * @returns {string} JSON string representation.
      * @example
-     * <!-- @doc:base_2x2 -->
-     * >>> const df = $df.data({ a: [1, 2], b: ["x", "y"] })
-     * >>> df
-     * shape: (2, 2)
-     * ┌───┬───┐
-     * │ a │ b │
-     * ├───┼───┤
-     * │ 1 │ x │
-     * │ 2 │ y │
-     * └───┴───┘
+     * <!-- doc:base_2x2 -->
      * >>> df.writeJson()
      * '[{"a":1,"b":"x"}]'
      */

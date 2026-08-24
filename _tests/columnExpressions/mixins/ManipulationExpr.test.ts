@@ -53,7 +53,7 @@ try {
         $df.col("list_val").arr.any().alias("list_any"),
         $df.col("list_val").arr.all().alias("list_all"),
         $df.col("list_val").arr.containsAny([true, "nonexistent"]).alias("list_contains_any"),
-        $df.col("list_val").arr.contains_all([true, false]).alias("list_contains_all"),
+        $df.col("list_val").arr.containsAll([true, false]).alias("list_containsAll"),
         $df.col("list_val").arr.filter($df.element().isNotNull()).alias("list_dropped_nulls"),
 
         // 5. string countMatches / extract
@@ -61,8 +61,8 @@ try {
         $df.col("str_val").str.countMatches(/apple/g).alias("str_matches_regex"),
         $df.col("str_val").str.extract(/(\w+)/).alias("str_extract_default"),
         $df.col("str_val").str.extract(/(\w+)\s+(\w+)/, { groupIndex: 2 }).alias("str_extract_group"),
-        $df.col("regex_str").str.encode_uri_component().alias("str_uri_encoded"),
-        $df.col("regex_str").str.encode_uri_component().str.decode_uri_component().alias("str_uri_decoded"),
+        $df.col("regex_str").str.encodeUriComponent().alias("str_uri_encoded"),
+        $df.col("regex_str").str.encodeUriComponent().str.decodeUriComponent().alias("str_uri_decoded"),
         $df.lit("constant_string").alias("lit_str"),
         $df.lit(42).alias("lit_num"),
         $df.lit([1, 2]).alias("lit_arr"),
@@ -110,7 +110,7 @@ try {
     if (r1.list_any !== false) throw new Error("r1.list_any failed");
     if (r1.list_all !== false) throw new Error("r1.list_all failed");
     if (r0.list_contains_any !== true) throw new Error("r0.list_contains_any failed");
-    if (r0.list_contains_all !== true) throw new Error("r0.list_contains_all failed");
+    if (r0.list_containsAll !== true) throw new Error("r0.list_containsAll failed");
     if (JSON.stringify(r0.list_dropped_nulls) !== JSON.stringify([true, false, true])) {
         throw new Error(`r0.list_dropped_nulls failed: ${JSON.stringify(r0.list_dropped_nulls)}`);
     }
@@ -141,7 +141,7 @@ try {
     const aggResult = df.select([
         $df.col("numeric_list").arr.first().quantile(0.5).alias("q_50"),
         $df.col("numeric_list").arr.first().quantile(0.9).alias("q_90"),
-        $df.col("numeric_list").arr.first().n_unique().alias("n_uniq"),
+        $df.col("numeric_list").arr.first().nUnique().alias("n_uniq"),
         $df.col("id").mode().alias("mode_id"),
         $df.col("id").mode().arr.first().alias("first_mode_id"),
         $df.col("id").mode().arr.last().alias("last_mode_id")

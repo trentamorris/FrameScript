@@ -27,7 +27,7 @@ try {
 } catch (e) {}
 
 /**
- * Synchronizes and embeds raw example tables directly into source file JSDocs when --sync is passed.
+ * Strips embedded example tables from source files, keeping only clean <!-- doc:KEY --> tags.
  */
 function syncJSDocsInFiles(sourceFiles) {
     let updatedCount = 0;
@@ -38,10 +38,10 @@ function syncJSDocsInFiles(sourceFiles) {
         let changed = false;
 
         content = content.replace(tagRegex, (jsdoc) => {
-            return jsdoc.replace(/<!-- @doc:([a-zA-Z0-9_]+) -->([\s\S]*?)(?=(\n\s*\* >>> df\.|\n\s*\* @|\*\/))/g, (match, key) => {
-                if (docExamples[key]) {
+            return jsdoc.replace(/<!-- @?doc:([a-zA-Z0-9_]+) -->([\s\S]*?)(?=(\n\s*\* >>> (?:df\.[a-zA-Z0-9_$]|df1\.|df2\.|trades\.|quotes\.|\$df\.|\$col|\/\/)|$|\n\s*\* @|\*\/))/g, (match, key, tableContent) => {
+                if (tableContent && tableContent.trim()) {
                     changed = true;
-                    return `<!-- @doc:${key} -->\n     * ${docExamples[key]}`;
+                    return `<!-- doc:${key} -->`;
                 }
                 return match;
             });
@@ -50,11 +50,11 @@ function syncJSDocsInFiles(sourceFiles) {
         if (changed) {
             fs.writeFileSync(filePath, content, "utf-8");
             updatedCount++;
-            console.log(`  Synchronized JSDoc examples in: ${path.relative(srcDir, filePath)}`);
+            console.log(`  Stripped embedded JSDoc tables in: ${path.relative(srcDir, filePath)}`);
         }
     }
     if (updatedCount > 0) {
-        console.log(`✓ Synchronized JSDoc tables in ${updatedCount} source files.`);
+        console.log(`✓ Cleaned embedded tables in ${updatedCount} source files.`);
     }
 }
 
@@ -147,7 +147,7 @@ function parseJSDocComment(comment) {
   return {
     desc,
     examples: examplesList.length > 0 ? examplesList.map(ex => {
-        return ex.replace(/<!-- @doc:([a-zA-Z0-9_]+) -->/g, (_, key) => {
+        return ex.replace(/<!-- @?doc:([a-zA-Z0-9_]+) -->([\s\S]*?)(?=(\n\s*>>> (?:df\.[a-zA-Z0-9_$]|df1\.|df2\.|trades\.|quotes\.|\$df\.|\$col|\/\/)|$))/g, (_, key) => {
             return docExamples[key] ? docExamples[key].replace(/^ {5}\* /gm, "") : "";
         }).trim();
     }) : undefined,
@@ -474,6 +474,41 @@ function extractRawDocs() {
   return docs;
 }
 
+/**
+ * Hydrates clean <!-- doc:KEY --> tags in compiled .d.ts files with full ASCII tables.
+ */
+function hydrateDtsInDir(dir) {
+  if (!fs.existsSync(dir)) return;
+  let count = 0;
+  function walk(currentDir) {
+    for (const f of fs.readdirSync(currentDir)) {
+      const full = path.join(currentDir, f);
+      if (fs.statSync(full).isDirectory()) {
+        walk(full);
+      } else if (full.endsWith(".d.ts")) {
+        let content = fs.readFileSync(full, "utf-8");
+        let changed = false;
+        content = content.replace(/([ \t]*\*[ \t]*)<!-- @?doc:([a-zA-Z0-9_]+) -->/g, (_, prefix, key) => {
+          if (docExamples[key]) {
+            changed = true;
+            const lines = docExamples[key].split("\n").map(l => l.replace(/^[ \t]*\*[ \t]?/, "").trimEnd());
+            return lines.map(line => ` * ${line}`).join("\n");
+          }
+          return "";
+        });
+        if (changed) {
+          fs.writeFileSync(full, content, "utf-8");
+          count++;
+        }
+      }
+    }
+  }
+  walk(dir);
+  if (count > 0) {
+    console.log(`  Hydrated JSDoc example tables in ${count} declaration (.d.ts) files.`);
+  }
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 const isSync = process.argv.includes("--sync");
@@ -497,4 +532,10 @@ console.log(`  Found JSDocs in ${fileCount} files containing ${symbolCount} docu
 
 fs.writeFileSync(outPath, JSON.stringify(docs, null, 2), "utf-8");
 console.log(`  Written to: ${outPath}`);
+
+const distDir = path.resolve(__dirname, "../dist");
+if (fs.existsSync(distDir)) {
+  hydrateDtsInDir(distDir);
+}
+
 console.log("Done.");
