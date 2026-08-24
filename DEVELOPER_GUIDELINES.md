@@ -41,3 +41,8 @@ This document outlines core engineering principles and standards for writing cle
 - **Class Member Organization**:
   1. Internal / private helper methods (prefixed with `_`) appear first at the top of the class in **alphabetical order**.
   2. Standard public class methods / getters follow in **alphabetical order**.
+
+## 10. JSDoc Notes & Compatibility Annotations
+- **Tag Placement**: Place `@note` tags directly below the main summary description and before `@param` / `@returns` tags in JSDoc blocks.
+- **Clean Label Formatting**: Use clean uppercase labels (e.g. `@note [Environment]: ...`, `@note [Timezone Compatibility]: ...`, `@note [Runtime Fallback]: ...`) rather than ad-hoc markdown symbols.
+- **Environment Boundaries**: Document functions that interface with host-specific runtime capabilities (e.g. Node.js `fs` access or native `Intl` resolution) so consumers and documentation generators have clear visibility into execution boundaries.

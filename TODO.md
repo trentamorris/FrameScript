@@ -143,6 +143,11 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
 - [x] **Align `_tests/` Directory Structure Directly with `src/`**:
   * Organize test files to mirror the `src/` hierarchy 1:1, enabling granular, atomic test execution alongside the global `npm test` runner.
 
+### 🌐 ES2020 Standard Target & Environment Compatibility
+- [x] **Verified ES2020 Baseline Compatibility Across All Runtimes**:
+  * Emitted bundles target `es2020` without polyfill overhead, supporting Node.js 14+, modern browsers (Chrome 80+, Safari 13.1+, Firefox 74+, Edge 80+), Bun, Deno, and Edge Workers.
+  * Preserved `@note` JSDoc annotations for environment-specific APIs (such as filesystem access in `df.writeCsv` and `df.writeJson`).
+
 
 /DataFrame.__getitem__
 /DataFrame.__setitem__

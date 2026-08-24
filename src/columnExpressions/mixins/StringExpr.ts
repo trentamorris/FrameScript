@@ -195,6 +195,8 @@ export class StringExprNamespace {
 
     /**
      * Decodes hex or base64 encoded string column values into string.
+     * @note [Runtime Fallback]: Automatically leverages native `Uint8Array.fromBase64` / `Uint8Array.fromHex`
+     * when available in the runtime, with seamless automatic fallback to standard decoding across older environments.
      * @param options Object containing encoding ("hex" | "base64") and optional strict flag
      * @returns ColumnExpression
      * @example
@@ -215,6 +217,8 @@ export class StringExprNamespace {
 
     /**
      * Encodes string column values into hex or base64.
+     * @note [Runtime Fallback]: Automatically leverages native `Uint8Array.prototype.toBase64` / `Uint8Array.prototype.toHex`
+     * when available, with automatic fallback across standard environments.
      * @param options Object containing encoding ("hex" | "base64")
      * @returns ColumnExpression
      * @example
@@ -249,11 +253,7 @@ export class StringExprNamespace {
      */
     decodeUriComponent() {
         return this._deriveString((str) => {
-            try {
-                return decodeURIComponent(str);
-            } catch {
-                return str;
-            }
+            try { return decodeURIComponent(str); } catch { return str; }
         });
     }
 
@@ -273,11 +273,7 @@ export class StringExprNamespace {
      */
     encodeUriComponent() {
         return this._deriveString((str) => {
-            try {
-                return encodeURIComponent(str);
-            } catch {
-                return str;
-            }
+            try { return encodeURIComponent(str); } catch { return str; }
         });
     }
 
@@ -1025,6 +1021,8 @@ export class StringExprNamespace {
 
     /**
      * Parses date/time string into Datetime.
+     * @note [Timezone Compatibility]: Direct string parsing with timezone offsets relies on native `Intl.DateTimeFormat`
+     * and `Date.UTC`. Unrecognized timezone identifiers safely default to `"UTC"`.
      * @param options Parsing configuration options.
      * @returns ColumnExpression
      * @example

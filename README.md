@@ -21,7 +21,8 @@ With cache-optimized columnar storage and flat memory layout under the hood, `df
 
 - 📄 **Languages & File Formats**: Full first-class support in **TypeScript (`.ts`, `.tsx`)**, **JavaScript (`.js`, `.jsx`)**, and module formats (`.mjs`, `.cjs`).
 - ⚛️ **UI Frameworks & Bundlers**: React (JSX/TSX), Next.js, Vue, Nuxt, Svelte, SolidJS, Astro, Vite, Webpack, and esbuild.
-- ⚙️ **Runtimes & Edge Platforms**: **Node.js** (18+), **Bun**, **Deno**, modern **Web Browsers**, Cloudflare Workers, Fastly Compute, and AWS Lambda.
+- ⚙️ **Runtimes & Target Standard**: Standard **ES2020+** compatible. Fully tested on **Node.js** (14+), **Bun**, **Deno**, modern **Web Browsers** (Chrome 80+, Safari 13.1+, Firefox 74+, Edge 80+), Cloudflare Workers, Fastly Compute, and AWS Lambda.
+- 🌐 **Browser / Client-Side Compatibility**: 100% in-memory analytical transformations, joins, grouping, and expressions run natively in all browser runtimes. File writing methods (`df.writeCsv()`, `df.writeJson()`) automatically fallback to returning strings or writing to custom stream objects when running in browser environments.
 - 📦 **Package Managers**: Works seamlessly with `npm`, `pnpm`, `bun`, and `yarn`.
 
 ---

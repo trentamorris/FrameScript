@@ -96,6 +96,7 @@ function parseJSDocComment(comment) {
   const descLines = [];
   let currentExampleLines = [];
   let inExample = false;
+  let inNote = false;
 
   for (const rawLine of comment.split("\n")) {
     const line = rawLine.replace(/^\s*\*?\s?/, "");
@@ -107,9 +108,12 @@ function parseJSDocComment(comment) {
         currentExampleLines = [];
         inExample = false;
       }
+      inNote = false;
+
       if (trimmed.startsWith(TAG_EXAMPLE)) {
         inExample = true;
       } else if (trimmed.startsWith(TAG_NOTE)) {
+        inNote = true;
         const noteContent = trimmed.substring(TAG_NOTE.length).trim();
         if (noteContent) notesList.push(noteContent);
       } else if (trimmed.startsWith(TAG_PARAM)) {
@@ -127,7 +131,10 @@ function parseJSDocComment(comment) {
     } else {
       if (inExample) {
         currentExampleLines.push(line);
+      } else if (inNote && notesList.length > 0 && trimmed.length > 0) {
+        notesList[notesList.length - 1] += " " + trimmed;
       } else {
+        inNote = false;
         descLines.push(trimmed);
       }
     }

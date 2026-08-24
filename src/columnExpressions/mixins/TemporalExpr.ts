@@ -100,6 +100,8 @@ export class DateTimeExprNamespace {
      * how local wall-clock component extractors (`hour()`, `day()`, etc.) and `strftime` interpret values.
      * Requires the column to already be timezone-aware; use `replace({ timeZone })`
      * to assign a timezone to a naive column first.
+     * @note [Timezone Compatibility]: Converting across named timezones relies on native `Intl.DateTimeFormat`
+     * IANA database resolution. Unrecognized timezones safely fallback to `"UTC"`.
      * @param timeZone Target IANA timezone identifier (e.g. `"UTC"`, `"America/New_York"`, `"Europe/London"`).
      * @returns ColumnExpression
      * @example
@@ -535,6 +537,8 @@ export class DateTimeExprNamespace {
     /**
      * Formats Datetime values into custom formatted strings using strftime directive pattern tokens.
      * Automatically applies the column's assigned timezone unless explicitly overridden in options.
+     * @note [Timezone Compatibility]: Timezone-aware formatting relies on native `Intl.DateTimeFormat`
+     * timezone resolution. If an invalid or unsupported IANA timezone is provided, formatting safely defaults to `"UTC"`.
      * @param options Formatting pattern string (e.g. `"%Y-%m-%d %H:%M:%S"`) or configuration object.
      * @returns ColumnExpression
      * @example

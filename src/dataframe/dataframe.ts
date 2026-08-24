@@ -1631,6 +1631,8 @@ export class DataFrame<T extends RowRecord = any> {
 
     /**
      * Writes DataFrame to CSV format string or file/stream target.
+     * @note [Environment]: When `file` is provided as a string file path, execution requires a Node.js-compatible
+     * environment with `fs` access. In browser environments, omit `file` to receive a string or supply a custom writable stream object.
      * @param {string | { write: (str: string) => void }} [file] Target file path or writable stream target (optional).
      * @param {WriteCSVOptions} [options] CSV formatting options.
      * @param {string} [options.delimiter] Column delimiter character (default `","`).
@@ -1681,6 +1683,8 @@ export class DataFrame<T extends RowRecord = any> {
 
     /**
      * Writes DataFrame rows to JSON format string or file/stream target.
+     * @note [Environment]: When `file` is provided as a string file path, execution requires a Node.js-compatible
+     * environment with `fs` access. In browser environments, omit `file` to receive a string or supply a custom writable stream object.
      * @param {string | { write: (str: string) => void }} [file] Target file path or writable stream target (optional).
      * @param {WriteJSONOptions} [options] JSON formatting and replacer options.
      * @param {JSONFormat} [options.format] JSON output format structure (`"json"` or `"ndjson"`). Default `"json"`.
