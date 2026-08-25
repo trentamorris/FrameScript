@@ -147,6 +147,16 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
 - [x] **Verified ES2020 Baseline Compatibility Across All Runtimes**:
   * Emitted bundles target `es2020` without polyfill overhead, supporting Node.js 14+, modern browsers (Chrome 80+, Safari 13.1+, Firefox 74+, Edge 80+), Bun, Deno, and Edge Workers.
   * Preserved `@note` JSDoc annotations for environment-specific APIs (such as filesystem access in `df.writeCsv` and `df.writeJson`).
+- [x] **Generalized Distinct Matching (`isNDistinct`)**:
+  * Added `$df.col().isNDistinct(index, nullOnOob)` to `ComparisonExpr` supporting positive & negative index positions (e.g. 0 for first distinct, -1 for last distinct), out-of-bounds handling, and Kleene null propagation.
+
+### 🏛️ Unified Root Column Expression Architecture
+- [x] **Consolidate Root Mixins into Single `StandardExpr` / `ColumnExpr`**:
+  * Merge arbitrary root mixins (`ArithmeticExpr`, `ComparisonExpr`, `AggregationExpr`, `LogicalExpr`, `ManipulationExpr`, `WindowExpr`) directly into `StandardExpr` / `ColumnExpr`.
+  * Maintain clean, dedicated namespace mixins only for explicit sub-namespaces (`.arr`, `.bin`, `.dt`, `.str`, `.struct`).
+  * Eliminate cross-mixin TypeScript friction, prototype casting, and circular module dependencies for root column methods.
+- [x] **Decompose Column Expression Mixin Test Suites into 1:1 Atomic Test Files**:
+  * Mirrored `_tests/dataframe` structure across `ArrayExpr`, `StandardExpr`, `StringExpr`, `StructExpr`, and `TemporalExpr`.
 
 
 /DataFrame.__getitem__
@@ -228,10 +238,6 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
 
 
 ## 🔮 Future / Backlog Scope (V2.0+)
-
-### 🔎 Inspection & Reporting Utilities
-- [ ] **DataFrame Summary Statistics (`df.describe()`)**:
-  * Generate a summary table displaying row counts, mean, standard deviation, min, percentiles (25%, 50%, 75%), and max metrics for all numeric columns.
 
 ### ⏰ Advanced Temporal Extensions & Storage Infrastructure
 - [ ] **`replace_time_zone(timeZone)` Method**:

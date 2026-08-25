@@ -1,5 +1,5 @@
 import type { IExpr, ColumnData, ColumnDict } from "../types";
-import { isArrayOrTypedArray } from "../utils";
+import { isArrayOrTypedArray, sortArray, toCanonicalString } from "../utils";
 import { isValidDateObj } from "../utils/object";
 import { resolveWindowExpr } from "../dataframe/utils";
 
@@ -100,4 +100,82 @@ export function isEvaluatedColumn(
     return false;
 }
 
+export function buildCanonicalSet(vals: any): Set<string> {
+    const set = new Set<string>();
+    const arr = isArrayOrTypedArray(vals) ? vals : [vals];
+    for (let j = 0; j < arr.length; j++) set.add(toCanonicalString(arr[j]));
+    return set;
+}
 
+export function computeIsIn(vArray: ArrayLike<any>, columns: any, values: any): any[] {
+    const height = vArray.length;
+    const isExpr = values && typeof values === "object" && "evaluate" in values;
+    const resolved = isExpr ? values.evaluate(columns, height) : null;
+    const staticSet = isExpr ? null : buildCanonicalSet(values);
+    const result = new Array(height);
+
+    for (let i = 0; i < height; i++) {
+        const v = vArray[i];
+        if (v == null) {
+            result[i] = null;
+            continue;
+        }
+        const set = staticSet ?? buildCanonicalSet(resolved[i]);
+        result[i] = set.has(toCanonicalString(v));
+    }
+    return result;
+}
+
+export function compareMissing(vArray: ArrayLike<any>, rResolved: any): boolean[] {
+    const height = vArray.length;
+    const isRArray = isArrayOrTypedArray(rResolved);
+    const result = new Array(height);
+    for (let i = 0; i < height; i++) {
+        const v = vArray[i];
+        const r = isRArray ? rResolved[i] : rResolved;
+        if (v == null || r == null) {
+            result[i] = v == null && r == null;
+        } else {
+            result[i] = v === r;
+        }
+    }
+    return result;
+}
+
+export function computeRank(
+    arr: any[],
+    value: any,
+    options: { ignoreNulls?: boolean; dense?: boolean } = {}
+): number | null {
+    if (value == null) return null;
+
+    const cacheKey = options.dense ? "_denseRankCache" : "_rankCache";
+    let valueToRank = (arr as any)[cacheKey];
+
+    if (!valueToRank) {
+        let targetArr = arr;
+        if (options.ignoreNulls) {
+            targetArr = [];
+            const len = arr.length;
+            for (let i = 0; i < len; i++) {
+                if (arr[i] != null) targetArr.push(arr[i]);
+            }
+        }
+        if (options.dense) {
+            targetArr = Array.from(new Set(targetArr));
+        }
+
+        const sorted = sortArray(targetArr);
+        valueToRank = new Map();
+        const len = sorted.length;
+        for (let i = 0; i < len; i++) {
+            const v = sorted[i];
+            if (!valueToRank.has(v)) {
+                valueToRank.set(v, i + 1);
+            }
+        }
+        (arr as any)[cacheKey] = valueToRank;
+    }
+
+    return valueToRank.get(value) ?? null;
+}

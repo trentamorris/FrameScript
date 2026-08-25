@@ -1,14 +1,9 @@
 import { ExprBase } from "./ExprBase"
-import { ArithmeticExpr } from "./mixins/ArithmeticExpr"
-import { ComparisonExpr } from "./mixins/ComparisonExpr"
-import { AggregationExpr } from "./mixins/AggregationExpr"
-import { WindowExpr } from "./mixins/WindowExpr"
+import { StandardExpr } from "./mixins/StandardExpr"
 import { StringExpr } from "./mixins/StringExpr"
-import { LogicalExpr } from "./mixins/LogicalExpr"
 import { TemporalExpr } from "./mixins/TemporalExpr"
 import { ArrayExpr } from "./mixins/ArrayExpr"
 import { StructExpr } from "./mixins/StructExpr"
-import { ManipulationExpr } from "./mixins/ManipulationExpr"
 import { isObj } from "../utils"
 import { DataType } from "../datatypes"
 import type { IntoExpr, IExpr, DataFrameSchema, ColumnDict } from "../types"
@@ -61,16 +56,11 @@ export class ColumnExpr<T> extends ExprBase {
 }
 
 export interface ColumnExpr<T> extends
-    ArithmeticExpr,
-    ComparisonExpr,
-    AggregationExpr,
-    WindowExpr,
+    StandardExpr,
     StringExpr,
-    LogicalExpr,
     TemporalExpr,
     ArrayExpr,
-    StructExpr,
-    ManipulationExpr { }
+    StructExpr { }
 
 function _applyMixins(derivedCtor: any, constructors: any[]) {
     for (const baseCtor of constructors) {
@@ -87,16 +77,11 @@ function _applyMixins(derivedCtor: any, constructors: any[]) {
 }
 
 _applyMixins(ColumnExpr, [
-    ArithmeticExpr,
-    ComparisonExpr,
-    AggregationExpr,
-    WindowExpr,
+    StandardExpr,
     StringExpr,
-    LogicalExpr,
     TemporalExpr,
     ArrayExpr,
-    StructExpr,
-    ManipulationExpr
+    StructExpr
 ]);
 
 /**

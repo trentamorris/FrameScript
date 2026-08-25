@@ -11,4 +11,8 @@ export interface RandomOptions {
 
 export type NumericArg = number | bigint | IExpr | null;
 
-
+export interface IsCloseOptions {
+    absTol?: number;
+    relTol?: number;
+    nansEqual?: boolean;
+}

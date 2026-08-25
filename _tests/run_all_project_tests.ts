@@ -3,16 +3,11 @@ console.log("RUNNING ALL DFSCRIPT PROJECT TESTS...");
 console.log("=========================================");
 
 // 1. ColumnExpressions
-import "./columnExpressions/mixins/AggregationExpr.test";
-import "./columnExpressions/mixins/ArithmeticExpr.test";
-import "./columnExpressions/mixins/ArrayExpr.test";
-import "./columnExpressions/mixins/ComparisonExpr.test";
-import "./columnExpressions/mixins/LogicalExpr.test";
-import "./columnExpressions/mixins/ManipulationExpr.test";
-import "./columnExpressions/mixins/StringExpr.test";
-import "./columnExpressions/mixins/StructExpr.test";
-import "./columnExpressions/mixins/TemporalExpr.test";
-import "./columnExpressions/mixins/WindowExpr.test";
+import "./columnExpressions/mixins/ArrayExpr/run_all";
+import "./columnExpressions/mixins/StandardExpr/run_all";
+import "./columnExpressions/mixins/StringExpr/run_all";
+import "./columnExpressions/mixins/StructExpr/run_all";
+import "./columnExpressions/mixins/TemporalExpr/run_all";
 import "./columnExpressions/functions/all.test";
 import "./columnExpressions/functions/coalesce.test";
 import "./columnExpressions/functions/duration.test";

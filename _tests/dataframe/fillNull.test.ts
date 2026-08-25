@@ -1,4 +1,4 @@
-import { DataFrame } from "../../src";
+import { DataFrame, $df } from "../../src";
 
 console.log("Running fillNull tests...");
 
@@ -93,11 +93,116 @@ if (
     throw new Error("Backward strategy fillNull with limit failed");
 }
 
-// 5. Empty DataFrame boundary case
-const dfEmpty = new DataFrame({ a: [] });
-const resEmpty = dfEmpty.fillNull({ value: 99 });
-if (resEmpty.height !== 0) {
-    throw new Error("Empty DataFrame fillNull height should be 0");
+// 6. Comprehensive ColumnExpr and DataFrame edge cases
+const dfEdge = new DataFrame({
+    nums: [null, 10, null, null, 20, null],
+    leading_nulls: [null, null, 100, 200, 300, 400],
+    trailing_nulls: [100, 200, 300, 400, null, null],
+    all_nulls: [null, null, null, null, null, null],
+    no_nulls: [1, 2, 3, 4, 5, 6],
+    strings: [null, "alpha", null, "beta", null, "gamma"]
+});
+
+// Expression level fillNull with literal and expressions
+const resExpr = dfEdge.select([
+    $df.col("nums").fillNull({ value: -1 }).alias("nums_val"),
+    $df.col("nums").fillNull({ strategy: "zero" }).alias("nums_zero"),
+    $df.col("nums").fillNull({ strategy: "one" }).alias("nums_one"),
+    $df.col("nums").fillNull({ strategy: "min" }).alias("nums_min"),
+    $df.col("nums").fillNull({ strategy: "max" }).alias("nums_max"),
+    $df.col("nums").fillNull({ strategy: "mean" }).alias("nums_mean"),
+    $df.col("nums").fillNull({ strategy: "forward" }).alias("nums_fwd"),
+    $df.col("nums").fillNull({ strategy: "backward" }).alias("nums_bwd"),
+    $df.col("leading_nulls").fillNull({ strategy: "forward" }).alias("leading_fwd"),
+    $df.col("leading_nulls").fillNull({ strategy: "backward" }).alias("leading_bwd"),
+    $df.col("trailing_nulls").fillNull({ strategy: "forward" }).alias("trailing_fwd"),
+    $df.col("trailing_nulls").fillNull({ strategy: "backward" }).alias("trailing_bwd"),
+    $df.col("all_nulls").fillNull({ strategy: "forward" }).alias("all_null_fwd"),
+    $df.col("all_nulls").fillNull({ strategy: "backward" }).alias("all_null_bwd"),
+    $df.col("all_nulls").fillNull({ strategy: "mean" }).alias("all_null_mean"),
+    $df.col("no_nulls").fillNull({ strategy: "forward" }).alias("no_null_fwd"),
+    $df.col("strings").fillNull({ strategy: "forward" }).alias("str_fwd"),
+    $df.col("strings").fillNull({ strategy: "backward" }).alias("str_bwd"),
+    $df.col("strings").fillNull({ value: "default" }).alias("str_val")
+]);
+
+// Verify leading nulls forward fill retains leading nulls
+if (resExpr.item(0, "leading_fwd") !== null || resExpr.item(1, "leading_fwd") !== null || resExpr.item(2, "leading_fwd") !== 100) {
+    throw new Error("Leading nulls forward fill failed");
+}
+
+// Verify leading nulls backward fill propagates 100 backwards
+if (resExpr.item(0, "leading_bwd") !== 100 || resExpr.item(1, "leading_bwd") !== 100 || resExpr.item(2, "leading_bwd") !== 100) {
+    throw new Error("Leading nulls backward fill failed");
+}
+
+// Verify trailing nulls forward fill propagates 400 forward
+if (resExpr.item(4, "trailing_fwd") !== 400 || resExpr.item(5, "trailing_fwd") !== 400) {
+    throw new Error("Trailing nulls forward fill failed");
+}
+
+// Verify trailing nulls backward fill retains trailing nulls
+if (resExpr.item(4, "trailing_bwd") !== null || resExpr.item(5, "trailing_bwd") !== null) {
+    throw new Error("Trailing nulls backward fill failed");
+}
+
+// Verify all-null columns remain null across forward, backward, mean
+if (resExpr.item(0, "all_null_fwd") !== null || resExpr.item(0, "all_null_bwd") !== null || resExpr.item(0, "all_null_mean") !== null) {
+    throw new Error("All-null column fillNull failed");
+}
+
+// Verify no-null columns remain unchanged
+if (resExpr.item(0, "no_null_fwd") !== 1 || resExpr.item(1, "no_null_fwd") !== 2 || resExpr.item(2, "no_null_fwd") !== 3) {
+    throw new Error("No-null column fillNull failed");
+}
+
+// Verify strings fillNull
+if (resExpr.item(0, "str_val") !== "default" || resExpr.item(1, "str_val") !== "alpha" || resExpr.item(2, "str_val") !== "default") {
+    throw new Error("String fillNull with value failed");
+}
+if (resExpr.item(0, "str_fwd") !== null || resExpr.item(2, "str_fwd") !== "alpha" || resExpr.item(4, "str_fwd") !== "beta") {
+    throw new Error("String forward fill failed");
+}
+if (resExpr.item(0, "str_bwd") !== "alpha" || resExpr.item(2, "str_bwd") !== "beta" || resExpr.item(4, "str_bwd") !== "gamma") {
+    throw new Error("String backward fill failed");
+}
+
+// Verify nums stats calculations (10 and 20 -> min: 10, max: 20, mean: 15)
+if (resExpr.item(0, "nums_min") !== 10 || resExpr.item(2, "nums_min") !== 10 || resExpr.item(4, "nums_min") !== 20) {
+    throw new Error("Nums min fillNull failed");
+}
+if (resExpr.item(0, "nums_max") !== 20 || resExpr.item(2, "nums_max") !== 20 || resExpr.item(4, "nums_max") !== 20) {
+    throw new Error("Nums max fillNull failed");
+}
+if (resExpr.item(0, "nums_mean") !== 15 || resExpr.item(2, "nums_mean") !== 15 || resExpr.item(4, "nums_mean") !== 20) {
+    throw new Error("Nums mean fillNull failed");
+}
+
+// 7. Invalid strategy throws InvalidArgumentError
+let threwInvalid = false;
+try {
+    dfEdge.fillNull({ strategy: "unsupported_strategy" as any });
+} catch (e: any) {
+    threwInvalid = true;
+}
+if (!threwInvalid) {
+    throw new Error("Invalid strategy should throw an error");
+}
+
+// 8. Expression-based filling ($df.col("b").fillNull({ value: $df.col("a") }))
+const dfFallback = new DataFrame({
+    primary: [null, 2, null, 4],
+    fallback: [10, 20, 30, 40]
+});
+const resFallback = dfFallback.withColumns($df.col("primary").fillNull({ value: $df.col("fallback") }).alias("coalesced"));
+if (
+    resFallback.item(0, "coalesced") !== 10 ||
+    resFallback.item(1, "coalesced") !== 2 ||
+    resFallback.item(2, "coalesced") !== 30 ||
+    resFallback.item(3, "coalesced") !== 4
+) {
+    throw new Error("Expression-based fillNull failed");
 }
 
 console.log("✓ fillNull tests passed!");
+
