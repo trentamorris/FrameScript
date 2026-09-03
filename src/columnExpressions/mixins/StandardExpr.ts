@@ -1,15 +1,15 @@
 import type {
     IExpr,
     AggFn,
-    UniqueArrayStatsOptions,
     SkewOptions,
     KurtosisOptions,
     EntropyOptions,
-    FillNullOptions
+    FillNullOptions,
+    RollingOptions
 } from "../../types"
 import type { RandomOptions, NumericArg, IsCloseOptions } from "../types"
 import { ExprBase, derive } from "../ExprBase"
-import { kleeneUnary, kleeneBinary, computeIsIn, compareMissing, computeRank } from "../utils"
+import { kleeneUnary, kleeneBinary, computeIsIn, compareMissing, computeRank, evaluateExpression } from "../utils"
 import { ComputeError, InvalidArgumentError } from "../../exceptions"
 import {
     clamp,
@@ -23,9 +23,11 @@ import {
     computeSpearmanCorrelation,
     computeStatisticalMatrix,
     computeWeightedAverage,
+    filterByMask,
     getArrayElement,
     getArrayStats,
     getUniqueArrayStats,
+    UniqueArrayStatsOptions,
     isArrayOfType,
     isArrayOrTypedArray,
     isValidNumber,
@@ -81,15 +83,6 @@ export class StandardExpr extends ExprBase {
         return this._partitionBy !== null || this._evaluateWindow !== undefined || this._aggFn !== null;
     }
 
-    _rolling(windowSize: number, aggFn: (vals: any[]) => any) {
-        return this._window(function (this: IExpr, groupPreValues: any[], _partitionIndices: number[], currentIndex: number) {
-            const start = Math.max(0, currentIndex - windowSize + 1);
-            const end = currentIndex + 1;
-            const windowVals = groupPreValues.slice(start, end);
-            return aggFn(windowVals);
-        });
-    }
-
     _window(evaluateWindow: (this: IExpr, groupPreValues: any[], partitionIndices: number[], currentIndex: number) => any) {
         const newInst = derive(this);
         newInst._partitionOpsIndex = this._ops.length;
@@ -115,44 +108,6 @@ export class StandardExpr extends ExprBase {
      */
     abs() {
         return derive(this, kleeneUnary(Math.abs));
-    }
-
-    /**
-     * Computes the mathematical arccosine (inverse cosine) of the column values.
-     * @returns ColumnExpression
-     * @example
-     * <!-- doc:base_numbers_3x1 -->
-     * >>> df.withColumns($df.col("a").acos().alias("acos_a"))
-     * shape: (3, 2)
-     * ┌───┬────────┐
-     * │ a │ acos_a │
-     * ├───┼────────┤
-     * │ 1 │ 0      │
-     * │ 2 │ null   │
-     * │ 3 │ null   │
-     * └───┴────────┘
-     */
-    acos() {
-        return derive(this, kleeneUnary((v) => (v < -1 || v > 1) ? null : Math.acos(v)));
-    }
-
-    /**
-     * Computes the hyperbolic arccosine of the column values.
-     * @returns ColumnExpression
-     * @example
-     * <!-- doc:base_numbers_3x1 -->
-     * >>> df.withColumns($df.col("a").acosh().alias("acosh_a"))
-     * shape: (3, 2)
-     * ┌───┬──────────┐
-     * │ a │ acosh_a  │
-     * ├───┼──────────┤
-     * │ 1 │ 0        │
-     * │ 2 │ 1.316958 │
-     * │ 3 │ 1.762747 │
-     * └───┴──────────┘
-     */
-    acosh() {
-        return derive(this, kleeneUnary((v) => v < 1 ? null : Math.acosh(v)));
     }
 
     /**
@@ -278,6 +233,140 @@ export class StandardExpr extends ExprBase {
     }
 
     /**
+     * Computes the mathematical arccosine (inverse cosine) of the column values.
+     * @returns ColumnExpression
+     * @example
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("a").arccos().alias("arccos_a"))
+     * shape: (3, 2)
+     * ┌───┬──────────┐
+     * │ a │ arccos_a │
+     * ├───┼──────────┤
+     * │ 1 │ 0        │
+     * │ 2 │ null     │
+     * │ 3 │ null     │
+     * └───┴──────────┘
+     */
+    arccos() {
+        return derive(this, kleeneUnary((v) => (v < -1 || v > 1) ? null : Math.acos(v)));
+    }
+
+    /**
+     * Computes the hyperbolic arccosine of the column values.
+     * @returns ColumnExpression
+     * @example
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("a").arccosh().alias("arccosh_a"))
+     * shape: (3, 2)
+     * ┌───┬───────────┐
+     * │ a │ arccosh_a │
+     * ├───┼───────────┤
+     * │ 1 │ 0         │
+     * │ 2 │ 1.316958  │
+     * │ 3 │ 1.762747  │
+     * └───┴───────────┘
+     */
+    arccosh() {
+        return derive(this, kleeneUnary((v) => v < 1 ? null : Math.acosh(v)));
+    }
+
+    /**
+     * Computes the arcsine of the column values.
+     * @returns ColumnExpression
+     * @example
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("a").arcsin().alias("arcsin_a"))
+     * shape: (3, 2)
+     * ┌───┬──────────┐
+     * │ a │ arcsin_a │
+     * ├───┼──────────┤
+     * │ 1 │ 1.570796 │
+     * │ 2 │ null     │
+     * │ 3 │ null     │
+     * └───┴──────────┘
+     */
+    arcsin() {
+        return derive(this, kleeneUnary((v) => (v < -1 || v > 1) ? null : Math.asin(v)));
+    }
+
+    /**
+     * Computes the hyperbolic arcsine of the column values.
+     * @returns ColumnExpression
+     * @example
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("a").arcsinh().alias("arcsinh_a"))
+     * shape: (3, 2)
+     * ┌───┬───────────┐
+     * │ a │ arcsinh_a │
+     * ├───┼───────────┤
+     * │ 1 │ 0.881374  │
+     * │ 2 │ 1.443635  │
+     * │ 3 │ 1.818446  │
+     * └───┴───────────┘
+     */
+    arcsinh() {
+        return derive(this, kleeneUnary(Math.asinh));
+    }
+
+    /**
+     * Computes the arctangent of the column values.
+     * @returns ColumnExpression
+     * @example
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("a").arctan().alias("arctan_a"))
+     * shape: (3, 2)
+     * ┌───┬──────────┐
+     * │ a │ arctan_a │
+     * ├───┼──────────┤
+     * │ 1 │ 0.785398 │
+     * │ 2 │ 1.107149 │
+     * │ 3 │ 1.249046 │
+     * └───┴──────────┘
+     */
+    arctan() {
+        return derive(this, kleeneUnary(Math.atan));
+    }
+
+    /**
+     * Computes the quadrant-aware arctangent of two values.
+     * @param val The x denominator number or column expression.
+     * @returns ColumnExpression
+     * @example
+     * <!-- doc:base_numbers_3x2 -->
+     * >>> df.withColumns($df.col("a").arctan2($df.col("b")).alias("arctan2_a"))
+     * shape: (3, 3)
+     * ┌───┬────┬───────────┐
+     * │ a │ b  │ arctan2_a │
+     * ├───┼────┼───────────┤
+     * │ 1 │ 10 │ 0.099669  │
+     * │ 2 │ 20 │ 0.099669  │
+     * │ 3 │ 30 │ 0.099669  │
+     * └───┴────┴───────────┘
+     */
+    arctan2(val: NumericArg) {
+        return derive(this, kleeneBinary(this, val, Math.atan2));
+    }
+
+    /**
+     * Computes the hyperbolic arctangent of the column values.
+     * @returns ColumnExpression
+     * @example
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("a").arctanh().alias("arctanh_a"))
+     * shape: (3, 2)
+     * ┌───┬───────────┐
+     * │ a │ arctanh_a │
+     * ├───┼───────────┤
+     * │ 1 │ null      │
+     * │ 2 │ null      │
+     * │ 3 │ null      │
+     * └───┴───────────┘
+     */
+    arctanh() {
+        return derive(this, kleeneUnary((v) => (v <= -1 || v >= 1) ? null : Math.atanh(v)));
+    }
+
+    /**
      * Aggregation: Finds the index of the maximum value in the group.
      * @returns ColumnExpression
      * @example
@@ -309,102 +398,6 @@ export class StandardExpr extends ExprBase {
      */
     argMin() {
         return this._deriveAgg(v => getArrayStats(v).minIdx);
-    }
-
-    /**
-     * Computes the arcsine of the column values.
-     * @returns ColumnExpression
-     * @example
-     * <!-- doc:base_numbers_3x1 -->
-     * >>> df.withColumns($df.col("a").asin().alias("asin_a"))
-     * shape: (3, 2)
-     * ┌───┬──────────┐
-     * │ a │ asin_a   │
-     * ├───┼──────────┤
-     * │ 1 │ 1.570796 │
-     * │ 2 │ null     │
-     * │ 3 │ null     │
-     * └───┴──────────┘
-     */
-    asin() {
-        return derive(this, kleeneUnary((v) => (v < -1 || v > 1) ? null : Math.asin(v)));
-    }
-
-    /**
-     * Computes the hyperbolic arcsine of the column values.
-     * @returns ColumnExpression
-     * @example
-     * <!-- doc:base_numbers_3x1 -->
-     * >>> df.withColumns($df.col("a").asinh().alias("asinh_a"))
-     * shape: (3, 2)
-     * ┌───┬──────────┐
-     * │ a │ asinh_a  │
-     * ├───┼──────────┤
-     * │ 1 │ 0.881374 │
-     * │ 2 │ 1.443635 │
-     * │ 3 │ 1.818446 │
-     * └───┴──────────┘
-     */
-    asinh() {
-        return derive(this, kleeneUnary(Math.asinh));
-    }
-
-    /**
-     * Computes the arctangent of the column values.
-     * @returns ColumnExpression
-     * @example
-     * <!-- doc:base_numbers_3x1 -->
-     * >>> df.withColumns($df.col("a").atan().alias("atan_a"))
-     * shape: (3, 2)
-     * ┌───┬──────────┐
-     * │ a │ atan_a   │
-     * ├───┼──────────┤
-     * │ 1 │ 0.785398 │
-     * │ 2 │ 1.107149 │
-     * │ 3 │ 1.249046 │
-     * └───┴──────────┘
-     */
-    atan() {
-        return derive(this, kleeneUnary(Math.atan));
-    }
-
-    /**
-     * Computes the quadrant-aware arctangent of two values.
-     * @param val The x denominator number or column expression.
-     * @returns ColumnExpression
-     * @example
-     * <!-- doc:base_numbers_3x2 -->
-     * >>> df.withColumns($df.col("a").atan2($df.col("b")).alias("atan2_a"))
-     * shape: (3, 3)
-     * ┌───┬────┬──────────┐
-     * │ a │ b  │ atan2_a  │
-     * ├───┼────┼──────────┤
-     * │ 1 │ 10 │ 0.099669 │
-     * │ 2 │ 20 │ 0.099669 │
-     * │ 3 │ 30 │ 0.099669 │
-     * └───┴────┴──────────┘
-     */
-    atan2(val: NumericArg) {
-        return derive(this, kleeneBinary(this, val, Math.atan2));
-    }
-
-    /**
-     * Computes the hyperbolic arctangent of the column values.
-     * @returns ColumnExpression
-     * @example
-     * <!-- doc:base_numbers_3x1 -->
-     * >>> df.withColumns($df.col("a").atanh().alias("atanh_a"))
-     * shape: (3, 2)
-     * ┌───┬─────────┐
-     * │ a │ atanh_a │
-     * ├───┼─────────┤
-     * │ 1 │ null    │
-     * │ 2 │ null    │
-     * │ 3 │ null    │
-     * └───┴─────────┘
-     */
-    atanh() {
-        return derive(this, kleeneUnary((v) => (v <= -1 || v >= 1) ? null : Math.atanh(v)));
     }
 
     /**
@@ -634,6 +627,30 @@ export class StandardExpr extends ExprBase {
      */
     cosh() {
         return derive(this, kleeneUnary(Math.cosh));
+    }
+
+    /**
+     * Computes the cotangent of the column values.
+     * @returns ColumnExpression
+     * @example
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("a").cot().alias("cot_a"))
+     * shape: (3, 2)
+     * ┌───┬───────────┐
+     * │ a │ cot_a     │
+     * ├───┼───────────┤
+     * │ 1 │ 0.642093  │
+     * │ 2 │ -0.457658 │
+     * │ 3 │ -7.015253 │
+     * └───┴───────────┘
+     */
+    cot() {
+        return derive(this, kleeneUnary((v) => {
+            if (Number.isNaN(v)) return NaN;
+            if (!isValidNumber(v)) return null;
+            const tan = Math.tan(v);
+            return tan === 0 ? null : 1 / tan;
+        }));
     }
 
     /**
@@ -1021,6 +1038,28 @@ export class StandardExpr extends ExprBase {
 
             return result;
         }) as this;
+    }
+
+    /**
+     * Filters elements of the column expression where the predicate evaluates to truthy.
+     * @param predicate Boolean column expression used to filter values.
+     * @returns ColumnExpression
+     * @example
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.select($df.col("a").filter($df.col("a").gt(1)).alias("filtered"))
+     * shape: (2, 1)
+     * ┌──────────┐
+     * │ filtered │
+     * ├──────────┤
+     * │ 2        │
+     * │ 3        │
+     * └──────────┘
+     */
+    filter(predicate: IExpr) {
+        return derive(this, (vArray, columns) => {
+            const mask = evaluateExpression(predicate, columns, vArray.length);
+            return filterByMask(vArray, mask, { nullify: true });
+        });
     }
 
     /**
@@ -2120,7 +2159,52 @@ export class StandardExpr extends ExprBase {
      * └───┴──────────┘
      */
     reverse(): this {
-        return derive(this, (vArray) => (vArray as any).toReversed()) as this;
+        return derive(this, (vArray) => (vArray as any[]).slice().reverse()) as this;
+    }
+
+    /**
+     * Window: Computes a rolling window reduction using a ColumnExpression or a custom callback function.
+     * @param optionsOrWindowSize Window row count or RollingOptions configuration.
+     * @param exprOrFn ColumnExpression to evaluate over each window slice, or a custom reducer function.
+     * @returns ColumnExpression
+     * @example
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("val").rolling(2, $df.col("val").sum()).alias("r_sum"))
+     * shape: (3, 2)
+     * ┌─────┬───────┐
+     * │ val │ r_sum │
+     * ├─────┼───────┤
+     * │ 10  │ 10    │
+     * │ 20  │ 30    │
+     * │ 30  │ 50    │
+     * └─────┴───────┘
+     */
+    rolling(
+        optionsOrWindowSize: number | RollingOptions,
+        exprOrFn: IExpr | ((vals: any[]) => any)
+    ) {
+        const windowSize = typeof optionsOrWindowSize === "number" ? optionsOrWindowSize : (optionsOrWindowSize?.windowSize ?? NaN);
+        if (!Number.isFinite(windowSize) || windowSize < 1) {
+            throw new InvalidArgumentError("rolling: windowSize must be a positive number >= 1");
+        }
+        if (!exprOrFn || (typeof exprOrFn !== "function" && typeof (exprOrFn as any).evaluate !== "function")) {
+            throw new InvalidArgumentError("rolling: second argument must be a reducer function or ColumnExpression");
+        }
+
+        const win = Math.floor(windowSize);
+        const colName = (exprOrFn as any)._colName || (this as any)._colName || "val";
+        const reducer: (vals: any[]) => any = typeof exprOrFn === "function"
+            ? exprOrFn
+            : (exprOrFn as any)._aggFn ?? ((vals) => {
+                const res = evaluateExpression(exprOrFn, { [colName]: vals }, vals.length);
+                return Array.isArray(res) ? res[res.length - 1] : res;
+            });
+
+        return this._window(function (this: IExpr, groupPreValues: any[], _partitionIndices: number[], currentIndex: number) {
+            const start = Math.max(0, currentIndex - win + 1);
+            const end = currentIndex + 1;
+            return reducer(groupPreValues.slice(start, end));
+        });
     }
 
     /**
@@ -2140,7 +2224,7 @@ export class StandardExpr extends ExprBase {
      * └─────┴───────┘
      */
     rollingMax(windowSize: number) {
-        return this._rolling(windowSize, v => getArrayStats(v).max);
+        return this.rolling(windowSize, v => getArrayStats(v).max);
     }
 
     /**
@@ -2160,7 +2244,7 @@ export class StandardExpr extends ExprBase {
      * └─────┴────────┘
      */
     rollingMean(windowSize: number) {
-        return this._rolling(windowSize, v => getArrayStats(v).mean);
+        return this.rolling(windowSize, v => getArrayStats(v).mean);
     }
 
     /**
@@ -2180,7 +2264,7 @@ export class StandardExpr extends ExprBase {
      * └─────┴───────┘
      */
     rollingMedian(windowSize: number) {
-        return this._rolling(windowSize, v => computeQuantile(v, 0.5));
+        return this.rolling(windowSize, v => computeQuantile(v, 0.5));
     }
 
     /**
@@ -2200,7 +2284,7 @@ export class StandardExpr extends ExprBase {
      * └─────┴───────┘
      */
     rollingMin(windowSize: number) {
-        return this._rolling(windowSize, v => getArrayStats(v).min);
+        return this.rolling(windowSize, v => getArrayStats(v).min);
     }
 
     /**
@@ -2221,7 +2305,7 @@ export class StandardExpr extends ExprBase {
      * └─────┴─────────┘
      */
     rollingQuantile(quantile: number, windowSize: number) {
-        return this._rolling(windowSize, v => computeQuantile(v, quantile));
+        return this.rolling(windowSize, v => computeQuantile(v, quantile));
     }
 
     /**
@@ -2241,7 +2325,7 @@ export class StandardExpr extends ExprBase {
      * └─────┴────────┘
      */
     rollingRank(windowSize: number) {
-        return this._rolling(windowSize, (vals) => {
+        return this.rolling(windowSize, (vals) => {
             return computeRank(vals, vals[vals.length - 1], { ignoreNulls: true });
         });
     }
@@ -2263,7 +2347,7 @@ export class StandardExpr extends ExprBase {
      * └─────┴────────┘
      */
     rollingStd(windowSize: number) {
-        return this._rolling(windowSize, v => getArrayStats(v).std);
+        return this.rolling(windowSize, v => getArrayStats(v).std);
     }
 
     /**
@@ -2283,7 +2367,7 @@ export class StandardExpr extends ExprBase {
      * └─────┴───────┘
      */
     rollingSum(windowSize: number) {
-        return this._rolling(windowSize, v => getArrayStats(v).sum);
+        return this.rolling(windowSize, v => getArrayStats(v).sum);
     }
 
     /**

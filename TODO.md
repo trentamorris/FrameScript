@@ -159,98 +159,6 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
   * Mirrored `_tests/dataframe` structure across `ArrayExpr`, `StandardExpr`, `StringExpr`, `StructExpr`, and `TemporalExpr`.
 
 
-/DataFrame.__getitem__
-/DataFrame.__setitem__
-/DataFrame.bottom_k
-/DataFrame.cast
-/DataFrame.clear
-/DataFrame/drop_in_place
-/DataFrame/drop_nans
-/DataFrame/drop_nulls
-/DataFrame/extend
-/DataFrame/fill_nan  ?filter under the hood
-/DataFrame/gather
-/DataFrame/gather_every
-/DataFrame/get_column
-/DataFrame/get_column_index
-/DataFrame/get_columns
-/DataFrame/group_by_dynamic
-/DataFrame/interpolate
-/DataFrame/iter_slices
-/DataFrame/join_where
-/DataFrame/match_to_schema
-/DataFrame/merge_sorted
-/DataFrame/partition_by
-/DataFrame/pipe
-/DataFrame/rechunk
-/DataFrame/remove
-/DataFrame/replace_column
-/DataFrame/rolling
-/DataFrame/row
-/DataFrame/rows
-/DataFrame/rows_by_key
-/DataFrame/sample
-/DataFrame/select_seq
-/DataFrame/set_sorted
-/DataFrame/shift
-/DataFrame/shrink_to_fit
-/DataFrame/sql
-/DataFrame/to_dummies
-/DataFrame/to_series
-/DataFrame/top_k
-/DataFrame/unnest
-/DataFrame/unstack
-/DataFrame/update
-/DataFrame/upsample
-
-#Aggregation
-/DataFrame/count
-/DataFrame/max
-/DataFrame/max_horizontal
-/DataFrame/mean
-/DataFrame/mean_horizontal
-/DataFrame/median
-/DataFrame/min
-/DataFrame/min_horizontal
-/DataFrame/product
-/DataFrame/quantile
-/DataFrame/std
-/DataFrame/sum
-/DataFrame/sum_horizontal
-/DataFrame/var
-
-#Attributes
-/DataFrame/flags
-
-#Computation
-/DataFrame/fold
-/DataFrame/hash_rows
-
-#Miscellaneous 
-/DataFrame/collect_schema
-/DataFrame/corr
-/DataFrame/equals
-/DataFrame/lazy
-/DataFrame/map_columns
-/DataFrame/map_rows
-/DataFrame/deserialize
-/DataFrame/serialize
-
-
-## 🔮 Future / Backlog Scope (V2.0+)
-
-### ⏰ Advanced Temporal Extensions & Storage Infrastructure
-- [ ] **`replace_time_zone(timeZone)` Method**:
-  * Implement `.dt.replace_time_zone(timeZone: string | null)` to re-interpret local wall-clock values in a new timezone (shifting the underlying UTC instant/epoch time) or unset timezone awareness (`timeZone = null`), distinct from `.convert_time_zone(tz)` which preserves the UTC instant.
-- [ ] **High-Precision Sub-Millisecond Datetime & Duration Storage (`us`, `ns`)**:
-  * Transition from standard JS `Date` objects (which are limited to millisecond resolution) to raw 64-bit integer / `BigInt` array representations for true sub-millisecond (`us` microsecond and `ns` nanosecond) datetime storage, duration storage, and `.dt.total_*()` unscaling.
-- [ ] **Evaluation-Time Timezone Guard Checks**:
-  * Add evaluation-time schema verification in DataFrame operations (`with_columns`/`select`) to enforce that `convert_time_zone()` is only called on timezone-aware input columns even when expressions are built stand-alone without explicit `.cast_time_unit()` chains.
-- [ ] **Row-Dynamic Timezone Conversions (`convert_time_zone(col("tz"))`)**:
-  * Allow `.dt.convert_time_zone()` and timezone extraction methods to accept an expression parameter (`IExpr` / column reference) as the timezone argument, enabling per-row dynamic timezone conversions.
-- [ ] **Dedicated Primitive `TimeType` & `DateType` Storage**:
-  * Introduce dedicated low-level `TimeType` (nanoseconds/milliseconds since midnight) and 32-bit integer `DateType` (days since epoch) to match Polars native primitive types beyond combined JS `Date` objects.
-
 ### 🧠 Lazy Execution & Query Optimization (`LazyFrame`)
 - [ ] **`df.lazy()` & `LazyFrame` API**:
   * Implement `.lazy()` to transition a `DataFrame` into a `LazyFrame`, building a Directed Acyclic Graph (DAG) query plan instead of executing operations eagerly.
@@ -267,6 +175,18 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
   * Optimize `computeRowHash` and `toCanonicalString` to use numeric hashing algorithms (e.g., FNV-1a or 64-bit integer mixing) when keys consist strictly of primitive types (integers, strings, booleans), bypassing string allocations during large `DataFrame.join()` and `.groupby()` operations.
 - [ ] **Apache Arrow & IPC Interoperability**:
   * Provide lightweight serialization adapters for Apache Arrow IPC memory format, facilitating zero-copy data exchange with Python Polars, PyArrow, and browser WebAssembly runtimes.
+
+### ⏰ Advanced Temporal Extensions & Storage Infrastructure
+- [ ] **`replace_time_zone(timeZone)` Method**:
+  * Implement `.dt.replace_time_zone(timeZone: string | null)` to re-interpret local wall-clock values in a new timezone (shifting the underlying UTC instant/epoch time) or unset timezone awareness (`timeZone = null`), distinct from `.convert_time_zone(tz)` which preserves the UTC instant.
+- [ ] **High-Precision Sub-Millisecond Datetime & Duration Storage (`us`, `ns`)**:
+  * Transition from standard JS `Date` objects (which are limited to millisecond resolution) to raw 64-bit integer / `BigInt` array representations for true sub-millisecond (`us` microsecond and `ns` nanosecond) datetime storage, duration storage, and `.dt.total_*()` unscaling.
+- [ ] **Evaluation-Time Timezone Guard Checks**:
+  * Add evaluation-time schema verification in DataFrame operations (`with_columns`/`select`) to enforce that `convert_time_zone()` is only called on timezone-aware input columns even when expressions are built stand-alone without explicit `.cast_time_unit()` chains.
+- [ ] **Row-Dynamic Timezone Conversions (`convert_time_zone(col("tz"))`)**:
+  * Allow `.dt.convert_time_zone()` and timezone extraction methods to accept an expression parameter (`IExpr` / column reference) as the timezone argument, enabling per-row dynamic timezone conversions.
+- [ ] **Dedicated Primitive `TimeType` & `DateType` Storage**:
+  * Introduce dedicated low-level `TimeType` (nanoseconds/milliseconds since midnight) and 32-bit integer `DateType` (days since epoch) to match Polars native primitive types beyond combined JS `Date` objects.
 
 ### 🗂️ Recommended DataFrame Operations
 - [ ] **Dynamic Time-Series Grouping (`df.group_by_dynamic()`)**:
@@ -286,3 +206,277 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
   * Implement `.rank(method, descending)` supporting dense, ordinal, min, max, and average rank methods.
 - [ ] **Datatype & Pattern Selectors (`cs.numeric()`, `cs.string()`, `cs.matches()`)**:
   * Add column selector helpers (`cs.*`) to allow selecting columns dynamically by data type or regex matching in `select()` and `with_columns()`.
+
+
+## 🔮 Future / Backlog Scope (V2.0+)
+
+### 🐻 Complete Polars Functionality Parity & Migration Backlog
+The following list tracks the complete surface of Polars functionality to achieve 100% parity where applicable to JS/TS.
+
+- [ ] `/allHorizontal`
+- [ ] `/any`
+- [ ] `/anyHorizontal`
+- [ ] `/approxNUnique`
+- [ ] `/arange`
+- [ ] `/arctan2`
+- [ ] `/arctan2d`
+- [ ] `/argSortBy`
+- [ ] `/argWhere`
+- [ ] `/businessDayCount`
+- [ ] `/concatArr`
+- [ ] `/concatStr`
+- [ ] `/corr`
+- [ ] `/count`
+- [ ] `/cov`
+- [ ] `/cumCount`
+- [ ] `/cumFold`
+- [ ] `/cumReduce`
+- [ ] `/cumSum`
+- [ ] `/cumSumHorizontal`
+- [ ] `/DataFrame.__getitem__`
+- [ ] `/DataFrame.__setitem__`
+- [ ] `/DataFrame.bottom_k`
+- [ ] `/DataFrame.cast`
+- [ ] `/DataFrame.clear`
+- [ ] `/DataFrame/collect_schema`
+- [ ] `/DataFrame/corr`
+- [ ] `/DataFrame/count`
+- [ ] `/DataFrame/deserialize`
+- [ ] `/DataFrame/drop_in_place`
+- [ ] `/DataFrame/drop_nans`
+- [ ] `/DataFrame/drop_nulls`
+- [ ] `/DataFrame/equals`
+- [ ] `/DataFrame/extend`
+- [ ] `/DataFrame/fill_nan` ?filter under the hood
+- [ ] `/DataFrame/flags`
+- [ ] `/DataFrame/fold`
+- [ ] `/DataFrame/gather`
+- [ ] `/DataFrame/gather_every`
+- [ ] `/DataFrame/get_column`
+- [ ] `/DataFrame/get_column_index`
+- [ ] `/DataFrame/get_columns`
+- [ ] `/DataFrame/group_by_dynamic`
+- [ ] `/DataFrame/hash_rows`
+- [ ] `/DataFrame/interpolate`
+- [ ] `/DataFrame/iter_slices`
+- [ ] `/DataFrame/join_where`
+- [ ] `/DataFrame/lazy`
+- [ ] `/DataFrame/map_columns`
+- [ ] `/DataFrame/map_rows`
+- [ ] `/DataFrame/match_to_schema`
+- [ ] `/DataFrame/max`
+- [ ] `/DataFrame/max_horizontal`
+- [ ] `/DataFrame/mean`
+- [ ] `/DataFrame/mean_horizontal`
+- [ ] `/DataFrame/median`
+- [ ] `/DataFrame/merge_sorted`
+- [ ] `/DataFrame/min`
+- [ ] `/DataFrame/min_horizontal`
+- [ ] `/DataFrame/partition_by`
+- [ ] `/DataFrame/pipe`
+- [ ] `/DataFrame/product`
+- [ ] `/DataFrame/quantile`
+- [ ] `/DataFrame/rechunk`
+- [ ] `/DataFrame/remove`
+- [ ] `/DataFrame/replace_column`
+- [ ] `/DataFrame/rolling`
+- [ ] `/DataFrame/row`
+- [ ] `/DataFrame/rows`
+- [ ] `/DataFrame/rows_by_key`
+- [ ] `/DataFrame/sample`
+- [ ] `/DataFrame/select_seq`
+- [ ] `/DataFrame/serialize`
+- [ ] `/DataFrame/set_sorted`
+- [ ] `/DataFrame/shift`
+- [ ] `/DataFrame/shrink_to_fit`
+- [ ] `/DataFrame/sql`
+- [ ] `/DataFrame/std`
+- [ ] `/DataFrame/sum`
+- [ ] `/DataFrame/sum_horizontal`
+- [ ] `/DataFrame/to_dummies`
+- [ ] `/DataFrame/to_series`
+- [ ] `/DataFrame/top_k`
+- [ ] `/DataFrame/unnest`
+- [ ] `/DataFrame/unstack`
+- [ ] `/DataFrame/update`
+- [ ] `/DataFrame/upsample`
+- [ ] `/DataFrame/var`
+- [ ] `/date`
+- [ ] `/dateRange`
+- [ ] `/dateRanges`
+- [ ] `/datetime`
+- [ ] `/datetimeRange`
+- [ ] `/datetimeRanges`
+- [x] `/Expr/and_` (`.and()`)
+- [ ] `/Expr/append`
+- [ ] `/Expr/approxNUnique`
+- [x] `/Expr/arccos`
+- [x] `/Expr/arccosh`
+- [x] `/Expr/arcsin`
+- [x] `/Expr/arcsinh`
+- [x] `/Expr/arctan`
+- [x] `/Expr/arctanh`
+- [ ] `/Expr/argSort`
+- [ ] `/Expr/argTrue`
+- [ ] `/Expr/argUnique`
+- [ ] `/Expr/arr/dot`
+- [x] `/Expr/backwardFill` (`.fillNull({ strategy: "backward" })`)
+- [ ] `/Expr/bin/contains`
+- [ ] `/Expr/bin/decode`
+- [ ] `/Expr/bin/encode`
+- [ ] `/Expr/bin/endsWith`
+- [ ] `/Expr/bin/get`
+- [ ] `/Expr/bin/head`
+- [ ] `/Expr/bin/size`
+- [ ] `/Expr/bin/slice`
+- [ ] `/Expr/bin/startsWith`
+- [ ] `/Expr/bin/tail`
+- [ ] `/Expr/bitwiseCountOnes`
+- [ ] `/Expr/bitwiseCountZeros`
+- [ ] `/Expr/bitwiseLeadingOnes`
+- [ ] `/Expr/bitwiseLeadingZeros`
+- [ ] `/Expr/bitwiseTrailingOnes`
+- [ ] `/Expr/bitwiseTrailingZeros`
+- [x] `/Expr/bottomK` (`.sort({ descending: false }).slice(0, k)`)
+- [x] `/Expr/bottomKBy` (`.sortBy(by, { descending: false }).slice(0, k)`)
+- [x] `/Expr/cot`
+- [ ] `/Expr/CumulativeEval`
+- [ ] `/Expr/cut`
+- [ ] `/Expr/deserialize`
+- [x] `/Expr/diff` (`.sub($df.col(...).lag(n))`)
+- [x] `/Expr/dropNans` (`.filter($df.col(...).isNotNan())`)
+- [x] `/Expr/dropNulls` (`.filter($df.col(...).isNotNull())`)
+- [x] `/Expr/dt/addBusinessDay` (`.dt.offsetDay(n, { excludeWeekdays: [0, 6], holidays, roll })`)
+- [x] `/Expr/dt/baseUtcOffset` (`.dt.utcOffset(tz, { type: "base" })`)
+- [ ] `/Expr/dt/combine`
+- [x] `/Expr/dt/dstOffset` (`.dt.utcOffset(tz, { type: "daylightSavingTime" })`)
+- [x] `/Expr/dt/offset` (`.dt.utcOffset(tz, { type: "total" })`)
+- [ ] `/Expr/dt/replaceTimeZone`
+- [ ] `/Expr/dt/round`
+- [x] `/Expr/dt/tostring` (`.dt.strftime(format)`)
+- [ ] `/Expr/dt/truncate`
+- [ ] `/Expr/dt/withTimeUnit`
+- [ ] `/Expr/emwSumBy`
+- [ ] `/Expr/ewmMean`
+- [ ] `/Expr/ewmMeanBy`
+- [ ] `/Expr/ewmStd`
+- [ ] `/Expr/ewmSum`
+- [x] `/Expr/exclude` (`$df.exclude(...)`)
+- [ ] `/Expr/explode`
+- [ ] `/Expr/extendConstants`
+- [x] `/Expr/fillNan` (`$df.when($df.col(...).isNan()).then(val).otherwise($df.col(...))`)
+- [x] `/Expr/filter`
+- [x] `/Expr/forwardFill` (`.fillNull({ strategy: "forward" })`)
+- [ ] `/Expr/fromJson`
+- [ ] `/Expr/gather`
+- [ ] `/Expr/gatherEvery`
+- [ ] `/Expr/get`
+- [ ] `/Expr/hash`
+- [x] `/Expr/head` (`.slice(0, n)`)
+- [ ] `/Expr/IndexOf`
+- [ ] `/Expr/inspect`
+- [ ] `/Expr/interpolate`
+- [ ] `/Expr/interpolateBy`
+- [x] `/Expr/isBetween` (`.between(lower, upper)`)
+- [x] `/Expr/isEmpty` (`.count().eq(0)`)
+- [x] `/Expr/isFirstDistinct` (`.isNDistinct(0)`)
+- [x] `/Expr/isLastDistinct` (`.isNDistinct(-1)`)
+- [ ] `/Expr/item`
+- [x] `/Expr/limit` (`.slice(0, n)`)
+- [x] `/Expr/log10` (`.log(10)`)
+- [ ] `/Expr/lowerBound`
+- [ ] `/Expr/mapBatches`
+- [ ] `/Expr/mapElements`
+- [x] `/Expr/neg` (`.negate()`)
+- [x] `/Expr/or_` (`.or()`)
+- [x] `/Expr/pctChange` (`.sub($df.col(...).lag(n)).div($df.col(...).lag(n))`)
+- [x] `/Expr/peakMax` (`.eq($df.col(...).cumMax())`)
+- [x] `/Expr/peakMin` (`.eq($df.col(...).cumMin())`)
+- [ ] `/Expr/pipe`
+- [ ] `/Expr/qCut`
+- [ ] `/Expr/repeatBy`
+- [ ] `/Expr/replace`
+- [ ] `/Expr/reshape`
+- [ ] `/Expr/rle`
+- [x] `/Expr/rleId` (`.ne($df.col(...).lag(1)).cumSum()`)
+- [x] `/Expr/rolling` (`.rolling(w, exprOrFn)`)
+- [x] `/Expr/rollingKurtosis` (`.rolling(w, $df.col(...).kurtosis())`)
+- [x] `/Expr/rollingMap` (`.rolling(w, fn)`)
+- [x] `/Expr/rollingMaxBy` (`.rolling(w, $df.col("by").max())`)
+- [x] `/Expr/rollingMeanBy` (`.rolling(w, $df.col("by").mean())`)
+- [x] `/Expr/rollingMedianBy` (`.rolling(w, $df.col("by").median())`)
+- [x] `/Expr/rollingMinBy` (`.rolling(w, $df.col("by").min())`)
+- [x] `/Expr/rollingQuantileBy` (`.rolling(w, $df.col("by").quantile(q))`)
+- [x] `/Expr/rollingRankBy` (`.rolling(w, $df.col("by").rank())`)
+- [x] `/Expr/rollingSkew` (`.rolling(w, $df.col(...).skewness())`)
+- [x] `/Expr/rollingStdBy` (`.rolling(w, $df.col("by").std())`)
+- [x] `/Expr/rollingSumBy` (`.rolling(w, $df.col("by").sum())`)
+- [x] `/Expr/rollingVar` (`.rolling(w, $df.col(...).variance())` / `.rollingStd(w).pow(2)`)
+- [x] `/Expr/rollingVarBy` (`.rolling(w, $df.col("by").variance())`)
+- [ ] `/Expr/sample`
+- [ ] `/Expr/searchSorted`
+- [ ] `/Expr/setSorted`
+- [x] `/Expr/shift` (`n >= 0 ? .lag(n) : .lead(-n)`)
+- [ ] `/Expr/shuffle`
+- [ ] `/Expr/slice`
+- [ ] `/Expr/sort`
+- [ ] `/Expr/sortBy`
+- [x] `/Expr/std` (`.std()`)
+- [x] `/Expr/str/splitExact` (`.str.split(delim, { exact: true, limit: n })`)
+- [x] `/Expr/str/splitN` (`.str.split(delim, { limit: n })`)
+- [ ] `/Expr/struct/__getItem__`
+- [ ] `/Expr/struct/drop`
+- [ ] `/Expr/struct/jsonEncode`
+- [x] `/Expr/tail` (`.slice(-n, n)`)
+- [x] `/Expr/topK` (`.sort({ descending: true }).slice(0, k)`)
+- [x] `/Expr/topKBy` (`.sortBy(by, { descending: true }).slice(0, k)`)
+- [x] `/Expr/truediv` (`.div()`)
+- [ ] `/Expr/truncate`
+- [ ] `/Expr/unique`
+- [ ] `/Expr/uniqueCounts`
+- [ ] `/Expr/upperBound`
+- [ ] `/Expr/valueCounts`
+- [x] `/field` (`$df.col(...)`)
+- [x] `/first` (`$df.col(...).first()`)
+- [x] `/fold` (Custom accumulator expressions)
+- [x] `/format` (`$df.col(...).str.format(...)`)
+- [x] `/fromEpoch` (`$df.datetime(epoch)` / `$df.col(...).dt.fromEpoch(...)`)
+- [x] `/groups` (`df.groupBy(...)`)
+- [x] `/head` (`df.head(n)` / `$df.col(...).slice(0, n)`)
+- [x] `/implode` (`$df.implode(...)` / `$df.col(...).implode()`)
+- [x] `/intRange` (`$df.seqRange(...)`)
+- [x] `/intRanges` (`$df.seqRange(...)`)
+- [x] `/last` (`$df.col(...).last()`)
+- [x] `/len` (`df.height` / `$df.col(...).count({ includeNulls: true })`)
+- [x] `/linearSpace` (`$df.seqRange(...)`)
+- [x] `/linearSpaces` (`$df.seqRange(...)`)
+- [x] `/list` (`$df.col(...).implode()` / ArrayExpr)
+- [x] `/mapBatches` (`df.select(...)` / `derive(...)`)
+- [x] `/mapGroups` (`df.groupBy(...)...`)
+- [x] `/max` (`$df.col(...).max()`)
+- [ ] `/maxHorizontal`
+- [x] `/mean` (`$df.col(...).mean()`)
+- [ ] `/meanHorizontal`
+- [x] `/median` (`$df.col(...).median()`)
+- [x] `/min` (`$df.col(...).min()`)
+- [ ] `/minHorizontal`
+- [x] `/nth` (`$df.col(...).get(n)`)
+- [x] `/nUnique` (`$df.col(...).nUnique()`)
+- [x] `/ones` (`$df.lit(1)`)
+- [x] `/quantile` (`$df.col(...).quantile(q)`)
+- [x] `/reduce` (Custom accumulator expressions)
+- [x] `/repeat` (`$df.lit(val)` / `$df.col(...).repeatBy(n)`)
+- [x] `/rollingCorr` (`$df.col(...).rolling(w, ...)`)
+- [x] `/rollingCov` (`$df.col(...).rolling(w, ...)`)
+- [x] `/rowIndex` (`df.withRowIndex()`)
+- [x] `/select` (`df.select(...)`)
+- [x] `/std` (`$df.col(...).std()`)
+- [x] `/struct` (`$df.struct(...)`)
+- [x] `/sum` (`$df.col(...).sum()`)
+- [ ] `/sumHorizontal`
+- [x] `/tail` (`df.tail(n)` / `$df.col(...).slice(-n, n)`)
+- [x] `/time` (`$df.datetime(...)` / `$df.time(...)`)
+- [x] `/timeRange` (`$df.seqRange(...)`)
+- [x] `/timeRanges` (`$df.seqRange(...)`)
+- [x] `/var` (`$df.col(...).variance()`)
+- [x] `/zeros` (`$df.lit(0)`)

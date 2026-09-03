@@ -37,7 +37,6 @@ export function isValidNumber(
 
     return true;
 }
-
 export interface ParseNumberOptions extends NumericValidationOptions {
     strictNumericString?: boolean;
     floatScientific?: boolean;

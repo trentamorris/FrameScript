@@ -6,15 +6,18 @@ import {
     sortArray,
     computeQuantile,
     getUniqueArrayStats,
+    UniqueArrayStatsOptions,
     computeMode,
     isArrayOfType,
     stepSliceArray,
     StepSliceArrayOptions,
     joinArray,
+    JoinArrayOptions,
     getArrayElement,
+    filterByMask,
     shiftArray
 } from "../../utils";
-import type { UniqueArrayStatsOptions, JoinArrayOptions, SortArrayOptions, ExplodeOptions, IExpr, AnyTypedArray, ToStructOptions } from "../../types";
+import type { SortArrayOptions, ExplodeOptions, IExpr, AnyTypedArray, ToStructOptions } from "../../types";
 import { ELEMENT_MARKER } from "../constants";
 import { ComputeError } from "../../exceptions";
 
@@ -246,20 +249,7 @@ export class ArrayExprNamespace {
                 const subHeight = val.length;
                 subColumns[ELEMENT_MARKER] = val;
                 const mask = evaluateExpression(expr, subColumns, subHeight);
-                const res = [];
-                if (isArrayOrTypedArray(mask)) {
-                    const limit = Math.min(subHeight, mask.length);
-                    for (let j = 0; j < limit; j++) {
-                        if (mask[j]) {
-                            res.push(val[j]);
-                        }
-                    }
-                } else if (mask) {
-                    for (let j = 0; j < subHeight; j++) {
-                        res.push(val[j]);
-                    }
-                }
-                result[i] = res;
+                result[i] = filterByMask(val, mask);
             }
             return result;
         });

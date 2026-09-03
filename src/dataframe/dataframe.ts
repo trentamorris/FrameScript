@@ -5,7 +5,7 @@ import { createSafeJsonReplacer } from "../utils/json"
 import type { IExpr, ColumnData, ColumnDict, DataFrameColumns, ConcatOptions, ConcatItem, HorizontalConcatOptions, RowRecord, DataFrameSchema, RegisteredDataType, ExplodeOptions, IntoExpr, FillNullOptions, SortArrayOptions } from "../types"
 import type { LimitOptions, SortOptions, PivotOptions, JoinOptions, JoinMaintainOrder, AsofJoinOptions, UnpivotOptions, TransposeOptions, WriteJSONOptions, WriteCSVOptions } from "./types"
 import { DataTypeRegistry } from "../datatypes"
-import { isArrayOrTypedArray, toValidArray, toArrayOfType, isObj, isArrayOfType, clamp, stringifyCSV, compareScalarValues } from "../utils"
+import { isArrayOrTypedArray, toValidArray, toArrayOfType, isObj, isArrayOfType, clamp, stringifyCSV, compareScalarValues, filterByMask } from "../utils"
 import { assertColumnExists, assertHeight, DataFrameError, ShapeError, ColumnNotFoundError, InvalidArgumentError, IOStreamError } from "../exceptions"
 import { concat } from "../functions/concat"
 import {
@@ -246,7 +246,7 @@ export class DataFrame<T extends RowRecord = any> {
     }
 
     /**
-     * Drops rows containing null or undefined values in specified subset columns.
+     * Drops rows with null or undefined values.
      * @param {string | string[]} [subset] Column name or array of column names to check for nulls.
      * @returns {DataFrame}
      * @example
@@ -420,22 +420,34 @@ export class DataFrame<T extends RowRecord = any> {
             }
         }
 
-        const matchingIndices: number[] = [];
+        const mask = new Array<boolean>(height);
+        let matchCount = 0;
         rowLoop: for (let i = 0; i < height; i++) {
             for (let j = 0; j < numExprs; j++) {
-                if (!evaluatedExprs[j][i]) continue rowLoop;
+                if (!evaluatedExprs[j][i]) {
+                    mask[i] = false;
+                    continue rowLoop;
+                }
             }
             if (rowObj) {
                 currentIndex = i;
                 for (let j = 0; j < numFuncs; j++) {
-                    if (!funcPredicates[j](rowObj)) continue rowLoop;
+                    if (!funcPredicates[j](rowObj)) {
+                        mask[i] = false;
+                        continue rowLoop;
+                    }
                 }
             }
-            matchingIndices.push(i);
+            mask[i] = true;
+            matchCount++;
         }
 
-        const newColumns = gatherColumnsByIndices(this._columns, matchingIndices) as DataFrameColumns<T>;
-        return DataFrame._createDirect<T>(newColumns, this._schema, matchingIndices.length);
+        const newColumns = {} as DataFrameColumns<T>;
+        for (let k = 0; k < keys.length; k++) {
+            const key = keys[k];
+            (newColumns as any)[key] = filterByMask(this._columns[key], mask);
+        }
+        return DataFrame._createDirect<T>(newColumns, this._schema, matchCount);
     }
 
     /**

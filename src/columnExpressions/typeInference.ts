@@ -211,7 +211,7 @@ export function resolveExprOutputType(
 
     const baseType = expr._colName ? schema[expr._colName] : undefined;
     const sampleVal = colSample?.[0];
-    const isBareCol = (!expr._ops || expr._ops.length === 0) && !expr._aggFn;
+    const isBareCol = (!expr._ops || expr._ops.length === 0) && !expr._aggFn && !expr._evaluateWindow;
 
     // 3. Schema column references & transformations
     if (baseType) {

@@ -227,6 +227,11 @@ export interface DateTimeParts {
 
 export type ReplaceDateOptions = Partial<Omit<DateTimeParts, "dayOfWeek">>;
 
+/** Rolling Window Configuration */
+export interface RollingOptions {
+    windowSize: number;
+}
+
 /** Sorting Configuration */
 export interface SortArrayOptions<T = any> {
     descending?: boolean | boolean[];
@@ -248,8 +253,6 @@ export interface ConcatOptions {
     horizontal?: HorizontalConcatOptions;
 }
 export type ConcatItem = DataFrame<any> | ColumnDict | RowRecord[];
-
-export type { UniqueArrayStatsOptions, JoinArrayOptions } from "./utils/array";
 
 export interface ExplodeOptions {
     emptyAsNull?: boolean;

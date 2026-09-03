@@ -1327,3 +1327,37 @@ export function computeBy(
     const idx = getArrayStats(bys)[statKey];
     return idx !== null ? targets[idx] : null;
 }
+
+export interface FilterByMaskOptions {
+    nullify?: boolean;
+}
+
+/**
+ * Filters an array or ArrayLike structure where the mask evaluates to truthy.
+ * @param arr The source array or ArrayLike structure to filter.
+ * @param mask A boolean mask array or truthy/falsy scalar.
+ * @param options Configuration options ({ nullify?: boolean }). If nullify is true, non-matching items become null while preserving length.
+ * @returns Filtered array containing matching elements (or nullified elements).
+ */
+export function filterByMask<T = any>(
+    arr: ArrayLike<T> | null | undefined,
+    mask: any,
+    options: FilterByMaskOptions = {}
+): (T | null)[] {
+    if (!arr || arr.length === 0) return [];
+    const len = arr.length;
+    const { nullify = false } = options;
+    const isArr = isArrayOrTypedArray(mask);
+
+    if (!isArr && !mask) {
+        return nullify ? new Array(len).fill(null) : [];
+    }
+
+    const out: (T | null)[] = [];
+    for (let i = 0; i < len; i++) {
+        const match = isArr ? mask[i] : mask;
+        if (match) out.push(arr[i]);
+        else if (nullify) out.push(null);
+    }
+    return out;
+}

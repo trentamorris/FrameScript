@@ -240,7 +240,7 @@ All column expressions inherit from `ExprBase` and support chaining.
 - `.add(val)`, `.sub(val)`, `.mul(val)`, `.div(val)`, `.floordiv(val)`, `.mod(val)`, `.pow(val)`
 - `.abs()`, `.sqrt()`, `.cbrt()`, `.exp()`, `.expm1()`, `.log(base?)`, `.log1p()`
 - `.ceil()`, `.floor()`, `.trunc()`, `.round(decimals)`, `.clip(lower, upper)`, `.sign()`, `.negate()`
-- `.sin()`, `.cos()`, `.tan()`, `.sinh()`, `.cosh()`, `.tanh()`, `.asin()`, `.acos()`, `.atan()`, `.asinh()`, `.acosh()`, `.atanh()`, `.degrees()`, `.radians()`, `.hypot(val)`
+- `.sin()`, `.cos()`, `.tan()`, `.cot()`, `.sinh()`, `.cosh()`, `.tanh()`, `.arcsin()`, `.arccos()`, `.arctan()`, `.arctan2(val)`, `.arcsinh()`, `.arccosh()`, `.arctanh()`, `.degrees()`, `.radians()`, `.hypot(val)`
 
 ### 🔍 Comparison Expressions
 - `.eq(val)`, `.ne(val)` — Strict value equivalence (Kleene null-propagation).
@@ -248,6 +248,7 @@ All column expressions inherit from `ExprBase` and support chaining.
 - `.gt(val)`, `.ge(val)`, `.lt(val)`, `.le(val)`
 - `.isNull()`, `.isNotNull()`
 - `.isFinite()`, `.isInfinite()`, `.isNan()`, `.isNotNan()`
+- `.isNDistinct(index, nullOnOob?)` — Matches the N-th distinct value by positive/negative index position.
 - `.isIn(arrayOrExpr)`, `.notIn(arrayOrExpr)`
 
 ### ⚡ Aggregations
@@ -336,7 +337,8 @@ df.select(
 - `.cumSum(reverse?)`, `.cumProd(reverse?)`, `.cumMin(reverse?)`, `.cumMax(reverse?)`, `.cumCount(reverse?)`
 
 ### 2. Rolling Metrics (Moving Window)
-- `.rollingSum(size)`, `.rollingMean(size)`, `.rollingMedian(size)`, `.rollingMin(size)`, `.rollingMax(size)`, `.rollingStd(size)`, `.rollingRank(size)`, `.rollingQuantile(quantile, size)`
+- **Generic Rolling Reducer**: `.rolling(sizeOrOptions, exprOrFn)` (evaluates custom functions or `$df` column expressions over each sliding window).
+- **Specialized Rolling Reducers**: `.rollingSum(size)`, `.rollingMean(size)`, `.rollingMedian(size)`, `.rollingMin(size)`, `.rollingMax(size)`, `.rollingStd(size)`, `.rollingRank(size)`, `.rollingQuantile(quantile, size)`
 
 ### 3. Positional & Rank Windows
 - `.lead(offset, defaultVal?)`, `.lag(offset, defaultVal?)`, `.rank()`, `.denseRank()`, `.rowNumber()`

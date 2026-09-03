@@ -314,8 +314,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.agg(...)",
       "signature": "$df.col(<column_name>).arr.agg(\n  expr: IExpr\n)",
-      "lineStart": 51,
-      "lineEnd": 69
+      "lineStart": 54,
+      "lineEnd": 72
     },
     "all": {
       "desc": "Returns true if all items in nested list cells are truthy.",
@@ -327,8 +327,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.all(...)",
       "signature": "$df.col(<column_name>).arr.all()",
-      "lineStart": 85,
-      "lineEnd": 87
+      "lineStart": 88,
+      "lineEnd": 90
     },
     "any": {
       "desc": "Returns true if any item in nested list cells is truthy.",
@@ -340,8 +340,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.any(...)",
       "signature": "$df.col(<column_name>).arr.any()",
-      "lineStart": 103,
-      "lineEnd": 105
+      "lineStart": 106,
+      "lineEnd": 108
     },
     "argMax": {
       "desc": "Finds the index of the maximum value in each array.",
@@ -353,8 +353,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.argMax(...)",
       "signature": "$df.col(<column_name>).arr.argMax()",
-      "lineStart": 121,
-      "lineEnd": 123
+      "lineStart": 124,
+      "lineEnd": 126
     },
     "argMin": {
       "desc": "Finds the index of the minimum value in each array.",
@@ -366,8 +366,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.argMin(...)",
       "signature": "$df.col(<column_name>).arr.argMin()",
-      "lineStart": 139,
-      "lineEnd": 141
+      "lineStart": 142,
+      "lineEnd": 144
     },
     "contains": {
       "desc": "Checks if nested lists contain item.",
@@ -385,8 +385,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.contains(...)",
       "signature": "$df.col(<column_name>).arr.contains(\n  item: any\n)",
-      "lineStart": 158,
-      "lineEnd": 160
+      "lineStart": 161,
+      "lineEnd": 163
     },
     "containsAll": {
       "desc": "Checks if nested lists contain all elements in items.",
@@ -404,8 +404,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.containsAll(...)",
       "signature": "$df.col(<column_name>).arr.containsAll(\n  items: ArrayLike<any>\n)",
-      "lineStart": 177,
-      "lineEnd": 179
+      "lineStart": 180,
+      "lineEnd": 182
     },
     "containsAny": {
       "desc": "Checks if nested lists contain any element in items.",
@@ -423,8 +423,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.containsAny(...)",
       "signature": "$df.col(<column_name>).arr.containsAny(\n  items: ArrayLike<any>\n)",
-      "lineStart": 196,
-      "lineEnd": 198
+      "lineStart": 199,
+      "lineEnd": 201
     },
     "countMatches": {
       "desc": "Counts occurrence frequency of item inside nested lists.",
@@ -446,8 +446,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.countMatches(...)",
       "signature": "$df.col(<column_name>).arr.countMatches(\n  item: any,\n  options: UniqueArrayStatsOptions = {}\n)",
-      "lineStart": 216,
-      "lineEnd": 218
+      "lineStart": 219,
+      "lineEnd": 221
     },
     "filter": {
       "desc": "Filters elements of list columns matching a boolean sub-expression.",
@@ -465,8 +465,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.filter(...)",
       "signature": "$df.col(<column_name>).arr.filter(\n  expr: IExpr\n)",
-      "lineStart": 235,
-      "lineEnd": 266
+      "lineStart": 238,
+      "lineEnd": 256
     },
     "explode": {
       "desc": "Expands lists into row-wise elements and produces an index mapping for DataFrame unnesting.",
@@ -484,8 +484,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.explode(...)",
       "signature": "$df.col(<column_name>).arr.explode(\n  {\n    emptyAsNull = true,\n    keepNulls = true\n  }: ExplodeOptions = {}\n)",
-      "lineStart": 283,
-      "lineEnd": 339
+      "lineStart": 273,
+      "lineEnd": 329
     },
     "first": {
       "desc": "Returns the first element of each list.",
@@ -503,8 +503,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.first(...)",
       "signature": "$df.col(<column_name>).arr.first(\n  nullOnOob: boolean = true\n)",
-      "lineStart": 356,
-      "lineEnd": 358
+      "lineStart": 346,
+      "lineEnd": 348
     },
     "gather": {
       "desc": "Gathers specific indices from each nested list.",
@@ -526,8 +526,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.gather(...)",
       "signature": "$df.col(<column_name>).arr.gather(\n  indices: number | ArrayLike<number>,\n  nullOnOob: boolean = true\n)",
-      "lineStart": 376,
-      "lineEnd": 389
+      "lineStart": 366,
+      "lineEnd": 379
     },
     "gatherEvery": {
       "desc": "Gather element slices with custom steps.",
@@ -545,8 +545,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.gatherEvery(...)",
       "signature": "$df.col(<column_name>).arr.gatherEvery(\n  options: StepSliceArrayOptions = {}\n)",
-      "lineStart": 406,
-      "lineEnd": 408
+      "lineStart": 396,
+      "lineEnd": 398
     },
     "get": {
       "desc": "Extracts a single list element by its index position.",
@@ -568,8 +568,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.get(...)",
       "signature": "$df.col(<column_name>).arr.get get(\n  index: number,\n  nullOnOob: boolean = true\n)",
-      "lineStart": 426,
-      "lineEnd": 428
+      "lineStart": 416,
+      "lineEnd": 418
     },
     "join": {
       "desc": "Joins elements of list columns into a single string column.",
@@ -591,8 +591,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.join(...)",
       "signature": "$df.col(<column_name>).arr.join(\n  separator: string = \",\n  \",\n  options: JoinArrayOptions = {}\n)",
-      "lineStart": 446,
-      "lineEnd": 448
+      "lineStart": 436,
+      "lineEnd": 438
     },
     "last": {
       "desc": "Returns the last element of each list.",
@@ -610,8 +610,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.last(...)",
       "signature": "$df.col(<column_name>).arr.last(\n  nullOnOob: boolean = true\n)",
-      "lineStart": 465,
-      "lineEnd": 467
+      "lineStart": 455,
+      "lineEnd": 457
     },
     "len": {
       "desc": "Returns the length of each list inside the column cell.",
@@ -619,8 +619,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.len(...)",
       "signature": "$df.col(<column_name>).arr.len()",
-      "lineStart": 472,
-      "lineEnd": 474
+      "lineStart": 462,
+      "lineEnd": 464
     },
     "lengths": {
       "desc": "Returns the length of each list inside the column cell.",
@@ -632,8 +632,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.lengths(...)",
       "signature": "$df.col(<column_name>).arr.lengths()",
-      "lineStart": 490,
-      "lineEnd": 492
+      "lineStart": 480,
+      "lineEnd": 482
     },
     "max": {
       "desc": "Returns the maximum value of elements inside each list.",
@@ -645,8 +645,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.max(...)",
       "signature": "$df.col(<column_name>).arr.max()",
-      "lineStart": 508,
-      "lineEnd": 510
+      "lineStart": 498,
+      "lineEnd": 500
     },
     "mean": {
       "desc": "Returns average of elements inside each list.",
@@ -658,8 +658,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.mean(...)",
       "signature": "$df.col(<column_name>).arr.mean()",
-      "lineStart": 526,
-      "lineEnd": 528
+      "lineStart": 516,
+      "lineEnd": 518
     },
     "median": {
       "desc": "Returns statistical median inside each list.",
@@ -671,8 +671,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.median(...)",
       "signature": "$df.col(<column_name>).arr.median()",
-      "lineStart": 544,
-      "lineEnd": 546
+      "lineStart": 534,
+      "lineEnd": 536
     },
     "min": {
       "desc": "Returns minimum of elements inside each list.",
@@ -684,8 +684,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.min(...)",
       "signature": "$df.col(<column_name>).arr.min()",
-      "lineStart": 562,
-      "lineEnd": 564
+      "lineStart": 552,
+      "lineEnd": 554
     },
     "mode": {
       "desc": "Returns the mode value inside each list.",
@@ -697,8 +697,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.mode(...)",
       "signature": "$df.col(<column_name>).arr.mode()",
-      "lineStart": 580,
-      "lineEnd": 582
+      "lineStart": 570,
+      "lineEnd": 572
     },
     "nUnique": {
       "desc": "Returns the unique count of elements inside each list.",
@@ -716,8 +716,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.nUnique(...)",
       "signature": "$df.col(<column_name>).arr.nUnique(\n  options: UniqueArrayStatsOptions = {}\n)",
-      "lineStart": 599,
-      "lineEnd": 601
+      "lineStart": 589,
+      "lineEnd": 591
     },
     "reverse": {
       "desc": "Reverses elements of list columns.",
@@ -729,8 +729,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.reverse(...)",
       "signature": "$df.col(<column_name>).arr.reverse()",
-      "lineStart": 617,
-      "lineEnd": 619
+      "lineStart": 607,
+      "lineEnd": 609
     },
     "shift": {
       "desc": "Shifts elements of list columns by N offsets.",
@@ -748,8 +748,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.shift(...)",
       "signature": "$df.col(<column_name>).arr.shift(\n  n: number = 1\n)",
-      "lineStart": 636,
-      "lineEnd": 638
+      "lineStart": 626,
+      "lineEnd": 628
     },
     "slice": {
       "desc": "Slices nested list arrays.",
@@ -771,8 +771,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.slice(...)",
       "signature": "$df.col(<column_name>).arr.slice(\n  start?: number,\n  end?: number\n)",
-      "lineStart": 656,
-      "lineEnd": 658
+      "lineStart": 646,
+      "lineEnd": 648
     },
     "splice": {
       "desc": "Splices elements in list cells.",
@@ -798,8 +798,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.splice(...)",
       "signature": "$df.col(<column_name>).arr.splice(\n  start: number,\n  deleteCount?: number,\n  ...items: any[]\n)",
-      "lineStart": 677,
-      "lineEnd": 683
+      "lineStart": 667,
+      "lineEnd": 673
     },
     "sort": {
       "desc": "Sorts elements inside each list.",
@@ -817,8 +817,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.sort(...)",
       "signature": "$df.col(<column_name>).arr.sort(\n  options?: SortArrayOptions\n)",
-      "lineStart": 700,
-      "lineEnd": 702
+      "lineStart": 690,
+      "lineEnd": 692
     },
     "std": {
       "desc": "Returns sample standard deviation of elements inside each list.",
@@ -830,8 +830,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.std(...)",
       "signature": "$df.col(<column_name>).arr.std()",
-      "lineStart": 718,
-      "lineEnd": 720
+      "lineStart": 708,
+      "lineEnd": 710
     },
     "sum": {
       "desc": "Returns sum of elements inside each list.",
@@ -843,8 +843,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.sum(...)",
       "signature": "$df.col(<column_name>).arr.sum()",
-      "lineStart": 736,
-      "lineEnd": 738
+      "lineStart": 726,
+      "lineEnd": 728
     },
     "toStruct": {
       "desc": "Converts list column elements to struct columns.",
@@ -862,8 +862,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.toStruct(...)",
       "signature": "$df.col(<column_name>).arr.toStruct(\n  {\n    upperBound,\n    fields\n  }: ToStructOptions = {}\n)",
-      "lineStart": 755,
-      "lineEnd": 801
+      "lineStart": 745,
+      "lineEnd": 791
     },
     "unique": {
       "desc": "Fills each list with unique elements only.",
@@ -881,8 +881,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.unique(...)",
       "signature": "$df.col(<column_name>).arr.unique(\n  options: UniqueArrayStatsOptions = {}\n)",
-      "lineStart": 818,
-      "lineEnd": 820
+      "lineStart": 808,
+      "lineEnd": 810
     },
     "variance": {
       "desc": "Returns sample variance of elements inside each list.",
@@ -894,8 +894,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.variance(...)",
       "signature": "$df.col(<column_name>).arr.variance()",
-      "lineStart": 836,
-      "lineEnd": 838
+      "lineStart": 826,
+      "lineEnd": 828
     },
     "eval": {
       "desc": "Evaluates subExpr element-wise across array lists.",
@@ -913,8 +913,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.eval(...)",
       "signature": "$df.col(<column_name>).arr.eval(\n  expr: IExpr\n)",
-      "lineStart": 855,
-      "lineEnd": 879
+      "lineStart": 845,
+      "lineEnd": 869
     },
     "arr": {
       "desc": "Array namespace accessor for list-based column operations.",
@@ -926,54 +926,28 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr",
       "signature": "$df.col(<column_name>).get arr()",
-      "lineStart": 900,
-      "lineEnd": 902
+      "lineStart": 890,
+      "lineEnd": 892
     }
   },
   "columnExpressions/mixins/StandardExpr.ts": {
     "abs": {
       "desc": "Computes the absolute value of the column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").abs().alias(\"abs_a\"))\nshape: (3, 2)\n┌───┬───────┐\n│ a │ abs_a │\n├───┼───────┤\n│ 1 │ 1     │\n│ 2 │ 2     │\n│ 3 │ 3     │\n└───┴───────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").abs().alias(\"abs_a\"))\r\nshape: (3, 2)\r\n┌───┬───────┐\r\n│ a │ abs_a │\r\n├───┼───────┤\r\n│ 1 │ 1     │\r\n│ 2 │ 2     │\r\n│ 3 │ 3     │\r\n└───┴───────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).abs(...)",
       "signature": "$df.col(<column_name>).abs()",
-      "lineStart": 116,
-      "lineEnd": 118
-    },
-    "acos": {
-      "desc": "Computes the mathematical arccosine (inverse cosine) of the column values.",
-      "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").acos().alias(\"acos_a\"))\nshape: (3, 2)\n┌───┬────────┐\n│ a │ acos_a │\n├───┼────────┤\n│ 1 │ 0      │\n│ 2 │ null   │\n│ 3 │ null   │\n└───┴────────┘"
-      ],
-      "returns": "ColumnExpression",
-      "namespace": "$df.col",
-      "category": "ColumnExpression",
-      "syntax": "$df.col(<column_name>).acos(...)",
-      "signature": "$df.col(<column_name>).acos()",
-      "lineStart": 135,
-      "lineEnd": 137
-    },
-    "acosh": {
-      "desc": "Computes the hyperbolic arccosine of the column values.",
-      "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").acosh().alias(\"acosh_a\"))\nshape: (3, 2)\n┌───┬──────────┐\n│ a │ acosh_a  │\n├───┼──────────┤\n│ 1 │ 0        │\n│ 2 │ 1.316958 │\n│ 3 │ 1.762747 │\n└───┴──────────┘"
-      ],
-      "returns": "ColumnExpression",
-      "namespace": "$df.col",
-      "category": "ColumnExpression",
-      "syntax": "$df.col(<column_name>).acosh(...)",
-      "signature": "$df.col(<column_name>).acosh()",
-      "lineStart": 154,
-      "lineEnd": 156
+      "lineStart": 109,
+      "lineEnd": 111
     },
     "add": {
       "desc": "Adds a scalar value or another column expression.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").add(10).alias(\"added\"))\nshape: (3, 2)\n┌───┬───────┐\n│ a │ added │\n├───┼───────┤\n│ 1 │ 11    │\n│ 2 │ 12    │\n│ 3 │ 13    │\n└───┴───────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").add(10).alias(\"added\"))\r\nshape: (3, 2)\r\n┌───┬───────┐\r\n│ a │ added │\r\n├───┼───────┤\r\n│ 1 │ 11    │\r\n│ 2 │ 12    │\r\n│ 3 │ 13    │\r\n└───┴───────┘"
       ],
       "params": [
         {
@@ -986,39 +960,39 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).add(...)",
       "signature": "$df.col(<column_name>).add(\n  val: NumericArg\n)",
-      "lineStart": 174,
-      "lineEnd": 176
+      "lineStart": 129,
+      "lineEnd": 131
     },
     "all": {
       "desc": "Aggregation: Returns true if all values in the group are truthy.",
       "examples": [
-        ">>> const df = $df.data({ a: [true, true, false, false], b: [true, false, true, false] })\n>>> df\nshape: (4, 2)\n┌───────┬───────┐\n│ a     │ b     │\n├───────┼───────┤\n│ true  │ true  │\n│ true  │ false │\n│ false │ true  │\n│ false │ false │\n└───────┴───────┘\n>>> df.select($df.col(\"a\").all().alias(\"all_true\"))\nshape: (1, 1)\n┌──────────┐\n│ all_true │\n├──────────┤\n│ false    │\n└──────────┘"
+        ">>> const df = $df.data({ a: [true, true, false, false], b: [true, false, true, false] })\n>>> df\nshape: (4, 2)\n┌───────┬───────┐\n│ a     │ b     │\n├───────┼───────┤\n│ true  │ true  │\n│ true  │ false │\n│ false │ true  │\n│ false │ false │\n└───────┴───────┘\n>>> df.select($df.col(\"a\").all().alias(\"all_true\"))\r\nshape: (1, 1)\r\n┌──────────┐\r\n│ all_true │\r\n├──────────┤\r\n│ false    │\r\n└──────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).all(...)",
       "signature": "$df.col(<column_name>).all()",
-      "lineStart": 191,
-      "lineEnd": 193
+      "lineStart": 146,
+      "lineEnd": 148
     },
     "allNull": {
       "desc": "Aggregation: Checks if all values in the group are null.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.select($df.col(\"a\").allNull().alias(\"all_null\"))\nshape: (1, 1)\n┌──────────┐\n│ all_null │\n├──────────┤\n│ false    │\n└──────────┘"
+        ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.select($df.col(\"a\").allNull().alias(\"all_null\"))\r\nshape: (1, 1)\r\n┌──────────┐\r\n│ all_null │\r\n├──────────┤\r\n│ false    │\r\n└──────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).allNull(...)",
       "signature": "$df.col(<column_name>).allNull()",
-      "lineStart": 208,
-      "lineEnd": 210
+      "lineStart": 163,
+      "lineEnd": 165
     },
     "and": {
       "desc": "Logical AND check supporting Kleene logic.",
       "examples": [
-        ">>> const df = $df.data({ a: [true, true, false, false], b: [true, false, true, false] })\n>>> df\nshape: (4, 2)\n┌───────┬───────┐\n│ a     │ b     │\n├───────┼───────┤\n│ true  │ true  │\n│ true  │ false │\n│ false │ true  │\n│ false │ false │\n└───────┴───────┘\n>>> df.withColumns($df.col(\"a\").and($df.col(\"b\")).alias(\"and_res\"))\nshape: (4, 3)\n┌───────┬───────┬─────────┐\n│ a     │ b     │ and_res │\n├───────┼───────┼─────────┤\n│ true  │ true  │ true    │\n│ true  │ false │ false   │\n│ false │ false │ false   │\n│ null  │ true  │ null    │\n└───────┴───────┴─────────┘"
+        ">>> const df = $df.data({ a: [true, true, false, false], b: [true, false, true, false] })\n>>> df\nshape: (4, 2)\n┌───────┬───────┐\n│ a     │ b     │\n├───────┼───────┤\n│ true  │ true  │\n│ true  │ false │\n│ false │ true  │\n│ false │ false │\n└───────┴───────┘\n>>> df.withColumns($df.col(\"a\").and($df.col(\"b\")).alias(\"and_res\"))\r\nshape: (4, 3)\r\n┌───────┬───────┬─────────┐\r\n│ a     │ b     │ and_res │\r\n├───────┼───────┼─────────┤\r\n│ true  │ true  │ true    │\r\n│ true  │ false │ false   │\r\n│ false │ false │ false   │\r\n│ null  │ true  │ null    │\r\n└───────┴───────┴─────────┘"
       ],
       "params": [
         {
@@ -1031,104 +1005,104 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).and(...)",
       "signature": "$df.col(<column_name>).and(\n  other: any\n)",
-      "lineStart": 229,
-      "lineEnd": 244
+      "lineStart": 184,
+      "lineEnd": 199
     },
     "any": {
       "desc": "Aggregation: Checks if any value in the group is truthy.",
       "examples": [
-        ">>> const df = $df.data({ a: [true, true, false, false], b: [true, false, true, false] })\n>>> df\nshape: (4, 2)\n┌───────┬───────┐\n│ a     │ b     │\n├───────┼───────┤\n│ true  │ true  │\n│ true  │ false │\n│ false │ true  │\n│ false │ false │\n└───────┴───────┘\n>>> df.select($df.col(\"a\").any().alias(\"any_true\"))\nshape: (1, 1)\n┌──────────┐\n│ any_true │\n├──────────┤\n│ true     │\n└──────────┘"
+        ">>> const df = $df.data({ a: [true, true, false, false], b: [true, false, true, false] })\n>>> df\nshape: (4, 2)\n┌───────┬───────┐\n│ a     │ b     │\n├───────┼───────┤\n│ true  │ true  │\n│ true  │ false │\n│ false │ true  │\n│ false │ false │\n└───────┴───────┘\n>>> df.select($df.col(\"a\").any().alias(\"any_true\"))\r\nshape: (1, 1)\r\n┌──────────┐\r\n│ any_true │\r\n├──────────┤\r\n│ true     │\r\n└──────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).any(...)",
       "signature": "$df.col(<column_name>).any()",
-      "lineStart": 259,
-      "lineEnd": 261
+      "lineStart": 214,
+      "lineEnd": 216
     },
     "anyNull": {
       "desc": "Aggregation: Checks if any value in the group is null.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.select($df.col(\"a\").anyNull().alias(\"has_null\"))\nshape: (1, 1)\n┌──────────┐\n│ has_null │\n├──────────┤\n│ true     │\n└──────────┘"
+        ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.select($df.col(\"a\").anyNull().alias(\"has_null\"))\r\nshape: (1, 1)\r\n┌──────────┐\r\n│ has_null │\r\n├──────────┤\r\n│ true     │\r\n└──────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).anyNull(...)",
       "signature": "$df.col(<column_name>).anyNull()",
-      "lineStart": 276,
-      "lineEnd": 278
+      "lineStart": 231,
+      "lineEnd": 233
     },
-    "argMax": {
-      "desc": "Aggregation: Finds the index of the maximum value in the group.",
+    "arccos": {
+      "desc": "Computes the mathematical arccosine (inverse cosine) of the column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"val\").argMax().alias(\"max_idx\"))\nshape: (1, 1)\n┌─────────┐\n│ max_idx │\n├─────────┤\n│ 2       │\n└─────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").arccos().alias(\"arccos_a\"))\r\nshape: (3, 2)\r\n┌───┬──────────┐\r\n│ a │ arccos_a │\r\n├───┼──────────┤\r\n│ 1 │ 0        │\r\n│ 2 │ null     │\r\n│ 3 │ null     │\r\n└───┴──────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
-      "syntax": "$df.col(<column_name>).argMax(...)",
-      "signature": "$df.col(<column_name>).argMax()",
-      "lineStart": 293,
-      "lineEnd": 295
+      "syntax": "$df.col(<column_name>).arccos(...)",
+      "signature": "$df.col(<column_name>).arccos()",
+      "lineStart": 250,
+      "lineEnd": 252
     },
-    "argMin": {
-      "desc": "Aggregation: Finds the index of the minimum value in the group.",
+    "arccosh": {
+      "desc": "Computes the hyperbolic arccosine of the column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"val\").argMin().alias(\"min_idx\"))\nshape: (1, 1)\n┌─────────┐\n│ min_idx │\n├─────────┤\n│ 0       │\n└─────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").arccosh().alias(\"arccosh_a\"))\r\nshape: (3, 2)\r\n┌───┬───────────┐\r\n│ a │ arccosh_a │\r\n├───┼───────────┤\r\n│ 1 │ 0         │\r\n│ 2 │ 1.316958  │\r\n│ 3 │ 1.762747  │\r\n└───┴───────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
-      "syntax": "$df.col(<column_name>).argMin(...)",
-      "signature": "$df.col(<column_name>).argMin()",
-      "lineStart": 310,
-      "lineEnd": 312
+      "syntax": "$df.col(<column_name>).arccosh(...)",
+      "signature": "$df.col(<column_name>).arccosh()",
+      "lineStart": 269,
+      "lineEnd": 271
     },
-    "asin": {
+    "arcsin": {
       "desc": "Computes the arcsine of the column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").asin().alias(\"asin_a\"))\nshape: (3, 2)\n┌───┬──────────┐\n│ a │ asin_a   │\n├───┼──────────┤\n│ 1 │ 1.570796 │\n│ 2 │ null     │\n│ 3 │ null     │\n└───┴──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").arcsin().alias(\"arcsin_a\"))\r\nshape: (3, 2)\r\n┌───┬──────────┐\r\n│ a │ arcsin_a │\r\n├───┼──────────┤\r\n│ 1 │ 1.570796 │\r\n│ 2 │ null     │\r\n│ 3 │ null     │\r\n└───┴──────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
-      "syntax": "$df.col(<column_name>).asin(...)",
-      "signature": "$df.col(<column_name>).asin()",
-      "lineStart": 329,
-      "lineEnd": 331
+      "syntax": "$df.col(<column_name>).arcsin(...)",
+      "signature": "$df.col(<column_name>).arcsin()",
+      "lineStart": 288,
+      "lineEnd": 290
     },
-    "asinh": {
+    "arcsinh": {
       "desc": "Computes the hyperbolic arcsine of the column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").asinh().alias(\"asinh_a\"))\nshape: (3, 2)\n┌───┬──────────┐\n│ a │ asinh_a  │\n├───┼──────────┤\n│ 1 │ 0.881374 │\n│ 2 │ 1.443635 │\n│ 3 │ 1.818446 │\n└───┴──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").arcsinh().alias(\"arcsinh_a\"))\r\nshape: (3, 2)\r\n┌───┬───────────┐\r\n│ a │ arcsinh_a │\r\n├───┼───────────┤\r\n│ 1 │ 0.881374  │\r\n│ 2 │ 1.443635  │\r\n│ 3 │ 1.818446  │\r\n└───┴───────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
-      "syntax": "$df.col(<column_name>).asinh(...)",
-      "signature": "$df.col(<column_name>).asinh()",
-      "lineStart": 348,
-      "lineEnd": 350
+      "syntax": "$df.col(<column_name>).arcsinh(...)",
+      "signature": "$df.col(<column_name>).arcsinh()",
+      "lineStart": 307,
+      "lineEnd": 309
     },
-    "atan": {
+    "arctan": {
       "desc": "Computes the arctangent of the column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").atan().alias(\"atan_a\"))\nshape: (3, 2)\n┌───┬──────────┐\n│ a │ atan_a   │\n├───┼──────────┤\n│ 1 │ 0.785398 │\n│ 2 │ 1.107149 │\n│ 3 │ 1.249046 │\n└───┴──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").arctan().alias(\"arctan_a\"))\r\nshape: (3, 2)\r\n┌───┬──────────┐\r\n│ a │ arctan_a │\r\n├───┼──────────┤\r\n│ 1 │ 0.785398 │\r\n│ 2 │ 1.107149 │\r\n│ 3 │ 1.249046 │\r\n└───┴──────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
-      "syntax": "$df.col(<column_name>).atan(...)",
-      "signature": "$df.col(<column_name>).atan()",
-      "lineStart": 367,
-      "lineEnd": 369
+      "syntax": "$df.col(<column_name>).arctan(...)",
+      "signature": "$df.col(<column_name>).arctan()",
+      "lineStart": 326,
+      "lineEnd": 328
     },
-    "atan2": {
+    "arctan2": {
       "desc": "Computes the quadrant-aware arctangent of two values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.withColumns($df.col(\"a\").atan2($df.col(\"b\")).alias(\"atan2_a\"))\nshape: (3, 3)\n┌───┬────┬──────────┐\n│ a │ b  │ atan2_a  │\n├───┼────┼──────────┤\n│ 1 │ 10 │ 0.099669 │\n│ 2 │ 20 │ 0.099669 │\n│ 3 │ 30 │ 0.099669 │\n└───┴────┴──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.withColumns($df.col(\"a\").arctan2($df.col(\"b\")).alias(\"arctan2_a\"))\r\nshape: (3, 3)\r\n┌───┬────┬───────────┐\r\n│ a │ b  │ arctan2_a │\r\n├───┼────┼───────────┤\r\n│ 1 │ 10 │ 0.099669  │\r\n│ 2 │ 20 │ 0.099669  │\r\n│ 3 │ 30 │ 0.099669  │\r\n└───┴────┴───────────┘"
       ],
       "params": [
         {
@@ -1139,41 +1113,67 @@
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
-      "syntax": "$df.col(<column_name>).atan2(...)",
-      "signature": "$df.col(<column_name>).atan2(\n  val: NumericArg\n)",
-      "lineStart": 387,
-      "lineEnd": 389
+      "syntax": "$df.col(<column_name>).arctan2(...)",
+      "signature": "$df.col(<column_name>).arctan2(\n  val: NumericArg\n)",
+      "lineStart": 346,
+      "lineEnd": 348
     },
-    "atanh": {
+    "arctanh": {
       "desc": "Computes the hyperbolic arctangent of the column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").atanh().alias(\"atanh_a\"))\nshape: (3, 2)\n┌───┬─────────┐\n│ a │ atanh_a │\n├───┼─────────┤\n│ 1 │ null    │\n│ 2 │ null    │\n│ 3 │ null    │\n└───┴─────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").arctanh().alias(\"arctanh_a\"))\r\nshape: (3, 2)\r\n┌───┬───────────┐\r\n│ a │ arctanh_a │\r\n├───┼───────────┤\r\n│ 1 │ null      │\r\n│ 2 │ null      │\r\n│ 3 │ null      │\r\n└───┴───────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
-      "syntax": "$df.col(<column_name>).atanh(...)",
-      "signature": "$df.col(<column_name>).atanh()",
-      "lineStart": 406,
-      "lineEnd": 408
+      "syntax": "$df.col(<column_name>).arctanh(...)",
+      "signature": "$df.col(<column_name>).arctanh()",
+      "lineStart": 365,
+      "lineEnd": 367
+    },
+    "argMax": {
+      "desc": "Aggregation: Finds the index of the maximum value in the group.",
+      "examples": [
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"val\").argMax().alias(\"max_idx\"))\r\nshape: (1, 1)\r\n┌─────────┐\r\n│ max_idx │\r\n├─────────┤\r\n│ 2       │\r\n└─────────┘"
+      ],
+      "returns": "ColumnExpression",
+      "namespace": "$df.col",
+      "category": "ColumnExpression",
+      "syntax": "$df.col(<column_name>).argMax(...)",
+      "signature": "$df.col(<column_name>).argMax()",
+      "lineStart": 382,
+      "lineEnd": 384
+    },
+    "argMin": {
+      "desc": "Aggregation: Finds the index of the minimum value in the group.",
+      "examples": [
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"val\").argMin().alias(\"min_idx\"))\r\nshape: (1, 1)\r\n┌─────────┐\r\n│ min_idx │\r\n├─────────┤\r\n│ 0       │\r\n└─────────┘"
+      ],
+      "returns": "ColumnExpression",
+      "namespace": "$df.col",
+      "category": "ColumnExpression",
+      "syntax": "$df.col(<column_name>).argMin(...)",
+      "signature": "$df.col(<column_name>).argMin()",
+      "lineStart": 399,
+      "lineEnd": 401
     },
     "avg": {
       "desc": "Aggregation: Computes the arithmetic mean of the group.",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").avg().alias(\"mean\"))\nshape: (2, 2)\n┌───────┬──────┐\n│ group │ mean │\n├───────┼──────┤\n│ A     │ 15   │\n│ B     │ 30   │\n└───────┴──────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").avg().alias(\"mean\"))\r\nshape: (2, 2)\r\n┌───────┬──────┐\r\n│ group │ mean │\r\n├───────┼──────┤\r\n│ A     │ 15   │\r\n│ B     │ 30   │\r\n└───────┴──────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).avg(...)",
       "signature": "$df.col(<column_name>).avg()",
-      "lineStart": 424,
-      "lineEnd": 426
+      "lineStart": 417,
+      "lineEnd": 419
     },
     "between": {
       "desc": "Checks if values fall inside lower and upper boundaries (inclusive).",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.withColumns($df.col(\"a\").between(1, 2).alias(\"in_range\"))\nshape: (3, 3)\n┌───┬────┬──────────┐\n│ a │ b  │ in_range │\n├───┼────┼──────────┤\n│ 1 │ 10 │ true     │\n│ 2 │ 20 │ true     │\n│ 3 │ 30 │ false    │\n└───┴────┴──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.withColumns($df.col(\"a\").between(1, 2).alias(\"in_range\"))\r\nshape: (3, 3)\r\n┌───┬────┬──────────┐\r\n│ a │ b  │ in_range │\r\n├───┼────┼──────────┤\r\n│ 1 │ 10 │ true     │\r\n│ 2 │ 20 │ true     │\r\n│ 3 │ 30 │ false    │\r\n└───┴────┴──────────┘"
       ],
       "params": [
         {
@@ -1194,78 +1194,78 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).between(...)",
       "signature": "$df.col(<column_name>).between(\n  lower: any,\n  upper: any,\n  closed: \"both\" | \"left\" | \"right\" | \"none\" = \"both\"\n)",
-      "lineStart": 446,
-      "lineEnd": 451
+      "lineStart": 439,
+      "lineEnd": 444
     },
     "bitwiseAnd": {
       "desc": "Aggregation: Computes bitwise AND across all elements in the group.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"a\").bitwiseAnd().alias(\"res\"))\nshape: (1, 1)\n┌─────┐\n│ res │\n├─────┤\n│ 0   │\n└─────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"a\").bitwiseAnd().alias(\"res\"))\r\nshape: (1, 1)\r\n┌─────┐\r\n│ res │\r\n├─────┤\r\n│ 0   │\r\n└─────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).bitwiseAnd(...)",
       "signature": "$df.col(<column_name>).bitwiseAnd()",
-      "lineStart": 466,
-      "lineEnd": 468
+      "lineStart": 459,
+      "lineEnd": 461
     },
     "bitwiseOr": {
       "desc": "Aggregation: Computes bitwise OR across all elements in the group.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"a\").bitwiseOr().alias(\"res\"))\nshape: (1, 1)\n┌─────┐\n│ res │\n├─────┤\n│ 3   │\n└─────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"a\").bitwiseOr().alias(\"res\"))\r\nshape: (1, 1)\r\n┌─────┐\r\n│ res │\r\n├─────┤\r\n│ 3   │\r\n└─────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).bitwiseOr(...)",
       "signature": "$df.col(<column_name>).bitwiseOr()",
-      "lineStart": 483,
-      "lineEnd": 485
+      "lineStart": 476,
+      "lineEnd": 478
     },
     "bitwiseXor": {
       "desc": "Aggregation: Computes bitwise XOR across all elements in the group.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"a\").bitwiseXor().alias(\"res\"))\nshape: (1, 1)\n┌─────┐\n│ res │\n├─────┤\n│ 0   │\n└─────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"a\").bitwiseXor().alias(\"res\"))\r\nshape: (1, 1)\r\n┌─────┐\r\n│ res │\r\n├─────┤\r\n│ 0   │\r\n└─────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).bitwiseXor(...)",
       "signature": "$df.col(<column_name>).bitwiseXor()",
-      "lineStart": 500,
-      "lineEnd": 502
+      "lineStart": 493,
+      "lineEnd": 495
     },
     "cbrt": {
       "desc": "Computes the cube root of the column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").cbrt().alias(\"cbrt_a\"))\nshape: (3, 2)\n┌───┬──────────┐\n│ a │ cbrt_a   │\n├───┼──────────┤\n│ 1 │ 1        │\n│ 2 │ 1.259921 │\n│ 3 │ 1.44225  │\n└───┴──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").cbrt().alias(\"cbrt_a\"))\r\nshape: (3, 2)\r\n┌───┬──────────┐\r\n│ a │ cbrt_a   │\r\n├───┼──────────┤\r\n│ 1 │ 1        │\r\n│ 2 │ 1.259921 │\r\n│ 3 │ 1.44225  │\r\n└───┴──────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).cbrt(...)",
       "signature": "$df.col(<column_name>).cbrt()",
-      "lineStart": 519,
-      "lineEnd": 521
+      "lineStart": 512,
+      "lineEnd": 514
     },
     "ceil": {
       "desc": "Rounds column values up to the nearest integer.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").ceil().alias(\"ceil_a\"))\nshape: (3, 2)\n┌───┬────────┐\n│ a │ ceil_a │\n├───┼────────┤\n│ 1 │ 1      │\n│ 2 │ 2      │\n│ 3 │ 3      │\n└───┴────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").ceil().alias(\"ceil_a\"))\r\nshape: (3, 2)\r\n┌───┬────────┐\r\n│ a │ ceil_a │\r\n├───┼────────┤\r\n│ 1 │ 1      │\r\n│ 2 │ 2      │\r\n│ 3 │ 3      │\r\n└───┴────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).ceil(...)",
       "signature": "$df.col(<column_name>).ceil()",
-      "lineStart": 538,
-      "lineEnd": 540
+      "lineStart": 531,
+      "lineEnd": 533
     },
     "clip": {
       "desc": "Clamps column values between lower and upper numeric thresholds.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").clip(2, 3).alias(\"clipped\"))\nshape: (3, 2)\n┌───┬─────────┐\n│ a │ clipped │\n├───┼─────────┤\n│ 1 │ 2       │\n│ 2 │ 2       │\n│ 3 │ 3       │\n└───┴─────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").clip(2, 3).alias(\"clipped\"))\r\nshape: (3, 2)\r\n┌───┬─────────┐\r\n│ a │ clipped │\r\n├───┼─────────┤\r\n│ 1 │ 2       │\r\n│ 2 │ 2       │\r\n│ 3 │ 3       │\r\n└───┴─────────┘"
       ],
       "params": [
         {
@@ -1282,13 +1282,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).clip(...)",
       "signature": "$df.col(<column_name>).clip(\n  lower: number | null = null,\n  upper: number | null = null\n)",
-      "lineStart": 559,
-      "lineEnd": 561
+      "lineStart": 552,
+      "lineEnd": 554
     },
     "copysign": {
       "desc": "Returns absolute value of expr with the sign of other.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.withColumns($df.col(\"a\").copysign($df.col(\"b\")).alias(\"signed\"))\nshape: (3, 3)\n┌───┬────┬────────┐\n│ a │ b  │ signed │\n├───┼────┼────────┤\n│ 1 │ 10 │ 1      │\n│ 2 │ 20 │ 2      │\n│ 3 │ 30 │ 3      │\n└───┴────┴────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.withColumns($df.col(\"a\").copysign($df.col(\"b\")).alias(\"signed\"))\r\nshape: (3, 3)\r\n┌───┬────┬────────┐\r\n│ a │ b  │ signed │\r\n├───┼────┼────────┤\r\n│ 1 │ 10 │ 1      │\r\n│ 2 │ 20 │ 2      │\r\n│ 3 │ 30 │ 3      │\r\n└───┴────┴────────┘"
       ],
       "params": [
         {
@@ -1301,13 +1301,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).copysign(...)",
       "signature": "$df.col(<column_name>).copysign(\n  val: NumericArg\n)",
-      "lineStart": 579,
-      "lineEnd": 581
+      "lineStart": 572,
+      "lineEnd": 574
     },
     "corr": {
       "desc": "Aggregation: Computes the Pearson correlation coefficient between two columns.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.select($df.col(\"a\").corr($df.col(\"b\")).alias(\"correlation\"))\nshape: (1, 1)\n┌─────────────┐\n│ correlation │\n├─────────────┤\n│ 1           │\n└─────────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.select($df.col(\"a\").corr($df.col(\"b\")).alias(\"correlation\"))\r\nshape: (1, 1)\r\n┌─────────────┐\r\n│ correlation │\r\n├─────────────┤\r\n│ 1           │\r\n└─────────────┘"
       ],
       "params": [
         {
@@ -1320,39 +1320,52 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).corr(...)",
       "signature": "$df.col(<column_name>).corr(\n  other: any\n)",
-      "lineStart": 597,
-      "lineEnd": 599
+      "lineStart": 590,
+      "lineEnd": 592
     },
     "cos": {
       "desc": "Computes the cosine of the column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").cos().alias(\"cos_a\"))\nshape: (3, 2)\n┌───┬───────────┐\n│ a │ cos_a     │\n├───┼───────────┤\n│ 1 │ 0.540302  │\n│ 2 │ -0.416147 │\n│ 3 │ -0.989992 │\n└───┴───────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").cos().alias(\"cos_a\"))\r\nshape: (3, 2)\r\n┌───┬───────────┐\r\n│ a │ cos_a     │\r\n├───┼───────────┤\r\n│ 1 │ 0.540302  │\r\n│ 2 │ -0.416147 │\r\n│ 3 │ -0.989992 │\r\n└───┴───────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).cos(...)",
       "signature": "$df.col(<column_name>).cos()",
-      "lineStart": 616,
-      "lineEnd": 618
+      "lineStart": 609,
+      "lineEnd": 611
     },
     "cosh": {
       "desc": "Computes the hyperbolic cosine of the column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").cosh().alias(\"cosh_a\"))\nshape: (3, 2)\n┌───┬───────────┐\n│ a │ cosh_a    │\n├───┼───────────┤\n│ 1 │ 1.543081  │\n│ 2 │ 3.762196  │\n│ 3 │ 10.067662 │\n└───┴───────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").cosh().alias(\"cosh_a\"))\r\nshape: (3, 2)\r\n┌───┬───────────┐\r\n│ a │ cosh_a    │\r\n├───┼───────────┤\r\n│ 1 │ 1.543081  │\r\n│ 2 │ 3.762196  │\r\n│ 3 │ 10.067662 │\r\n└───┴───────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).cosh(...)",
       "signature": "$df.col(<column_name>).cosh()",
-      "lineStart": 635,
-      "lineEnd": 637
+      "lineStart": 628,
+      "lineEnd": 630
+    },
+    "cot": {
+      "desc": "Computes the cotangent of the column values.",
+      "examples": [
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").cot().alias(\"cot_a\"))\r\nshape: (3, 2)\r\n┌───┬───────────┐\r\n│ a │ cot_a     │\r\n├───┼───────────┤\r\n│ 1 │ 0.642093  │\r\n│ 2 │ -0.457658 │\r\n│ 3 │ -7.015253 │\r\n└───┴───────────┘"
+      ],
+      "returns": "ColumnExpression",
+      "namespace": "$df.col",
+      "category": "ColumnExpression",
+      "syntax": "$df.col(<column_name>).cot(...)",
+      "signature": "$df.col(<column_name>).cot()",
+      "lineStart": 647,
+      "lineEnd": 654
     },
     "count": {
       "desc": "Aggregation: Returns the count of records inside the group.",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").count().alias(\"cnt\"))\nshape: (2, 2)\n┌───────┬─────┐\n│ group │ cnt │\n├───────┼─────┤\n│ A     │ 2   │\n│ B     │ 1   │\n└───────┴─────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").count().alias(\"cnt\"))\r\nshape: (2, 2)\r\n┌───────┬─────┐\r\n│ group │ cnt │\r\n├───────┼─────┤\r\n│ A     │ 2   │\r\n│ B     │ 1   │\r\n└───────┴─────┘"
       ],
       "params": [
         {
@@ -1365,13 +1378,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).count(...)",
       "signature": "$df.col(<column_name>).count(\n  options: { includeNulls?: boolean } = {}\n)",
-      "lineStart": 654,
-      "lineEnd": 657
+      "lineStart": 671,
+      "lineEnd": 674
     },
     "cov": {
       "desc": "Aggregation: Computes the covariance between two columns.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.select($df.col(\"a\").cov($df.col(\"b\")).alias(\"covariance\"))\nshape: (1, 1)\n┌────────────┐\n│ covariance │\n├────────────┤\n│ 10         │\n└────────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.select($df.col(\"a\").cov($df.col(\"b\")).alias(\"covariance\"))\r\nshape: (1, 1)\r\n┌────────────┐\r\n│ covariance │\r\n├────────────┤\r\n│ 10         │\r\n└────────────┘"
       ],
       "params": [
         {
@@ -1384,13 +1397,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).cov(...)",
       "signature": "$df.col(<column_name>).cov(\n  other: any\n)",
-      "lineStart": 673,
-      "lineEnd": 675
+      "lineStart": 690,
+      "lineEnd": 692
     },
     "cumCount": {
       "desc": "Window: Computes cumulative count.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").cumCount().alias(\"c_count\"))\nshape: (3, 2)\n┌─────┬─────────┐\n│ val │ c_count │\n├─────┼─────────┤\n│ 10  │ 1       │\n│ 20  │ 2       │\n│ 30  │ 3       │\n└─────┴─────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").cumCount().alias(\"c_count\"))\r\nshape: (3, 2)\r\n┌─────┬─────────┐\r\n│ val │ c_count │\r\n├─────┼─────────┤\r\n│ 10  │ 1       │\r\n│ 20  │ 2       │\r\n│ 30  │ 3       │\r\n└─────┴─────────┘"
       ],
       "params": [
         {
@@ -1403,13 +1416,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).cumCount(...)",
       "signature": "$df.col(<column_name>).cumCount(\n  reverse: boolean = false\n)",
-      "lineStart": 693,
-      "lineEnd": 695
+      "lineStart": 710,
+      "lineEnd": 712
     },
     "cumMax": {
       "desc": "Window: Computes cumulative maximum value.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").cumMax().alias(\"c_max\"))\nshape: (3, 2)\n┌─────┬───────┐\n│ val │ c_max │\n├─────┼───────┤\n│ 10  │ 10    │\n│ 20  │ 20    │\n│ 30  │ 30    │\n└─────┴───────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").cumMax().alias(\"c_max\"))\r\nshape: (3, 2)\r\n┌─────┬───────┐\r\n│ val │ c_max │\r\n├─────┼───────┤\r\n│ 10  │ 10    │\r\n│ 20  │ 20    │\r\n│ 30  │ 30    │\r\n└─────┴───────┘"
       ],
       "params": [
         {
@@ -1422,13 +1435,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).cumMax(...)",
       "signature": "$df.col(<column_name>).cumMax(\n  reverse: boolean = false\n)",
-      "lineStart": 713,
-      "lineEnd": 715
+      "lineStart": 730,
+      "lineEnd": 732
     },
     "cumMin": {
       "desc": "Window: Computes cumulative minimum value.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").cumMin().alias(\"c_min\"))\nshape: (3, 2)\n┌─────┬───────┐\n│ val │ c_min │\n├─────┼───────┤\n│ 10  │ 10    │\n│ 20  │ 10    │\n│ 30  │ 10    │\n└─────┴───────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").cumMin().alias(\"c_min\"))\r\nshape: (3, 2)\r\n┌─────┬───────┐\r\n│ val │ c_min │\r\n├─────┼───────┤\r\n│ 10  │ 10    │\r\n│ 20  │ 10    │\r\n│ 30  │ 10    │\r\n└─────┴───────┘"
       ],
       "params": [
         {
@@ -1441,13 +1454,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).cumMin(...)",
       "signature": "$df.col(<column_name>).cumMin(\n  reverse: boolean = false\n)",
-      "lineStart": 733,
-      "lineEnd": 735
+      "lineStart": 750,
+      "lineEnd": 752
     },
     "cumProd": {
       "desc": "Window: Computes cumulative product of values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").cumProd().alias(\"c_prod\"))\nshape: (4, 2)\n┌───┬────────┐\n│ a │ c_prod │\n├───┼────────┤\n│ 1 │ 1      │\n│ 2 │ 2      │\n│ 3 │ 6      │\n│ 4 │ 24     │\n└───┴────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").cumProd().alias(\"c_prod\"))\r\nshape: (4, 2)\r\n┌───┬────────┐\r\n│ a │ c_prod │\r\n├───┼────────┤\r\n│ 1 │ 1      │\r\n│ 2 │ 2      │\r\n│ 3 │ 6      │\r\n│ 4 │ 24     │\r\n└───┴────────┘"
       ],
       "params": [
         {
@@ -1460,13 +1473,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).cumProd(...)",
       "signature": "$df.col(<column_name>).cumProd(\n  reverse: boolean = false\n)",
-      "lineStart": 754,
-      "lineEnd": 756
+      "lineStart": 771,
+      "lineEnd": 773
     },
     "cumSum": {
       "desc": "Window: Computes cumulative sum of values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").cumSum().alias(\"c_sum\"))\nshape: (3, 2)\n┌─────┬───────┐\n│ val │ c_sum │\n├─────┼───────┤\n│ 10  │ 10    │\n│ 20  │ 30    │\n│ 30  │ 60    │\n└─────┴───────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").cumSum().alias(\"c_sum\"))\r\nshape: (3, 2)\r\n┌─────┬───────┐\r\n│ val │ c_sum │\r\n├─────┼───────┤\r\n│ 10  │ 10    │\r\n│ 20  │ 30    │\r\n│ 30  │ 60    │\r\n└─────┴───────┘"
       ],
       "params": [
         {
@@ -1479,39 +1492,39 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).cumSum(...)",
       "signature": "$df.col(<column_name>).cumSum(\n  reverse: boolean = false\n)",
-      "lineStart": 774,
-      "lineEnd": 776
+      "lineStart": 791,
+      "lineEnd": 793
     },
     "degrees": {
       "desc": "Converts angles from radians to degrees.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").degrees().alias(\"deg\"))\nshape: (3, 2)\n┌───┬────────────┐\n│ a │ deg        │\n├───┼────────────┤\n│ 1 │ 57.29578   │\n│ 2 │ 114.591559 │\n│ 3 │ 171.887339 │\n└───┴────────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").degrees().alias(\"deg\"))\r\nshape: (3, 2)\r\n┌───┬────────────┐\r\n│ a │ deg        │\r\n├───┼────────────┤\r\n│ 1 │ 57.29578   │\r\n│ 2 │ 114.591559 │\r\n│ 3 │ 171.887339 │\r\n└───┴────────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).degrees(...)",
       "signature": "$df.col(<column_name>).degrees()",
-      "lineStart": 793,
-      "lineEnd": 795
+      "lineStart": 810,
+      "lineEnd": 812
     },
     "denseRank": {
       "desc": "Window: Computes dense rank (ranks without gaps) within group partition.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"score\").denseRank().alias(\"dr\"))\nshape: (2, 2)\n┌───────┬────┐\n│ score │ dr │\n├───────┼────┤\n│ 75    │ 1  │\n│ 95    │ 2  │\n└───────┴────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"score\").denseRank().alias(\"dr\"))\r\nshape: (2, 2)\r\n┌───────┬────┐\r\n│ score │ dr │\r\n├───────┼────┤\r\n│ 75    │ 1  │\r\n│ 95    │ 2  │\r\n└───────┴────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).denseRank(...)",
       "signature": "$df.col(<column_name>).denseRank()",
-      "lineStart": 811,
-      "lineEnd": 813
+      "lineStart": 828,
+      "lineEnd": 830
     },
     "div": {
       "desc": "Divides column values by a scalar or another column expression.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").div(2).alias(\"div_a\"))\nshape: (3, 2)\n┌───┬───────┐\n│ a │ div_a │\n├───┼───────┤\n│ 1 │ 0.5   │\n│ 2 │ 1     │\n│ 3 │ 1.5   │\n└───┴───────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").div(2).alias(\"div_a\"))\r\nshape: (3, 2)\r\n┌───┬───────┐\r\n│ a │ div_a │\r\n├───┼───────┤\r\n│ 1 │ 0.5   │\r\n│ 2 │ 1     │\r\n│ 3 │ 1.5   │\r\n└───┴───────┘"
       ],
       "params": [
         {
@@ -1524,13 +1537,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).div(...)",
       "signature": "$df.col(<column_name>).div(\n  val: NumericArg\n)",
-      "lineStart": 831,
-      "lineEnd": 833
+      "lineStart": 848,
+      "lineEnd": 850
     },
     "dot": {
       "desc": "Aggregation: Computes the dot product with another column.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.select($df.col(\"a\").dot($df.col(\"b\")).alias(\"dot_product\"))\nshape: (1, 1)\n┌─────────────┐\n│ dot_product │\n├─────────────┤\n│ 140         │\n└─────────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.select($df.col(\"a\").dot($df.col(\"b\")).alias(\"dot_product\"))\r\nshape: (1, 1)\r\n┌─────────────┐\r\n│ dot_product │\r\n├─────────────┤\r\n│ 140         │\r\n└─────────────┘"
       ],
       "params": [
         {
@@ -1543,13 +1556,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dot(...)",
       "signature": "$df.col(<column_name>).dot(\n  other: any\n)",
-      "lineStart": 849,
-      "lineEnd": 851
+      "lineStart": 866,
+      "lineEnd": 868
     },
     "entropy": {
       "desc": "Aggregation: Computes the Shannon entropy of a column or group.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"a\").entropy().alias(\"h\"))\nshape: (1, 1)\n┌──────────┐\n│ h        │\n├──────────┤\n│ 1.386294 │\n└──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"a\").entropy().alias(\"h\"))\r\nshape: (1, 1)\r\n┌──────────┐\r\n│ h        │\r\n├──────────┤\r\n│ 1.386294 │\r\n└──────────┘"
       ],
       "params": [
         {
@@ -1562,13 +1575,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).entropy(...)",
       "signature": "$df.col(<column_name>).entropy(\n  options: EntropyOptions = { base: Math.E, normalize: true }\n)",
-      "lineStart": 867,
-      "lineEnd": 869
+      "lineStart": 884,
+      "lineEnd": 886
     },
     "eq": {
       "desc": "Boolean comparison: Returns true if column values match the specified value exactly.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").eq(2).alias(\"is_two\"))\nshape: (3, 2)\n┌───┬────────┐\n│ a │ is_two │\n├───┼────────┤\n│ 1 │ false  │\n│ 2 │ true   │\n│ 3 │ false  │\n└───┴────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").eq(2).alias(\"is_two\"))\r\nshape: (3, 2)\r\n┌───┬────────┐\r\n│ a │ is_two │\r\n├───┼────────┤\r\n│ 1 │ false  │\r\n│ 2 │ true   │\r\n│ 3 │ false  │\r\n└───┴────────┘"
       ],
       "params": [
         {
@@ -1581,13 +1594,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).eq(...)",
       "signature": "$df.col(<column_name>).eq(\n  val: any\n)",
-      "lineStart": 887,
-      "lineEnd": 889
+      "lineStart": 904,
+      "lineEnd": 906
     },
     "eqMissing": {
       "desc": "Equivalence check that treats null values as equal to each other.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.withColumns($df.col(\"a\").eqMissing(null).alias(\"is_missing\"))\nshape: (3, 2)\n┌──────┬────────────┐\n│ a    │ is_missing │\n├──────┼────────────┤\n│ 1    │ false      │\n│ null │ true       │\n│ 3    │ false      │\n└──────┴────────────┘"
+        ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.withColumns($df.col(\"a\").eqMissing(null).alias(\"is_missing\"))\r\nshape: (3, 2)\r\n┌──────┬────────────┐\r\n│ a    │ is_missing │\r\n├──────┼────────────┤\r\n│ 1    │ false      │\r\n│ null │ true       │\r\n│ 3    │ false      │\r\n└──────┴────────────┘"
       ],
       "params": [
         {
@@ -1600,39 +1613,39 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).eqMissing(...)",
       "signature": "$df.col(<column_name>).eqMissing(\n  val: any\n)",
-      "lineStart": 907,
-      "lineEnd": 912
+      "lineStart": 924,
+      "lineEnd": 929
     },
     "exp": {
       "desc": "Computes natural exponent (e^x) of the column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").exp().alias(\"exp_a\"))\nshape: (3, 2)\n┌───┬───────────┐\n│ a │ exp_a     │\n├───┼───────────┤\n│ 1 │ 2.718282  │\n│ 2 │ 7.389056  │\n│ 3 │ 20.085537 │\n└───┴───────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").exp().alias(\"exp_a\"))\r\nshape: (3, 2)\r\n┌───┬───────────┐\r\n│ a │ exp_a     │\r\n├───┼───────────┤\r\n│ 1 │ 2.718282  │\r\n│ 2 │ 7.389056  │\r\n│ 3 │ 20.085537 │\r\n└───┴───────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).exp(...)",
       "signature": "$df.col(<column_name>).exp()",
-      "lineStart": 929,
-      "lineEnd": 931
+      "lineStart": 946,
+      "lineEnd": 948
     },
     "expm1": {
       "desc": "Computes e^x - 1 for each element in the column.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").expm1().alias(\"expm1_a\"))\nshape: (3, 2)\n┌───┬───────────┐\n│ a │ expm1_a   │\n├───┼───────────┤\n│ 1 │ 1.718282  │\n│ 2 │ 6.389056  │\n│ 3 │ 19.085537 │\n└───┴───────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").expm1().alias(\"expm1_a\"))\r\nshape: (3, 2)\r\n┌───┬───────────┐\r\n│ a │ expm1_a   │\r\n├───┼───────────┤\r\n│ 1 │ 1.718282  │\r\n│ 2 │ 6.389056  │\r\n│ 3 │ 19.085537 │\r\n└───┴───────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).expm1(...)",
       "signature": "$df.col(<column_name>).expm1()",
-      "lineStart": 948,
-      "lineEnd": 950
+      "lineStart": 965,
+      "lineEnd": 967
     },
     "fillNull": {
       "desc": "Replaces null, undefined, or missing values with a specified value or strategy.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.withColumns($df.col(\"a\").fillNull({ value: 0 }).alias(\"filled\"))\nshape: (3, 2)\n┌──────┬────────┐\n│ a    │ filled │\n├──────┼────────┤\n│ 1    │ 1      │\n│ null │ 0      │\n│ 3    │ 3      │\n└──────┴────────┘"
+        ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.withColumns($df.col(\"a\").fillNull({ value: 0 }).alias(\"filled\"))\r\nshape: (3, 2)\r\n┌──────┬────────┐\r\n│ a    │ filled │\r\n├──────┼────────┤\r\n│ 1    │ 1      │\r\n│ null │ 0      │\r\n│ 3    │ 3      │\r\n└──────┴────────┘"
       ],
       "params": [
         {
@@ -1645,39 +1658,58 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).fillNull(...)",
       "signature": "$df.col(<column_name>).fillNull(\n  {\n    value = undefined,\n    strategy = undefined,\n    limit = undefined\n  }: FillNullOptions = {}\n): this",
-      "lineStart": 968,
-      "lineEnd": 1024
+      "lineStart": 985,
+      "lineEnd": 1041
+    },
+    "filter": {
+      "desc": "Filters elements of the column expression where the predicate evaluates to truthy.",
+      "examples": [
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"a\").filter($df.col(\"a\").gt(1)).alias(\"filtered\"))\r\nshape: (2, 1)\r\n┌──────────┐\r\n│ filtered │\r\n├──────────┤\r\n│ 2        │\r\n│ 3        │\r\n└──────────┘"
+      ],
+      "params": [
+        {
+          "name": "predicate",
+          "desc": "Boolean column expression used to filter values."
+        }
+      ],
+      "returns": "ColumnExpression",
+      "namespace": "$df.col",
+      "category": "ColumnExpression",
+      "syntax": "$df.col(<column_name>).filter(...)",
+      "signature": "$df.col(<column_name>).filter(\n  predicate: IExpr\n)",
+      "lineStart": 1058,
+      "lineEnd": 1063
     },
     "first": {
       "desc": "Aggregation: Finds the first value in the group.",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").first().alias(\"first_val\"))\nshape: (2, 2)\n┌───────┬───────────┐\n│ group │ first_val │\n├───────┼───────────┤\n│ A     │ 10        │\n│ B     │ 30        │\n└───────┴───────────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").first().alias(\"first_val\"))\r\nshape: (2, 2)\r\n┌───────┬───────────┐\r\n│ group │ first_val │\r\n├───────┼───────────┤\r\n│ A     │ 10        │\r\n│ B     │ 30        │\r\n└───────┴───────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).first(...)",
       "signature": "$df.col(<column_name>).first()",
-      "lineStart": 1040,
-      "lineEnd": 1042
+      "lineStart": 1079,
+      "lineEnd": 1081
     },
     "floor": {
       "desc": "Rounds column values down to the nearest integer.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").floor().alias(\"floor_a\"))\nshape: (3, 2)\n┌───┬─────────┐\n│ a │ floor_a │\n├───┼─────────┤\n│ 1 │ 1       │\n│ 2 │ 2       │\n│ 3 │ 3       │\n└───┴─────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").floor().alias(\"floor_a\"))\r\nshape: (3, 2)\r\n┌───┬─────────┐\r\n│ a │ floor_a │\r\n├───┼─────────┤\r\n│ 1 │ 1       │\r\n│ 2 │ 2       │\r\n│ 3 │ 3       │\r\n└───┴─────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).floor(...)",
       "signature": "$df.col(<column_name>).floor()",
-      "lineStart": 1059,
-      "lineEnd": 1061
+      "lineStart": 1098,
+      "lineEnd": 1100
     },
     "floordiv": {
       "desc": "Performs integer division floor(x / y) on column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").floordiv(2).alias(\"fdiv\"))\nshape: (3, 2)\n┌───┬──────┐\n│ a │ fdiv │\n├───┼──────┤\n│ 1 │ 0    │\n│ 2 │ 1    │\n│ 3 │ 1    │\n└───┴──────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").floordiv(2).alias(\"fdiv\"))\r\nshape: (3, 2)\r\n┌───┬──────┐\r\n│ a │ fdiv │\r\n├───┼──────┤\r\n│ 1 │ 0    │\r\n│ 2 │ 1    │\r\n│ 3 │ 1    │\r\n└───┴──────┘"
       ],
       "params": [
         {
@@ -1690,13 +1722,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).floordiv(...)",
       "signature": "$df.col(<column_name>).floordiv(\n  val: NumericArg\n)",
-      "lineStart": 1079,
-      "lineEnd": 1081
+      "lineStart": 1118,
+      "lineEnd": 1120
     },
     "ge": {
       "desc": "Boolean comparison: Returns true if greater than or equal to argument.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").ge(2).alias(\"ge_two\"))\nshape: (3, 2)\n┌───┬────────┐\n│ a │ ge_two │\n├───┼────────┤\n│ 1 │ false  │\n│ 2 │ true   │\n│ 3 │ true   │\n└───┴────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").ge(2).alias(\"ge_two\"))\r\nshape: (3, 2)\r\n┌───┬────────┐\r\n│ a │ ge_two │\r\n├───┼────────┤\r\n│ 1 │ false  │\r\n│ 2 │ true   │\r\n│ 3 │ true   │\r\n└───┴────────┘"
       ],
       "params": [
         {
@@ -1709,13 +1741,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).ge(...)",
       "signature": "$df.col(<column_name>).ge(\n  val: any\n)",
-      "lineStart": 1099,
-      "lineEnd": 1101
+      "lineStart": 1138,
+      "lineEnd": 1140
     },
     "gt": {
       "desc": "Boolean comparison: Returns true if column value is greater than argument.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").gt(2).alias(\"gt_two\"))\nshape: (3, 2)\n┌───┬────────┐\n│ a │ gt_two │\n├───┼────────┤\n│ 1 │ false  │\n│ 2 │ false  │\n│ 3 │ true   │\n└───┴────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").gt(2).alias(\"gt_two\"))\r\nshape: (3, 2)\r\n┌───┬────────┐\r\n│ a │ gt_two │\r\n├───┼────────┤\r\n│ 1 │ false  │\r\n│ 2 │ false  │\r\n│ 3 │ true   │\r\n└───┴────────┘"
       ],
       "params": [
         {
@@ -1728,26 +1760,26 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).gt(...)",
       "signature": "$df.col(<column_name>).gt(\n  val: any\n)",
-      "lineStart": 1119,
-      "lineEnd": 1121
+      "lineStart": 1158,
+      "lineEnd": 1160
     },
     "hasNulls": {
       "desc": "Aggregation: Checks if any value in the group is null.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.select($df.col(\"a\").hasNulls().alias(\"has_nulls\"))\nshape: (1, 1)\n┌───────────┐\n│ has_nulls │\n├───────────┤\n│ true      │\n└───────────┘"
+        ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.select($df.col(\"a\").hasNulls().alias(\"has_nulls\"))\r\nshape: (1, 1)\r\n┌───────────┐\r\n│ has_nulls │\r\n├───────────┤\r\n│ true      │\r\n└───────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).hasNulls(...)",
       "signature": "$df.col(<column_name>).hasNulls()",
-      "lineStart": 1136,
-      "lineEnd": 1138
+      "lineStart": 1175,
+      "lineEnd": 1177
     },
     "hypot": {
       "desc": "Computes the hypotenuse sqrt(x^2 + y^2) of two values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.withColumns($df.col(\"a\").hypot($df.col(\"b\")).alias(\"hypot_a\"))\nshape: (3, 3)\n┌───┬────┬───────────┐\n│ a │ b  │ hypot_a   │\n├───┼────┼───────────┤\n│ 1 │ 10 │ 10.049876 │\n│ 2 │ 20 │ 20.099751 │\n│ 3 │ 30 │ 30.149627 │\n└───┴────┴───────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.withColumns($df.col(\"a\").hypot($df.col(\"b\")).alias(\"hypot_a\"))\r\nshape: (3, 3)\r\n┌───┬────┬───────────┐\r\n│ a │ b  │ hypot_a   │\r\n├───┼────┼───────────┤\r\n│ 1 │ 10 │ 10.049876 │\r\n│ 2 │ 20 │ 20.099751 │\r\n│ 3 │ 30 │ 30.149627 │\r\n└───┴────┴───────────┘"
       ],
       "params": [
         {
@@ -1760,26 +1792,26 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).hypot(...)",
       "signature": "$df.col(<column_name>).hypot(\n  val: NumericArg\n)",
-      "lineStart": 1156,
-      "lineEnd": 1158
+      "lineStart": 1195,
+      "lineEnd": 1197
     },
     "implode": {
       "desc": "Aggregation: Combines all values in the group into a single array/list cell.",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").implode().alias(\"list_val\"))\nshape: (2, 2)\n┌───────┬──────────┐\n│ group │ list_val │\n├───────┼──────────┤\n│ A     │ [10, 20] │\n│ B     │ [30]     │\n└───────┴──────────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").implode().alias(\"list_val\"))\r\nshape: (2, 2)\r\n┌───────┬──────────┐\r\n│ group │ list_val │\r\n├───────┼──────────┤\r\n│ A     │ [10, 20] │\r\n│ B     │ [30]     │\r\n└───────┴──────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).implode(...)",
       "signature": "$df.col(<column_name>).implode()",
-      "lineStart": 1174,
-      "lineEnd": 1176
+      "lineStart": 1213,
+      "lineEnd": 1215
     },
     "isClose": {
       "desc": "Determines if floating-point values are approximately equal within tolerances.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").isClose(1.0).alias(\"close\"))\nshape: (3, 2)\n┌───┬───────┐\n│ a │ close │\n├───┼───────┤\n│ 1 │ true  │\n│ 2 │ false │\n│ 3 │ false │\n└───┴───────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").isClose(1.0).alias(\"close\"))\r\nshape: (3, 2)\r\n┌───┬───────┐\r\n│ a │ close │\r\n├───┼───────┤\r\n│ 1 │ true  │\r\n│ 2 │ false │\r\n│ 3 │ false │\r\n└───┴───────┘"
       ],
       "params": [
         {
@@ -1796,39 +1828,39 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).isClose(...)",
       "signature": "$df.col(<column_name>).isClose(\n  other: any,\n  {\n    absTol = 1e-8,\n    relTol = 1e-8,\n    nansEqual = false\n  }: IsCloseOptions = {}\n)",
-      "lineStart": 1195,
-      "lineEnd": 1212
+      "lineStart": 1234,
+      "lineEnd": 1251
     },
     "isDuplicated": {
       "desc": "Checks if values occur more than once in the column.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").isDuplicated().alias(\"dup\"))\nshape: (3, 2)\n┌───┬───────┐\n│ a │ dup   │\n├───┼───────┤\n│ 1 │ false │\n│ 2 │ false │\n│ 3 │ false │\n└───┴───────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").isDuplicated().alias(\"dup\"))\r\nshape: (3, 2)\r\n┌───┬───────┐\r\n│ a │ dup   │\r\n├───┼───────┤\r\n│ 1 │ false │\r\n│ 2 │ false │\r\n│ 3 │ false │\r\n└───┴───────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).isDuplicated(...)",
       "signature": "$df.col(<column_name>).isDuplicated()",
-      "lineStart": 1229,
-      "lineEnd": 1239
+      "lineStart": 1268,
+      "lineEnd": 1278
     },
     "isFinite": {
       "desc": "Checks if values are finite numbers (not NaN or Infinity).",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").isFinite().alias(\"finite\"))\nshape: (3, 2)\n┌───┬────────┐\n│ a │ finite │\n├───┼────────┤\n│ 1 │ true   │\n│ 2 │ true   │\n│ 3 │ true   │\n└───┴────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").isFinite().alias(\"finite\"))\r\nshape: (3, 2)\r\n┌───┬────────┐\r\n│ a │ finite │\r\n├───┼────────┤\r\n│ 1 │ true   │\r\n│ 2 │ true   │\r\n│ 3 │ true   │\r\n└───┴────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).isFinite(...)",
       "signature": "$df.col(<column_name>).isFinite()",
-      "lineStart": 1257,
-      "lineEnd": 1259
+      "lineStart": 1296,
+      "lineEnd": 1298
     },
     "isIn": {
       "desc": "Checks if column values are members of a specified array or list.",
       "examples": [
-        ">>> const df = $df.data({ s: [\"apple\", \"banana\", \"cherry\"] })\n>>> df\nshape: (3, 1)\n┌──────────┐\n│ s        │\n├──────────┤\n│ \"apple\"  │\n│ \"banana\" │\n│ \"cherry\" │\n└──────────┘\n>>> df.withColumns($df.col(\"s\").isIn([\"apple\", \"banana\"]).alias(\"in_list\"))\nshape: (3, 2)\n┌──────────┬─────────┐\n│ s        │ in_list │\n├──────────┼─────────┤\n│ \"apple\"  │ true    │\n│ \"banana\" │ true    │\n│ \"cherry\" │ false   │\n└──────────┴─────────┘"
+        ">>> const df = $df.data({ s: [\"apple\", \"banana\", \"cherry\"] })\n>>> df\nshape: (3, 1)\n┌──────────┐\n│ s        │\n├──────────┤\n│ \"apple\"  │\n│ \"banana\" │\n│ \"cherry\" │\n└──────────┘\n>>> df.withColumns($df.col(\"s\").isIn([\"apple\", \"banana\"]).alias(\"in_list\"))\r\nshape: (3, 2)\r\n┌──────────┬─────────┐\r\n│ s        │ in_list │\r\n├──────────┼─────────┤\r\n│ \"apple\"  │ true    │\r\n│ \"banana\" │ true    │\r\n│ \"cherry\" │ false   │\r\n└──────────┴─────────┘"
       ],
       "params": [
         {
@@ -1841,39 +1873,39 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).isIn(...)",
       "signature": "$df.col(<column_name>).isIn(\n  values: any[] | any\n)",
-      "lineStart": 1277,
-      "lineEnd": 1279
+      "lineStart": 1316,
+      "lineEnd": 1318
     },
     "isInfinite": {
       "desc": "Checks if values are positive or negative Infinity.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").isInfinite().alias(\"inf\"))\nshape: (3, 2)\n┌───┬───────┐\n│ a │ inf   │\n├───┼───────┤\n│ 1 │ false │\n│ 2 │ false │\n│ 3 │ false │\n└───┴───────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").isInfinite().alias(\"inf\"))\r\nshape: (3, 2)\r\n┌───┬───────┐\r\n│ a │ inf   │\r\n├───┼───────┤\r\n│ 1 │ false │\r\n│ 2 │ false │\r\n│ 3 │ false │\r\n└───┴───────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).isInfinite(...)",
       "signature": "$df.col(<column_name>).isInfinite()",
-      "lineStart": 1296,
-      "lineEnd": 1298
+      "lineStart": 1335,
+      "lineEnd": 1337
     },
     "isNan": {
       "desc": "Checks if values are NaN.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").isNan().alias(\"nan\"))\nshape: (3, 2)\n┌───┬───────┐\n│ a │ nan   │\n├───┼───────┤\n│ 1 │ false │\n│ 2 │ false │\n│ 3 │ false │\n└───┴───────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").isNan().alias(\"nan\"))\r\nshape: (3, 2)\r\n┌───┬───────┐\r\n│ a │ nan   │\r\n├───┼───────┤\r\n│ 1 │ false │\r\n│ 2 │ false │\r\n│ 3 │ false │\r\n└───┴───────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).isNan(...)",
       "signature": "$df.col(<column_name>).isNan()",
-      "lineStart": 1315,
-      "lineEnd": 1317
+      "lineStart": 1354,
+      "lineEnd": 1356
     },
     "isNDistinct": {
       "desc": "Checks if column values match the N-th distinct value by positive or negative index position.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.withColumns($df.col(\"a\").isNDistinct(0).alias(\"is_first\"))\nshape: (3, 3)\n┌───┬────┬──────────┐\n│ a │ b  │ is_first │\n├───┼────┼──────────┤\n│ 1 │ 10 │ true     │\n│ 2 │ 20 │ false    │\n│ 3 │ 30 │ false    │\n└───┴────┴──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.withColumns($df.col(\"a\").isNDistinct(0).alias(\"is_first\"))\r\nshape: (3, 3)\r\n┌───┬────┬──────────┐\r\n│ a │ b  │ is_first │\r\n├───┼────┼──────────┤\r\n│ 1 │ 10 │ true     │\r\n│ 2 │ 20 │ false    │\r\n│ 3 │ 30 │ false    │\r\n└───┴────┴──────────┘"
       ],
       "params": [
         {
@@ -1890,65 +1922,65 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).isNDistinct(...)",
       "signature": "$df.col(<column_name>).isNDistinct(\n  index: number,\n  nullOnOob: boolean = true\n)",
-      "lineStart": 1336,
-      "lineEnd": 1342
+      "lineStart": 1375,
+      "lineEnd": 1381
     },
     "isNotNan": {
       "desc": "Checks if values are not NaN.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").isNotNan().alias(\"not_nan\"))\nshape: (3, 2)\n┌───┬─────────┐\n│ a │ not_nan │\n├───┼─────────┤\n│ 1 │ true    │\n│ 2 │ true    │\n│ 3 │ true    │\n└───┴─────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").isNotNan().alias(\"not_nan\"))\r\nshape: (3, 2)\r\n┌───┬─────────┐\r\n│ a │ not_nan │\r\n├───┼─────────┤\r\n│ 1 │ true    │\r\n│ 2 │ true    │\r\n│ 3 │ true    │\r\n└───┴─────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).isNotNan(...)",
       "signature": "$df.col(<column_name>).isNotNan()",
-      "lineStart": 1359,
-      "lineEnd": 1361
+      "lineStart": 1398,
+      "lineEnd": 1400
     },
     "isNotNull": {
       "desc": "Checks if column values are non-null and valid (not null, undefined, or missing).",
       "examples": [
-        ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.withColumns($df.col(\"a\").isNotNull().alias(\"valid\"))\nshape: (3, 2)\n┌──────┬───────┐\n│ a    │ valid │\n├──────┼───────┤\n│ 1    │ true  │\n│ null │ false │\n│ 3    │ true  │\n└──────┴───────┘"
+        ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.withColumns($df.col(\"a\").isNotNull().alias(\"valid\"))\r\nshape: (3, 2)\r\n┌──────┬───────┐\r\n│ a    │ valid │\r\n├──────┼───────┤\r\n│ 1    │ true  │\r\n│ null │ false │\r\n│ 3    │ true  │\r\n└──────┴───────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).isNotNull(...)",
       "signature": "$df.col(<column_name>).isNotNull()",
-      "lineStart": 1378,
-      "lineEnd": 1380
+      "lineStart": 1417,
+      "lineEnd": 1419
     },
     "isNull": {
       "desc": "Checks if column values are null, undefined, or missing.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.withColumns($df.col(\"a\").isNull().alias(\"missing\"))\nshape: (3, 2)\n┌──────┬─────────┐\n│ a    │ missing │\n├──────┼─────────┤\n│ 1    │ false   │\n│ null │ true    │\n│ 3    │ false   │\n└──────┴─────────┘"
+        ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.withColumns($df.col(\"a\").isNull().alias(\"missing\"))\r\nshape: (3, 2)\r\n┌──────┬─────────┐\r\n│ a    │ missing │\r\n├──────┼─────────┤\r\n│ 1    │ false   │\r\n│ null │ true    │\r\n│ 3    │ false   │\r\n└──────┴─────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).isNull(...)",
       "signature": "$df.col(<column_name>).isNull()",
-      "lineStart": 1397,
-      "lineEnd": 1399
+      "lineStart": 1436,
+      "lineEnd": 1438
     },
     "isUnique": {
       "desc": "Checks if values occur exactly once in the column.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").isUnique().alias(\"uniq\"))\nshape: (3, 2)\n┌───┬──────┐\n│ a │ uniq │\n├───┼──────┤\n│ 1 │ true │\n│ 2 │ true │\n│ 3 │ true │\n└───┴──────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").isUnique().alias(\"uniq\"))\r\nshape: (3, 2)\r\n┌───┬──────┐\r\n│ a │ uniq │\r\n├───┼──────┤\r\n│ 1 │ true │\r\n│ 2 │ true │\r\n│ 3 │ true │\r\n└───┴──────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).isUnique(...)",
       "signature": "$df.col(<column_name>).isUnique()",
-      "lineStart": 1416,
-      "lineEnd": 1418
+      "lineStart": 1455,
+      "lineEnd": 1457
     },
     "kurtosis": {
       "desc": "Aggregation: Computes the kurtosis (peakedness/tailedness) of a numeric column.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"a\").kurtosis().alias(\"kurt\"))\nshape: (1, 1)\n┌───────┐\n│ kurt  │\n├───────┤\n│ -1.36 │\n└───────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"a\").kurtosis().alias(\"kurt\"))\r\nshape: (1, 1)\r\n┌───────┐\r\n│ kurt  │\r\n├───────┤\r\n│ -1.36 │\r\n└───────┘"
       ],
       "params": [
         {
@@ -1961,13 +1993,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).kurtosis(...)",
       "signature": "$df.col(<column_name>).kurtosis(\n  options: KurtosisOptions = {}\n)",
-      "lineStart": 1434,
-      "lineEnd": 1436
+      "lineStart": 1473,
+      "lineEnd": 1475
     },
     "lag": {
       "desc": "Window: Shifts values down by offset, filling missing slots with default value.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").lag(1, 0).alias(\"prev\"))\nshape: (3, 2)\n┌─────┬──────┐\n│ val │ prev │\n├─────┼──────┤\n│ 10  │ 0    │\n│ 20  │ 10   │\n│ 30  │ 20   │\n└─────┴──────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").lag(1, 0).alias(\"prev\"))\r\nshape: (3, 2)\r\n┌─────┬──────┐\r\n│ val │ prev │\r\n├─────┼──────┤\r\n│ 10  │ 0    │\r\n│ 20  │ 10   │\r\n│ 30  │ 20   │\r\n└─────┴──────┘"
       ],
       "params": [
         {
@@ -1984,26 +2016,26 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).lag(...)",
       "signature": "$df.col(<column_name>).lag(\n  offset: number = 1,\n  defaultVal: any = null\n)",
-      "lineStart": 1455,
-      "lineEnd": 1463
+      "lineStart": 1494,
+      "lineEnd": 1502
     },
     "last": {
       "desc": "Aggregation: Finds the last value in the group.",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").last().alias(\"last_val\"))\nshape: (2, 2)\n┌───────┬──────────┐\n│ group │ last_val │\n├───────┼──────────┤\n│ A     │ 20       │\n│ B     │ 30       │\n└───────┴──────────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").last().alias(\"last_val\"))\r\nshape: (2, 2)\r\n┌───────┬──────────┐\r\n│ group │ last_val │\r\n├───────┼──────────┤\r\n│ A     │ 20       │\r\n│ B     │ 30       │\r\n└───────┴──────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).last(...)",
       "signature": "$df.col(<column_name>).last()",
-      "lineStart": 1479,
-      "lineEnd": 1481
+      "lineStart": 1518,
+      "lineEnd": 1520
     },
     "le": {
       "desc": "Boolean comparison: Returns true if less than or equal to argument.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").le(2).alias(\"le_two\"))\nshape: (3, 2)\n┌───┬────────┐\n│ a │ le_two │\n├───┼────────┤\n│ 1 │ true   │\n│ 2 │ true   │\n│ 3 │ false  │\n└───┴────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").le(2).alias(\"le_two\"))\r\nshape: (3, 2)\r\n┌───┬────────┐\r\n│ a │ le_two │\r\n├───┼────────┤\r\n│ 1 │ true   │\r\n│ 2 │ true   │\r\n│ 3 │ false  │\r\n└───┴────────┘"
       ],
       "params": [
         {
@@ -2016,13 +2048,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).le(...)",
       "signature": "$df.col(<column_name>).le(\n  val: any\n)",
-      "lineStart": 1499,
-      "lineEnd": 1501
+      "lineStart": 1538,
+      "lineEnd": 1540
     },
     "lead": {
       "desc": "Window: Shifts values up by offset, filling missing slots with default value.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").lead(1, 0).alias(\"next\"))\nshape: (3, 2)\n┌─────┬──────┐\n│ val │ next │\n├─────┼──────┤\n│ 10  │ 20   │\n│ 20  │ 30   │\n│ 30  │ 0    │\n└─────┴──────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").lead(1, 0).alias(\"next\"))\r\nshape: (3, 2)\r\n┌─────┬──────┐\r\n│ val │ next │\r\n├─────┼──────┤\r\n│ 10  │ 20   │\r\n│ 20  │ 30   │\r\n│ 30  │ 0    │\r\n└─────┴──────┘"
       ],
       "params": [
         {
@@ -2039,13 +2071,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).lead(...)",
       "signature": "$df.col(<column_name>).lead(\n  offset: number = 1,\n  defaultVal: any = null\n)",
-      "lineStart": 1520,
-      "lineEnd": 1528
+      "lineStart": 1559,
+      "lineEnd": 1567
     },
     "log": {
       "desc": "Computes the logarithm of positive values with a specified base.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").log(10).alias(\"log_a\"))\nshape: (3, 2)\n┌───┬──────────┐\n│ a │ log_a    │\n├───┼──────────┤\n│ 1 │ 0        │\n│ 2 │ 0.30103  │\n│ 3 │ 0.477121 │\n└───┴──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").log(10).alias(\"log_a\"))\r\nshape: (3, 2)\r\n┌───┬──────────┐\r\n│ a │ log_a    │\r\n├───┼──────────┤\r\n│ 1 │ 0        │\r\n│ 2 │ 0.30103  │\r\n│ 3 │ 0.477121 │\r\n└───┴──────────┘"
       ],
       "params": [
         {
@@ -2058,26 +2090,26 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).log(...)",
       "signature": "$df.col(<column_name>).log(\n  base: number = Math.E\n)",
-      "lineStart": 1546,
-      "lineEnd": 1548
+      "lineStart": 1585,
+      "lineEnd": 1587
     },
     "log1p": {
       "desc": "Computes natural logarithm of 1 + x.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").log1p().alias(\"log1p_a\"))\nshape: (3, 2)\n┌───┬──────────┐\n│ a │ log1p_a  │\n├───┼──────────┤\n│ 1 │ 0.693147 │\n│ 2 │ 1.098612 │\n│ 3 │ 1.386294 │\n└───┴──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").log1p().alias(\"log1p_a\"))\r\nshape: (3, 2)\r\n┌───┬──────────┐\r\n│ a │ log1p_a  │\r\n├───┼──────────┤\r\n│ 1 │ 0.693147 │\r\n│ 2 │ 1.098612 │\r\n│ 3 │ 1.386294 │\r\n└───┴──────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).log1p(...)",
       "signature": "$df.col(<column_name>).log1p()",
-      "lineStart": 1565,
-      "lineEnd": 1567
+      "lineStart": 1604,
+      "lineEnd": 1606
     },
     "lt": {
       "desc": "Boolean comparison: Returns true if less than argument.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").lt(2).alias(\"lt_two\"))\nshape: (3, 2)\n┌───┬────────┐\n│ a │ lt_two │\n├───┼────────┤\n│ 1 │ true   │\n│ 2 │ false  │\n│ 3 │ false  │\n└───┴────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").lt(2).alias(\"lt_two\"))\r\nshape: (3, 2)\r\n┌───┬────────┐\r\n│ a │ lt_two │\r\n├───┼────────┤\r\n│ 1 │ true   │\r\n│ 2 │ false  │\r\n│ 3 │ false  │\r\n└───┴────────┘"
       ],
       "params": [
         {
@@ -2090,26 +2122,26 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).lt(...)",
       "signature": "$df.col(<column_name>).lt(\n  val: any\n)",
-      "lineStart": 1585,
-      "lineEnd": 1587
+      "lineStart": 1624,
+      "lineEnd": 1626
     },
     "max": {
       "desc": "Aggregation: Finds the maximum value in the group.",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").max().alias(\"max_val\"))\nshape: (2, 2)\n┌───────┬─────────┐\n│ group │ max_val │\n├───────┼─────────┤\n│ A     │ 20      │\n│ B     │ 30      │\n└───────┴─────────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").max().alias(\"max_val\"))\r\nshape: (2, 2)\r\n┌───────┬─────────┐\r\n│ group │ max_val │\r\n├───────┼─────────┤\r\n│ A     │ 20      │\r\n│ B     │ 30      │\r\n└───────┴─────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).max(...)",
       "signature": "$df.col(<column_name>).max()",
-      "lineStart": 1603,
-      "lineEnd": 1605
+      "lineStart": 1642,
+      "lineEnd": 1644
     },
     "maxBy": {
       "desc": "Aggregation: Finds the value in this column corresponding to the maximum value in the `by` expression.",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.select($df.col(\"group\").maxBy($df.col(\"val\")).alias(\"top_group\"))\nshape: (1, 1)\n┌───────────┐\n│ top_group │\n├───────────┤\n│ B         │\n└───────────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.select($df.col(\"group\").maxBy($df.col(\"val\")).alias(\"top_group\"))\r\nshape: (1, 1)\r\n┌───────────┐\r\n│ top_group │\r\n├───────────┤\r\n│ B         │\r\n└───────────┘"
       ],
       "params": [
         {
@@ -2122,52 +2154,52 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).maxBy(...)",
       "signature": "$df.col(<column_name>).maxBy(\n  by: any\n)",
-      "lineStart": 1621,
-      "lineEnd": 1623
+      "lineStart": 1660,
+      "lineEnd": 1662
     },
     "mean": {
       "desc": "Aggregation: Computes the arithmetic mean of elements in the group.",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").mean().alias(\"mean_val\"))\nshape: (2, 2)\n┌───────┬──────────┐\n│ group │ mean_val │\n├───────┼──────────┤\n│ A     │ 15       │\n│ B     │ 30       │\n└───────┴──────────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").mean().alias(\"mean_val\"))\r\nshape: (2, 2)\r\n┌───────┬──────────┐\r\n│ group │ mean_val │\r\n├───────┼──────────┤\r\n│ A     │ 15       │\r\n│ B     │ 30       │\r\n└───────┴──────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).mean(...)",
       "signature": "$df.col(<column_name>).mean()",
-      "lineStart": 1639,
-      "lineEnd": 1641
+      "lineStart": 1678,
+      "lineEnd": 1680
     },
     "median": {
       "desc": "Aggregation: Computes the 50th percentile median.",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").median().alias(\"med\"))\nshape: (2, 2)\n┌───────┬─────┐\n│ group │ med │\n├───────┼─────┤\n│ A     │ 15  │\n│ B     │ 30  │\n└───────┴─────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").median().alias(\"med\"))\r\nshape: (2, 2)\r\n┌───────┬─────┐\r\n│ group │ med │\r\n├───────┼─────┤\r\n│ A     │ 15  │\r\n│ B     │ 30  │\r\n└───────┴─────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).median(...)",
       "signature": "$df.col(<column_name>).median()",
-      "lineStart": 1657,
-      "lineEnd": 1659
+      "lineStart": 1696,
+      "lineEnd": 1698
     },
     "min": {
       "desc": "Aggregation: Finds the minimum value in the group.",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").min().alias(\"min_val\"))\nshape: (2, 2)\n┌───────┬─────────┐\n│ group │ min_val │\n├───────┼─────────┤\n│ A     │ 10      │\n│ B     │ 30      │\n└───────┴─────────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").min().alias(\"min_val\"))\r\nshape: (2, 2)\r\n┌───────┬─────────┐\r\n│ group │ min_val │\r\n├───────┼─────────┤\r\n│ A     │ 10      │\r\n│ B     │ 30      │\r\n└───────┴─────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).min(...)",
       "signature": "$df.col(<column_name>).min()",
-      "lineStart": 1675,
-      "lineEnd": 1677
+      "lineStart": 1714,
+      "lineEnd": 1716
     },
     "minBy": {
       "desc": "Aggregation: Finds the value in this column corresponding to the minimum value in the `by` expression.",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.select($df.col(\"group\").minBy($df.col(\"val\")).alias(\"lowest_group\"))\nshape: (1, 1)\n┌──────────────┐\n│ lowest_group │\n├──────────────┤\n│ A            │\n└──────────────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.select($df.col(\"group\").minBy($df.col(\"val\")).alias(\"lowest_group\"))\r\nshape: (1, 1)\r\n┌──────────────┐\r\n│ lowest_group │\r\n├──────────────┤\r\n│ A            │\r\n└──────────────┘"
       ],
       "params": [
         {
@@ -2180,13 +2212,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).minBy(...)",
       "signature": "$df.col(<column_name>).minBy(\n  by: any\n)",
-      "lineStart": 1693,
-      "lineEnd": 1695
+      "lineStart": 1732,
+      "lineEnd": 1734
     },
     "mod": {
       "desc": "Computes modulo remainder (x % y) of column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").mod(2).alias(\"mod_a\"))\nshape: (3, 2)\n┌───┬───────┐\n│ a │ mod_a │\n├───┼───────┤\n│ 1 │ 1     │\n│ 2 │ 0     │\n│ 3 │ 1     │\n└───┴───────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").mod(2).alias(\"mod_a\"))\r\nshape: (3, 2)\r\n┌───┬───────┐\r\n│ a │ mod_a │\r\n├───┼───────┤\r\n│ 1 │ 1     │\r\n│ 2 │ 0     │\r\n│ 3 │ 1     │\r\n└───┴───────┘"
       ],
       "params": [
         {
@@ -2199,26 +2231,26 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).mod(...)",
       "signature": "$df.col(<column_name>).mod(\n  val: NumericArg\n)",
-      "lineStart": 1713,
-      "lineEnd": 1715
+      "lineStart": 1752,
+      "lineEnd": 1754
     },
     "mode": {
       "desc": "Aggregation: Finds the statistical mode (most frequent value).",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.select($df.col(\"group\").mode().alias(\"mode_group\"))\nshape: (1, 1)\n┌────────────┐\n│ mode_group │\n├────────────┤\n│ [\"A\"]      │\n└────────────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.select($df.col(\"group\").mode().alias(\"mode_group\"))\r\nshape: (1, 1)\r\n┌────────────┐\r\n│ mode_group │\r\n├────────────┤\r\n│ [\"A\"]      │\r\n└────────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).mode(...)",
       "signature": "$df.col(<column_name>).mode()",
-      "lineStart": 1730,
-      "lineEnd": 1732
+      "lineStart": 1769,
+      "lineEnd": 1771
     },
     "mul": {
       "desc": "Multiplies column values by a scalar or another column expression.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").mul(5).alias(\"multiplied\"))\nshape: (3, 2)\n┌───┬────────────┐\n│ a │ multiplied │\n├───┼────────────┤\n│ 1 │ 5          │\n│ 2 │ 10         │\n│ 3 │ 15         │\n└───┴────────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").mul(5).alias(\"multiplied\"))\r\nshape: (3, 2)\r\n┌───┬────────────┐\r\n│ a │ multiplied │\r\n├───┼────────────┤\r\n│ 1 │ 5          │\r\n│ 2 │ 10         │\r\n│ 3 │ 15         │\r\n└───┴────────────┘"
       ],
       "params": [
         {
@@ -2231,39 +2263,39 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).mul(...)",
       "signature": "$df.col(<column_name>).mul(\n  val: NumericArg\n)",
-      "lineStart": 1750,
-      "lineEnd": 1752
+      "lineStart": 1789,
+      "lineEnd": 1791
     },
     "nanMax": {
       "desc": "Aggregation: Finds the maximum value in the group, taking NaN values into account (NaN propagates).",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"val\").nanMax().alias(\"nan_max_val\"))\nshape: (1, 1)\n┌─────────────┐\n│ nan_max_val │\n├─────────────┤\n│ 30          │\n└─────────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"val\").nanMax().alias(\"nan_max_val\"))\r\nshape: (1, 1)\r\n┌─────────────┐\r\n│ nan_max_val │\r\n├─────────────┤\r\n│ 30          │\r\n└─────────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).nanMax(...)",
       "signature": "$df.col(<column_name>).nanMax()",
-      "lineStart": 1767,
-      "lineEnd": 1769
+      "lineStart": 1806,
+      "lineEnd": 1808
     },
     "nanMin": {
       "desc": "Aggregation: Finds the minimum value in the group, taking NaN values into account (NaN propagates).",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"val\").nanMin().alias(\"nan_min_val\"))\nshape: (1, 1)\n┌─────────────┐\n│ nan_min_val │\n├─────────────┤\n│ 10          │\n└─────────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"val\").nanMin().alias(\"nan_min_val\"))\r\nshape: (1, 1)\r\n┌─────────────┐\r\n│ nan_min_val │\r\n├─────────────┤\r\n│ 10          │\r\n└─────────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).nanMin(...)",
       "signature": "$df.col(<column_name>).nanMin()",
-      "lineStart": 1784,
-      "lineEnd": 1786
+      "lineStart": 1823,
+      "lineEnd": 1825
     },
     "ne": {
       "desc": "Boolean comparison: Returns true if values do not match.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").ne(2).alias(\"not_two\"))\nshape: (3, 2)\n┌───┬─────────┐\n│ a │ not_two │\n├───┼─────────┤\n│ 1 │ true    │\n│ 2 │ false   │\n│ 3 │ true    │\n└───┴─────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").ne(2).alias(\"not_two\"))\r\nshape: (3, 2)\r\n┌───┬─────────┐\r\n│ a │ not_two │\r\n├───┼─────────┤\r\n│ 1 │ true    │\r\n│ 2 │ false   │\r\n│ 3 │ true    │\r\n└───┴─────────┘"
       ],
       "params": [
         {
@@ -2276,26 +2308,26 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).ne(...)",
       "signature": "$df.col(<column_name>).ne(\n  val: any\n)",
-      "lineStart": 1804,
-      "lineEnd": 1806
+      "lineStart": 1843,
+      "lineEnd": 1845
     },
     "negate": {
       "desc": "Negates column values (-x).",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").negate().alias(\"negated\"))\nshape: (3, 2)\n┌───┬─────────┐\n│ a │ negated │\n├───┼─────────┤\n│ 1 │ -1      │\n│ 2 │ -2      │\n│ 3 │ -3      │\n└───┴─────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").negate().alias(\"negated\"))\r\nshape: (3, 2)\r\n┌───┬─────────┐\r\n│ a │ negated │\r\n├───┼─────────┤\r\n│ 1 │ -1      │\r\n│ 2 │ -2      │\r\n│ 3 │ -3      │\r\n└───┴─────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).negate(...)",
       "signature": "$df.col(<column_name>).negate()",
-      "lineStart": 1823,
-      "lineEnd": 1825
+      "lineStart": 1862,
+      "lineEnd": 1864
     },
     "neMissing": {
       "desc": "Difference check that treats null values as equal to each other.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.withColumns($df.col(\"a\").neMissing(null).alias(\"not_missing\"))\nshape: (3, 2)\n┌──────┬─────────────┐\n│ a    │ not_missing │\n├──────┼─────────────┤\n│ 1    │ true        │\n│ null │ false       │\n│ 3    │ true        │\n└──────┴─────────────┘"
+        ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.withColumns($df.col(\"a\").neMissing(null).alias(\"not_missing\"))\r\nshape: (3, 2)\r\n┌──────┬─────────────┐\r\n│ a    │ not_missing │\r\n├──────┼─────────────┤\r\n│ 1    │ true        │\r\n│ null │ false       │\r\n│ 3    │ true        │\r\n└──────┴─────────────┘"
       ],
       "params": [
         {
@@ -2308,26 +2340,26 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).neMissing(...)",
       "signature": "$df.col(<column_name>).neMissing(\n  val: any\n)",
-      "lineStart": 1843,
-      "lineEnd": 1845
+      "lineStart": 1882,
+      "lineEnd": 1884
     },
     "not": {
       "desc": "Logical negation.",
       "examples": [
-        ">>> const df = $df.data({ a: [true, true, false, false], b: [true, false, true, false] })\n>>> df\nshape: (4, 2)\n┌───────┬───────┐\n│ a     │ b     │\n├───────┼───────┤\n│ true  │ true  │\n│ true  │ false │\n│ false │ true  │\n│ false │ false │\n└───────┴───────┘\n>>> df.withColumns($df.col(\"a\").not().alias(\"not_a\"))\nshape: (4, 3)\n┌───────┬───────┬───────┐\n│ a     │ b     │ not_a │\n├───────┼───────┼───────┤\n│ true  │ true  │ false │\n│ true  │ false │ false │\n│ false │ false │ true  │\n│ null  │ true  │ null  │\n└───────┴───────┴───────┘"
+        ">>> const df = $df.data({ a: [true, true, false, false], b: [true, false, true, false] })\n>>> df\nshape: (4, 2)\n┌───────┬───────┐\n│ a     │ b     │\n├───────┼───────┤\n│ true  │ true  │\n│ true  │ false │\n│ false │ true  │\n│ false │ false │\n└───────┴───────┘\n>>> df.withColumns($df.col(\"a\").not().alias(\"not_a\"))\r\nshape: (4, 3)\r\n┌───────┬───────┬───────┐\r\n│ a     │ b     │ not_a │\r\n├───────┼───────┼───────┤\r\n│ true  │ true  │ false │\r\n│ true  │ false │ false │\r\n│ false │ false │ true  │\r\n│ null  │ true  │ null  │\r\n└───────┴───────┴───────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).not(...)",
       "signature": "$df.col(<column_name>).not()",
-      "lineStart": 1863,
-      "lineEnd": 1865
+      "lineStart": 1902,
+      "lineEnd": 1904
     },
     "notIn": {
       "desc": "Checks if values are not elements of a specific array or set list.",
       "examples": [
-        ">>> const df = $df.data({ s: [\"apple\", \"banana\", \"cherry\"] })\n>>> df\nshape: (3, 1)\n┌──────────┐\n│ s        │\n├──────────┤\n│ \"apple\"  │\n│ \"banana\" │\n│ \"cherry\" │\n└──────────┘\n>>> df.withColumns($df.col(\"s\").notIn([\"apple\", \"banana\"]).alias(\"not_in\"))\nshape: (3, 2)\n┌──────────┬────────┐\n│ s        │ not_in │\n├──────────┼────────┤\n│ \"apple\"  │ false  │\n│ \"banana\" │ false  │\n│ \"cherry\" │ true   │\n└──────────┴────────┘"
+        ">>> const df = $df.data({ s: [\"apple\", \"banana\", \"cherry\"] })\n>>> df\nshape: (3, 1)\n┌──────────┐\n│ s        │\n├──────────┤\n│ \"apple\"  │\n│ \"banana\" │\n│ \"cherry\" │\n└──────────┘\n>>> df.withColumns($df.col(\"s\").notIn([\"apple\", \"banana\"]).alias(\"not_in\"))\r\nshape: (3, 2)\r\n┌──────────┬────────┐\r\n│ s        │ not_in │\r\n├──────────┼────────┤\r\n│ \"apple\"  │ false  │\r\n│ \"banana\" │ false  │\r\n│ \"cherry\" │ true   │\r\n└──────────┴────────┘"
       ],
       "params": [
         {
@@ -2340,26 +2372,26 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).notIn(...)",
       "signature": "$df.col(<column_name>).notIn(\n  values: any[] | any\n)",
-      "lineStart": 1883,
-      "lineEnd": 1885
+      "lineStart": 1922,
+      "lineEnd": 1924
     },
     "nullCount": {
       "desc": "Aggregation: Counts the number of null or missing records.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.select($df.col(\"a\").nullCount().alias(\"nulls\"))\nshape: (1, 1)\n┌───────┐\n│ nulls │\n├───────┤\n│ 1     │\n└───────┘"
+        ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.select($df.col(\"a\").nullCount().alias(\"nulls\"))\r\nshape: (1, 1)\r\n┌───────┐\r\n│ nulls │\r\n├───────┤\r\n│ 1     │\r\n└───────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).nullCount(...)",
       "signature": "$df.col(<column_name>).nullCount()",
-      "lineStart": 1900,
-      "lineEnd": 1902
+      "lineStart": 1939,
+      "lineEnd": 1941
     },
     "nUnique": {
       "desc": "Aggregation: Computes number of unique elements.",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.select($df.col(\"group\").nUnique().alias(\"unique_cnt\"))\nshape: (1, 1)\n┌────────────┐\n│ unique_cnt │\n├────────────┤\n│ 2          │\n└────────────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.select($df.col(\"group\").nUnique().alias(\"unique_cnt\"))\r\nshape: (1, 1)\r\n┌────────────┐\r\n│ unique_cnt │\r\n├────────────┤\r\n│ 2          │\r\n└────────────┘"
       ],
       "params": [
         {
@@ -2372,13 +2404,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).nUnique(...)",
       "signature": "$df.col(<column_name>).nUnique(\n  options: UniqueArrayStatsOptions = {}\n)",
-      "lineStart": 1918,
-      "lineEnd": 1920
+      "lineStart": 1957,
+      "lineEnd": 1959
     },
     "or": {
       "desc": "Logical OR check supporting Kleene logic.",
       "examples": [
-        ">>> const df = $df.data({ a: [true, true, false, false], b: [true, false, true, false] })\n>>> df\nshape: (4, 2)\n┌───────┬───────┐\n│ a     │ b     │\n├───────┼───────┤\n│ true  │ true  │\n│ true  │ false │\n│ false │ true  │\n│ false │ false │\n└───────┴───────┘\n>>> df.withColumns($df.col(\"a\").or($df.col(\"b\")).alias(\"or_res\"))\nshape: (4, 3)\n┌───────┬───────┬────────┐\n│ a     │ b     │ or_res │\n├───────┼───────┼────────┤\n│ true  │ true  │ true   │\n│ true  │ false │ true   │\n│ false │ false │ false  │\n│ null  │ true  │ true   │\n└───────┴───────┴────────┘"
+        ">>> const df = $df.data({ a: [true, true, false, false], b: [true, false, true, false] })\n>>> df\nshape: (4, 2)\n┌───────┬───────┐\n│ a     │ b     │\n├───────┼───────┤\n│ true  │ true  │\n│ true  │ false │\n│ false │ true  │\n│ false │ false │\n└───────┴───────┘\n>>> df.withColumns($df.col(\"a\").or($df.col(\"b\")).alias(\"or_res\"))\r\nshape: (4, 3)\r\n┌───────┬───────┬────────┐\r\n│ a     │ b     │ or_res │\r\n├───────┼───────┼────────┤\r\n│ true  │ true  │ true   │\r\n│ true  │ false │ true   │\r\n│ false │ false │ false  │\r\n│ null  │ true  │ true   │\r\n└───────┴───────┴────────┘"
       ],
       "params": [
         {
@@ -2391,13 +2423,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).or(...)",
       "signature": "$df.col(<column_name>).or(\n  other: any\n)",
-      "lineStart": 1939,
-      "lineEnd": 1954
+      "lineStart": 1978,
+      "lineEnd": 1993
     },
     "over": {
       "desc": "Executes a window aggregation partitioned by column keys.",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.withColumns($df.col(\"val\").sum().over(\"group\").alias(\"cat_sum\"))\nshape: (3, 3)\n┌───────┬─────┬─────────┐\n│ group │ val │ cat_sum │\n├───────┼─────┼─────────┤\n│ A     │ 10  │ 30      │\n│ A     │ 20  │ 30      │\n│ B     │ 30  │ 30      │\n└───────┴─────┴─────────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.withColumns($df.col(\"val\").sum().over(\"group\").alias(\"cat_sum\"))\r\nshape: (3, 3)\r\n┌───────┬─────┬─────────┐\r\n│ group │ val │ cat_sum │\r\n├───────┼─────┼─────────┤\r\n│ A     │ 10  │ 30      │\r\n│ A     │ 20  │ 30      │\r\n│ B     │ 30  │ 30      │\r\n└───────┴─────┴─────────┘"
       ],
       "params": [
         {
@@ -2410,13 +2442,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).over(...)",
       "signature": "$df.col(<column_name>).over(\n  columns: string | IExpr | (string | IExpr)[]\n)",
-      "lineStart": 1972,
-      "lineEnd": 1977
+      "lineStart": 2011,
+      "lineEnd": 2016
     },
     "pow": {
       "desc": "Raises column values to the specified power.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").pow(2).alias(\"pow_a\"))\nshape: (3, 2)\n┌───┬───────┐\n│ a │ pow_a │\n├───┼───────┤\n│ 1 │ 1     │\n│ 2 │ 4     │\n│ 3 │ 9     │\n└───┴───────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").pow(2).alias(\"pow_a\"))\r\nshape: (3, 2)\r\n┌───┬───────┐\r\n│ a │ pow_a │\r\n├───┼───────┤\r\n│ 1 │ 1     │\r\n│ 2 │ 4     │\r\n│ 3 │ 9     │\r\n└───┴───────┘"
       ],
       "params": [
         {
@@ -2429,26 +2461,26 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).pow(...)",
       "signature": "$df.col(<column_name>).pow(\n  val: NumericArg\n)",
-      "lineStart": 1995,
-      "lineEnd": 1997
+      "lineStart": 2034,
+      "lineEnd": 2036
     },
     "product": {
       "desc": "Aggregation: Computes the product of all elements in the group.",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").product().alias(\"p\"))\nshape: (2, 2)\n┌───────┬─────┐\n│ group │ p   │\n├───────┼─────┤\n│ A     │ 200 │\n│ B     │ 30  │\n└───────┴─────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").product().alias(\"p\"))\r\nshape: (2, 2)\r\n┌───────┬─────┐\r\n│ group │ p   │\r\n├───────┼─────┤\r\n│ A     │ 200 │\r\n│ B     │ 30  │\r\n└───────┴─────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).product(...)",
       "signature": "$df.col(<column_name>).product()",
-      "lineStart": 2013,
-      "lineEnd": 2015
+      "lineStart": 2052,
+      "lineEnd": 2054
     },
     "quantile": {
       "desc": "Aggregation: Computes the specific quantile values (0.0 to 1.0).",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"a\").quantile(0.75).alias(\"q75\"))\nshape: (1, 1)\n┌──────┐\n│ q75  │\n├──────┤\n│ 3.25 │\n└──────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"a\").quantile(0.75).alias(\"q75\"))\r\nshape: (1, 1)\r\n┌──────┐\r\n│ q75  │\r\n├──────┤\r\n│ 3.25 │\r\n└──────┘"
       ],
       "params": [
         {
@@ -2461,26 +2493,26 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).quantile(...)",
       "signature": "$df.col(<column_name>).quantile(\n  q: number\n)",
-      "lineStart": 2031,
-      "lineEnd": 2034
+      "lineStart": 2070,
+      "lineEnd": 2073
     },
     "radians": {
       "desc": "Converts angles from degrees to radians.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").radians().alias(\"rad\"))\nshape: (3, 2)\n┌───┬──────────┐\n│ a │ rad      │\n├───┼──────────┤\n│ 1 │ 0.017453 │\n│ 2 │ 0.034907 │\n│ 3 │ 0.05236  │\n└───┴──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").radians().alias(\"rad\"))\r\nshape: (3, 2)\r\n┌───┬──────────┐\r\n│ a │ rad      │\r\n├───┼──────────┤\r\n│ 1 │ 0.017453 │\r\n│ 2 │ 0.034907 │\r\n│ 3 │ 0.05236  │\r\n└───┴──────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).radians(...)",
       "signature": "$df.col(<column_name>).radians()",
-      "lineStart": 2051,
-      "lineEnd": 2053
+      "lineStart": 2090,
+      "lineEnd": 2092
     },
     "rand": {
       "desc": "Fills sequence with pseudo-random generated floats or integers.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").rand(42, { min: 1, max: 10, integer: true }).alias(\"random\"))\nshape: (3, 2)\n┌───┬────────┐\n│ a │ random │\n├───┼────────┤\n│ 1 │ 7      │\n│ 2 │ 8      │\n│ 3 │ 6      │\n└───┴────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").rand(42, { min: 1, max: 10, integer: true }).alias(\"random\"))\r\nshape: (3, 2)\r\n┌───┬────────┐\r\n│ a │ random │\r\n├───┼────────┤\r\n│ 1 │ 7      │\r\n│ 2 │ 8      │\r\n│ 3 │ 6      │\r\n└───┴────────┘"
       ],
       "params": [
         {
@@ -2497,39 +2529,62 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).rand(...)",
       "signature": "$df.col(<column_name>).rand(\n  seed?: number,\n  {\n    min = 0,\n    max = 1,\n    integer = false\n  }: RandomOptions = {}\n)",
-      "lineStart": 2072,
-      "lineEnd": 2085
+      "lineStart": 2111,
+      "lineEnd": 2124
     },
     "rank": {
       "desc": "Window: Computes rank within group partition.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"score\").rank().alias(\"rank\"))\nshape: (2, 2)\n┌───────┬──────┐\n│ score │ rank │\n├───────┼──────┤\n│ 75    │ 1    │\n│ 95    │ 2    │\n└───────┴──────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"score\").rank().alias(\"rank\"))\r\nshape: (2, 2)\r\n┌───────┬──────┐\r\n│ score │ rank │\r\n├───────┼──────┤\r\n│ 75    │ 1    │\r\n│ 95    │ 2    │\r\n└───────┴──────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).rank(...)",
       "signature": "$df.col(<column_name>).rank(\n  options: { dense?: boolean } = {}\n)",
-      "lineStart": 2101,
-      "lineEnd": 2105
+      "lineStart": 2140,
+      "lineEnd": 2144
     },
     "reverse": {
       "desc": "Reverses the order of values in the column.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").reverse().alias(\"reversed\"))\nshape: (3, 2)\n┌───┬──────────┐\n│ a │ reversed │\n├───┼──────────┤\n│ 1 │ 3        │\n│ 2 │ 2        │\n│ 3 │ 1        │\n└───┴──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").reverse().alias(\"reversed\"))\r\nshape: (3, 2)\r\n┌───┬──────────┐\r\n│ a │ reversed │\r\n├───┼──────────┤\r\n│ 1 │ 3        │\r\n│ 2 │ 2        │\r\n│ 3 │ 1        │\r\n└───┴──────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).reverse(...)",
       "signature": "$df.col(<column_name>).reverse(): this",
-      "lineStart": 2122,
-      "lineEnd": 2124
+      "lineStart": 2161,
+      "lineEnd": 2163
+    },
+    "rolling": {
+      "desc": "Window: Computes a rolling window reduction using a ColumnExpression or a custom callback function.",
+      "examples": [
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").rolling(2, $df.col(\"val\").sum()).alias(\"r_sum\"))\r\nshape: (3, 2)\r\n┌─────┬───────┐\r\n│ val │ r_sum │\r\n├─────┼───────┤\r\n│ 10  │ 10    │\r\n│ 20  │ 30    │\r\n│ 30  │ 50    │\r\n└─────┴───────┘"
+      ],
+      "params": [
+        {
+          "name": "optionsOrWindowSize",
+          "desc": "Window row count or RollingOptions configuration."
+        },
+        {
+          "name": "exprOrFn",
+          "desc": "ColumnExpression to evaluate over each window slice, or a custom reducer function."
+        }
+      ],
+      "returns": "ColumnExpression",
+      "namespace": "$df.col",
+      "category": "ColumnExpression",
+      "syntax": "$df.col(<column_name>).rolling(...)",
+      "signature": "$df.col(<column_name>).rolling(\n  optionsOrWindowSize: number | RollingOptions,\n  exprOrFn: IExpr | ((vals: any[]) => any)\n)",
+      "lineStart": 2182,
+      "lineEnd": 2208
     },
     "rollingMax": {
       "desc": "Window: Computes rolling window maximum value.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").rollingMax(2).alias(\"r_max\"))\nshape: (3, 2)\n┌─────┬───────┐\n│ val │ r_max │\n├─────┼───────┤\n│ 10  │ 10    │\n│ 20  │ 20    │\n│ 30  │ 30    │\n└─────┴───────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").rollingMax(2).alias(\"r_max\"))\r\nshape: (3, 2)\r\n┌─────┬───────┐\r\n│ val │ r_max │\r\n├─────┼───────┤\r\n│ 10  │ 10    │\r\n│ 20  │ 20    │\r\n│ 30  │ 30    │\r\n└─────┴───────┘"
       ],
       "params": [
         {
@@ -2542,13 +2597,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).rollingMax(...)",
       "signature": "$df.col(<column_name>).rollingMax(\n  windowSize: number\n)",
-      "lineStart": 2142,
-      "lineEnd": 2144
+      "lineStart": 2226,
+      "lineEnd": 2228
     },
     "rollingMean": {
       "desc": "Window: Computes rolling window mean average.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").rollingMean(2).alias(\"r_mean\"))\nshape: (3, 2)\n┌─────┬────────┐\n│ val │ r_mean │\n├─────┼────────┤\n│ 10  │ 10     │\n│ 20  │ 15     │\n│ 30  │ 25     │\n└─────┴────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").rollingMean(2).alias(\"r_mean\"))\r\nshape: (3, 2)\r\n┌─────┬────────┐\r\n│ val │ r_mean │\r\n├─────┼────────┤\r\n│ 10  │ 10     │\r\n│ 20  │ 15     │\r\n│ 30  │ 25     │\r\n└─────┴────────┘"
       ],
       "params": [
         {
@@ -2561,13 +2616,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).rollingMean(...)",
       "signature": "$df.col(<column_name>).rollingMean(\n  windowSize: number\n)",
-      "lineStart": 2162,
-      "lineEnd": 2164
+      "lineStart": 2246,
+      "lineEnd": 2248
     },
     "rollingMedian": {
       "desc": "Window: Computes rolling window median value.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").rollingMedian(2).alias(\"r_med\"))\nshape: (3, 2)\n┌─────┬───────┐\n│ val │ r_med │\n├─────┼───────┤\n│ 10  │ 10    │\n│ 20  │ 15    │\n│ 30  │ 25    │\n└─────┴───────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").rollingMedian(2).alias(\"r_med\"))\r\nshape: (3, 2)\r\n┌─────┬───────┐\r\n│ val │ r_med │\r\n├─────┼───────┤\r\n│ 10  │ 10    │\r\n│ 20  │ 15    │\r\n│ 30  │ 25    │\r\n└─────┴───────┘"
       ],
       "params": [
         {
@@ -2580,13 +2635,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).rollingMedian(...)",
       "signature": "$df.col(<column_name>).rollingMedian(\n  windowSize: number\n)",
-      "lineStart": 2182,
-      "lineEnd": 2184
+      "lineStart": 2266,
+      "lineEnd": 2268
     },
     "rollingMin": {
       "desc": "Window: Computes rolling window minimum value.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").rollingMin(2).alias(\"r_min\"))\nshape: (3, 2)\n┌─────┬───────┐\n│ val │ r_min │\n├─────┼───────┤\n│ 10  │ 10    │\n│ 20  │ 10    │\n│ 30  │ 20    │\n└─────┴───────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").rollingMin(2).alias(\"r_min\"))\r\nshape: (3, 2)\r\n┌─────┬───────┐\r\n│ val │ r_min │\r\n├─────┼───────┤\r\n│ 10  │ 10    │\r\n│ 20  │ 10    │\r\n│ 30  │ 20    │\r\n└─────┴───────┘"
       ],
       "params": [
         {
@@ -2599,13 +2654,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).rollingMin(...)",
       "signature": "$df.col(<column_name>).rollingMin(\n  windowSize: number\n)",
-      "lineStart": 2202,
-      "lineEnd": 2204
+      "lineStart": 2286,
+      "lineEnd": 2288
     },
     "rollingQuantile": {
       "desc": "Window: Computes rolling window quantile value.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").rollingQuantile(0.5, 2).alias(\"r_quant\"))\nshape: (3, 2)\n┌─────┬─────────┐\n│ val │ r_quant │\n├─────┼─────────┤\n│ 10  │ 10      │\n│ 20  │ 15      │\n│ 30  │ 25      │\n└─────┴─────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").rollingQuantile(0.5, 2).alias(\"r_quant\"))\r\nshape: (3, 2)\r\n┌─────┬─────────┐\r\n│ val │ r_quant │\r\n├─────┼─────────┤\r\n│ 10  │ 10      │\r\n│ 20  │ 15      │\r\n│ 30  │ 25      │\r\n└─────┴─────────┘"
       ],
       "params": [
         {
@@ -2622,13 +2677,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).rollingQuantile(...)",
       "signature": "$df.col(<column_name>).rollingQuantile(\n  quantile: number,\n  windowSize: number\n)",
-      "lineStart": 2223,
-      "lineEnd": 2225
+      "lineStart": 2307,
+      "lineEnd": 2309
     },
     "rollingRank": {
       "desc": "Window: Computes rolling window rank.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").rollingRank(2).alias(\"r_rank\"))\nshape: (3, 2)\n┌─────┬────────┐\n│ val │ r_rank │\n├─────┼────────┤\n│ 10  │ 1      │\n│ 20  │ 2      │\n│ 30  │ 2      │\n└─────┴────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").rollingRank(2).alias(\"r_rank\"))\r\nshape: (3, 2)\r\n┌─────┬────────┐\r\n│ val │ r_rank │\r\n├─────┼────────┤\r\n│ 10  │ 1      │\r\n│ 20  │ 2      │\r\n│ 30  │ 2      │\r\n└─────┴────────┘"
       ],
       "params": [
         {
@@ -2641,13 +2696,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).rollingRank(...)",
       "signature": "$df.col(<column_name>).rollingRank(\n  windowSize: number\n)",
-      "lineStart": 2243,
-      "lineEnd": 2247
+      "lineStart": 2327,
+      "lineEnd": 2331
     },
     "rollingStd": {
       "desc": "Window: Computes rolling window standard deviation.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").rollingStd(2).alias(\"r_std\"))\nshape: (3, 2)\n┌─────┬────────┐\n│ val │ r_std  │\n├─────┼────────┤\n│ 10  │ 0      │\n│ 20  │ 7.071  │\n│ 30  │ 7.071  │\n└─────┴────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").rollingStd(2).alias(\"r_std\"))\r\nshape: (3, 2)\r\n┌─────┬────────┐\r\n│ val │ r_std  │\r\n├─────┼────────┤\r\n│ 10  │ 0      │\r\n│ 20  │ 7.071  │\r\n│ 30  │ 7.071  │\r\n└─────┴────────┘"
       ],
       "params": [
         {
@@ -2660,13 +2715,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).rollingStd(...)",
       "signature": "$df.col(<column_name>).rollingStd(\n  windowSize: number\n)",
-      "lineStart": 2265,
-      "lineEnd": 2267
+      "lineStart": 2349,
+      "lineEnd": 2351
     },
     "rollingSum": {
       "desc": "Window: Computes rolling window sum.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").rollingSum(2).alias(\"r_sum\"))\nshape: (3, 2)\n┌─────┬───────┐\n│ val │ r_sum │\n├─────┼───────┤\n│ 10  │ 10    │\n│ 20  │ 30    │\n│ 30  │ 50    │\n└─────┴───────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"val\").rollingSum(2).alias(\"r_sum\"))\r\nshape: (3, 2)\r\n┌─────┬───────┐\r\n│ val │ r_sum │\r\n├─────┼───────┤\r\n│ 10  │ 10    │\r\n│ 20  │ 30    │\r\n│ 30  │ 50    │\r\n└─────┴───────┘"
       ],
       "params": [
         {
@@ -2679,13 +2734,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).rollingSum(...)",
       "signature": "$df.col(<column_name>).rollingSum(\n  windowSize: number\n)",
-      "lineStart": 2285,
-      "lineEnd": 2287
+      "lineStart": 2369,
+      "lineEnd": 2371
     },
     "round": {
       "desc": "Rounds values to a specific scale of decimal digits.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").round(1).alias(\"rounded\"))\nshape: (3, 2)\n┌───┬─────────┐\n│ a │ rounded │\n├───┼─────────┤\n│ 1 │ 1       │\n│ 2 │ 2       │\n│ 3 │ 3       │\n└───┴─────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").round(1).alias(\"rounded\"))\r\nshape: (3, 2)\r\n┌───┬─────────┐\r\n│ a │ rounded │\r\n├───┼─────────┤\r\n│ 1 │ 1       │\r\n│ 2 │ 2       │\r\n│ 3 │ 3       │\r\n└───┴─────────┘"
       ],
       "params": [
         {
@@ -2698,13 +2753,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).round(...)",
       "signature": "$df.col(<column_name>).round(\n  decimals: number = 0\n)",
-      "lineStart": 2305,
-      "lineEnd": 2307
+      "lineStart": 2389,
+      "lineEnd": 2391
     },
     "roundSigFigs": {
       "desc": "Rounds values to a specific number of significant figures.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").roundSigFigs(2).alias(\"sig_figs\"))\nshape: (3, 2)\n┌───┬──────────┐\n│ a │ sig_figs │\n├───┼──────────┤\n│ 1 │ 1        │\n│ 2 │ 2        │\n│ 3 │ 3        │\n└───┴──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").roundSigFigs(2).alias(\"sig_figs\"))\r\nshape: (3, 2)\r\n┌───┬──────────┐\r\n│ a │ sig_figs │\r\n├───┼──────────┤\r\n│ 1 │ 1        │\r\n│ 2 │ 2        │\r\n│ 3 │ 3        │\r\n└───┴──────────┘"
       ],
       "params": [
         {
@@ -2717,65 +2772,65 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).roundSigFigs(...)",
       "signature": "$df.col(<column_name>).roundSigFigs(\n  sigFigs: number\n)",
-      "lineStart": 2325,
-      "lineEnd": 2327
+      "lineStart": 2409,
+      "lineEnd": 2411
     },
     "rowNumber": {
       "desc": "Window: Computes 1-indexed row number count within group partitions.",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.withColumns($df.col(\"val\").rowNumber().over(\"group\").alias(\"rn\"))\nshape: (3, 3)\n┌───────┬─────┬────┐\n│ group │ val │ rn │\n├───────┼─────┼────┤\n│ A     │ 10  │ 1  │\n│ A     │ 20  │ 2  │\n│ B     │ 30  │ 1  │\n└───────┴─────┴────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.withColumns($df.col(\"val\").rowNumber().over(\"group\").alias(\"rn\"))\r\nshape: (3, 3)\r\n┌───────┬─────┬────┐\r\n│ group │ val │ rn │\r\n├───────┼─────┼────┤\r\n│ A     │ 10  │ 1  │\r\n│ A     │ 20  │ 2  │\r\n│ B     │ 30  │ 1  │\r\n└───────┴─────┴────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).rowNumber(...)",
       "signature": "$df.col(<column_name>).rowNumber()",
-      "lineStart": 2344,
-      "lineEnd": 2350
+      "lineStart": 2428,
+      "lineEnd": 2434
     },
     "sign": {
       "desc": "Returns sign indicator of column values (-1, 0, or 1).",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").sign().alias(\"sign_a\"))\nshape: (3, 2)\n┌───┬────────┐\n│ a │ sign_a │\n├───┼────────┤\n│ 1 │ 1      │\n│ 2 │ 1      │\n│ 3 │ 1      │\n└───┴────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").sign().alias(\"sign_a\"))\r\nshape: (3, 2)\r\n┌───┬────────┐\r\n│ a │ sign_a │\r\n├───┼────────┤\r\n│ 1 │ 1      │\r\n│ 2 │ 1      │\r\n│ 3 │ 1      │\r\n└───┴────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).sign(...)",
       "signature": "$df.col(<column_name>).sign()",
-      "lineStart": 2367,
-      "lineEnd": 2369
+      "lineStart": 2451,
+      "lineEnd": 2453
     },
     "sin": {
       "desc": "Computes the sine of the column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").sin().alias(\"sin_a\"))\nshape: (3, 2)\n┌───┬──────────┐\n│ a │ sin_a    │\n├───┼──────────┤\n│ 1 │ 0.841471 │\n│ 2 │ 0.909297 │\n│ 3 │ 0.14112  │\n└───┴──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").sin().alias(\"sin_a\"))\r\nshape: (3, 2)\r\n┌───┬──────────┐\r\n│ a │ sin_a    │\r\n├───┼──────────┤\r\n│ 1 │ 0.841471 │\r\n│ 2 │ 0.909297 │\r\n│ 3 │ 0.14112  │\r\n└───┴──────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).sin(...)",
       "signature": "$df.col(<column_name>).sin()",
-      "lineStart": 2386,
-      "lineEnd": 2388
+      "lineStart": 2470,
+      "lineEnd": 2472
     },
     "sinh": {
       "desc": "Computes the hyperbolic sine of the column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").sinh().alias(\"sinh_a\"))\nshape: (3, 2)\n┌───┬───────────┐\n│ a │ sinh_a    │\n├───┼───────────┤\n│ 1 │ 1.175201  │\n│ 2 │ 3.62686   │\n│ 3 │ 10.017875 │\n└───┴───────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").sinh().alias(\"sinh_a\"))\r\nshape: (3, 2)\r\n┌───┬───────────┐\r\n│ a │ sinh_a    │\r\n├───┼───────────┤\r\n│ 1 │ 1.175201  │\r\n│ 2 │ 3.62686   │\r\n│ 3 │ 10.017875 │\r\n└───┴───────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).sinh(...)",
       "signature": "$df.col(<column_name>).sinh()",
-      "lineStart": 2405,
-      "lineEnd": 2407
+      "lineStart": 2489,
+      "lineEnd": 2491
     },
     "skew": {
       "desc": "Aggregation: Computes the sample skewness as the Fisher-Pearson coefficient of skewness.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"a\").skew().alias(\"skewness\"))\nshape: (1, 1)\n┌──────────┐\n│ skewness │\n├──────────┤\n│ 0        │\n└──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"a\").skew().alias(\"skewness\"))\r\nshape: (1, 1)\r\n┌──────────┐\r\n│ skewness │\r\n├──────────┤\r\n│ 0        │\r\n└──────────┘"
       ],
       "params": [
         {
@@ -2788,13 +2843,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).skew(...)",
       "signature": "$df.col(<column_name>).skew(\n  options: SkewOptions = {}\n)",
-      "lineStart": 2423,
-      "lineEnd": 2425
+      "lineStart": 2507,
+      "lineEnd": 2509
     },
     "spearmanCorr": {
       "desc": "Aggregation: Computes the Spearman rank correlation coefficient.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.select($df.col(\"a\").spearmanCorr($df.col(\"b\")).alias(\"spearman\"))\nshape: (1, 1)\n┌──────────┐\n│ spearman │\n├──────────┤\n│ 1        │\n└──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.select($df.col(\"a\").spearmanCorr($df.col(\"b\")).alias(\"spearman\"))\r\nshape: (1, 1)\r\n┌──────────┐\r\n│ spearman │\r\n├──────────┤\r\n│ 1        │\r\n└──────────┘"
       ],
       "params": [
         {
@@ -2807,39 +2862,39 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).spearmanCorr(...)",
       "signature": "$df.col(<column_name>).spearmanCorr(\n  other: any\n)",
-      "lineStart": 2441,
-      "lineEnd": 2443
+      "lineStart": 2525,
+      "lineEnd": 2527
     },
     "sqrt": {
       "desc": "Computes the square root of non-negative column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").sqrt().alias(\"sqrt_a\"))\nshape: (3, 2)\n┌───┬──────────┐\n│ a │ sqrt_a   │\n├───┼──────────┤\n│ 1 │ 1        │\n│ 2 │ 1.414214 │\n│ 3 │ 1.732051 │\n└───┴──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").sqrt().alias(\"sqrt_a\"))\r\nshape: (3, 2)\r\n┌───┬──────────┐\r\n│ a │ sqrt_a   │\r\n├───┼──────────┤\r\n│ 1 │ 1        │\r\n│ 2 │ 1.414214 │\r\n│ 3 │ 1.732051 │\r\n└───┴──────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).sqrt(...)",
       "signature": "$df.col(<column_name>).sqrt()",
-      "lineStart": 2460,
-      "lineEnd": 2462
+      "lineStart": 2544,
+      "lineEnd": 2546
     },
     "std": {
       "desc": "Aggregation: Computes sample standard deviation.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"val\").std().alias(\"std_dev\"))\nshape: (1, 1)\n┌─────────┐\n│ std_dev │\n├─────────┤\n│ 10      │\n└─────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"val\").std().alias(\"std_dev\"))\r\nshape: (1, 1)\r\n┌─────────┐\r\n│ std_dev │\r\n├─────────┤\r\n│ 10      │\r\n└─────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).std(...)",
       "signature": "$df.col(<column_name>).std()",
-      "lineStart": 2477,
-      "lineEnd": 2479
+      "lineStart": 2561,
+      "lineEnd": 2563
     },
     "sub": {
       "desc": "Subtracts a scalar or another column expression.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").sub(5).alias(\"sub_a\"))\nshape: (3, 2)\n┌───┬───────┐\n│ a │ sub_a │\n├───┼───────┤\n│ 1 │ -4    │\n│ 2 │ -3    │\n│ 3 │ -2    │\n└───┴───────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").sub(5).alias(\"sub_a\"))\r\nshape: (3, 2)\r\n┌───┬───────┐\r\n│ a │ sub_a │\r\n├───┼───────┤\r\n│ 1 │ -4    │\r\n│ 2 │ -3    │\r\n│ 3 │ -2    │\r\n└───┴───────┘"
       ],
       "params": [
         {
@@ -2852,78 +2907,78 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).sub(...)",
       "signature": "$df.col(<column_name>).sub(\n  val: NumericArg\n)",
-      "lineStart": 2497,
-      "lineEnd": 2499
+      "lineStart": 2581,
+      "lineEnd": 2583
     },
     "sum": {
       "desc": "Aggregation: Computes the sum of elements in the group.",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").sum().alias(\"total\"))\nshape: (2, 2)\n┌───────┬───────┐\n│ group │ total │\n├───────┼───────┤\n│ A     │ 30    │\n│ B     │ 30    │\n└───────┴───────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").sum().alias(\"total\"))\r\nshape: (2, 2)\r\n┌───────┬───────┐\r\n│ group │ total │\r\n├───────┼───────┤\r\n│ A     │ 30    │\r\n│ B     │ 30    │\r\n└───────┴───────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).sum(...)",
       "signature": "$df.col(<column_name>).sum()",
-      "lineStart": 2515,
-      "lineEnd": 2517
+      "lineStart": 2599,
+      "lineEnd": 2601
     },
     "tan": {
       "desc": "Computes the tangent of the column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").tan().alias(\"tan_a\"))\nshape: (3, 2)\n┌───┬───────────┐\n│ a │ tan_a     │\n├───┼───────────┤\n│ 1 │ 1.557408  │\n│ 2 │ -2.18504  │\n│ 3 │ -0.142547 │\n└───┴───────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").tan().alias(\"tan_a\"))\r\nshape: (3, 2)\r\n┌───┬───────────┐\r\n│ a │ tan_a     │\r\n├───┼───────────┤\r\n│ 1 │ 1.557408  │\r\n│ 2 │ -2.18504  │\r\n│ 3 │ -0.142547 │\r\n└───┴───────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).tan(...)",
       "signature": "$df.col(<column_name>).tan()",
-      "lineStart": 2534,
-      "lineEnd": 2536
+      "lineStart": 2618,
+      "lineEnd": 2620
     },
     "tanh": {
       "desc": "Computes the hyperbolic tangent of the column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").tanh().alias(\"tanh_a\"))\nshape: (3, 2)\n┌───┬──────────┐\n│ a │ tanh_a   │\n├───┼──────────┤\n│ 1 │ 0.761594 │\n│ 2 │ 0.964028 │\n│ 3 │ 0.995055 │\n└───┴──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").tanh().alias(\"tanh_a\"))\r\nshape: (3, 2)\r\n┌───┬──────────┐\r\n│ a │ tanh_a   │\r\n├───┼──────────┤\r\n│ 1 │ 0.761594 │\r\n│ 2 │ 0.964028 │\r\n│ 3 │ 0.995055 │\r\n└───┴──────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).tanh(...)",
       "signature": "$df.col(<column_name>).tanh()",
-      "lineStart": 2553,
-      "lineEnd": 2555
+      "lineStart": 2637,
+      "lineEnd": 2639
     },
     "trunc": {
       "desc": "Truncates fractional digits of column values.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").trunc().alias(\"trunc_a\"))\nshape: (3, 2)\n┌───┬─────────┐\n│ a │ trunc_a │\n├───┼─────────┤\n│ 1 │ 1       │\n│ 2 │ 2       │\n│ 3 │ 3       │\n└───┴─────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.withColumns($df.col(\"a\").trunc().alias(\"trunc_a\"))\r\nshape: (3, 2)\r\n┌───┬─────────┐\r\n│ a │ trunc_a │\r\n├───┼─────────┤\r\n│ 1 │ 1       │\r\n│ 2 │ 2       │\r\n│ 3 │ 3       │\r\n└───┴─────────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).trunc(...)",
       "signature": "$df.col(<column_name>).trunc()",
-      "lineStart": 2572,
-      "lineEnd": 2574
+      "lineStart": 2656,
+      "lineEnd": 2658
     },
     "variance": {
       "desc": "Aggregation: Computes sample variance.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"val\").variance().alias(\"v\"))\nshape: (1, 1)\n┌─────┐\n│ v   │\n├─────┤\n│ 100 │\n└─────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3] })\n>>> df\nshape: (3, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n│ 3 │\n└───┘\n>>> df.select($df.col(\"val\").variance().alias(\"v\"))\r\nshape: (1, 1)\r\n┌─────┐\r\n│ v   │\r\n├─────┤\r\n│ 100 │\r\n└─────┘"
       ],
       "returns": "ColumnExpression",
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).variance(...)",
       "signature": "$df.col(<column_name>).variance()",
-      "lineStart": 2589,
-      "lineEnd": 2591
+      "lineStart": 2673,
+      "lineEnd": 2675
     },
     "wAvg": {
       "desc": "Aggregation: Computes weighted average.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.select($df.col(\"a\").wAvg($df.col(\"b\")).alias(\"w_mean\"))\nshape: (1, 1)\n┌──────────┐\n│ w_mean   │\n├──────────┤\n│ 2.333333 │\n└──────────┘"
+        ">>> const df = $df.data({ a: [1, 2, 3], b: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───┬────┐\n│ a │ b  │\n├───┼────┤\n│ 1 │ 10 │\n│ 2 │ 20 │\n│ 3 │ 30 │\n└───┴────┘\n>>> df.select($df.col(\"a\").wAvg($df.col(\"b\")).alias(\"w_mean\"))\r\nshape: (1, 1)\r\n┌──────────┐\r\n│ w_mean   │\r\n├──────────┤\r\n│ 2.333333 │\r\n└──────────┘"
       ],
       "params": [
         {
@@ -2936,13 +2991,13 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).wAvg(...)",
       "signature": "$df.col(<column_name>).wAvg(\n  weights: any\n)",
-      "lineStart": 2607,
-      "lineEnd": 2609
+      "lineStart": 2691,
+      "lineEnd": 2693
     },
     "xor": {
       "desc": "Logical XOR check.",
       "examples": [
-        ">>> const df = $df.data({ a: [true, true, false, false], b: [true, false, true, false] })\n>>> df\nshape: (4, 2)\n┌───────┬───────┐\n│ a     │ b     │\n├───────┼───────┤\n│ true  │ true  │\n│ true  │ false │\n│ false │ true  │\n│ false │ false │\n└───────┴───────┘\n>>> df.withColumns($df.col(\"a\").xor($df.col(\"b\")).alias(\"xor_res\"))\nshape: (4, 3)\n┌───────┬───────┬─────────┐\n│ a     │ b     │ xor_res │\n├───────┼───────┼─────────┤\n│ true  │ true  │ false   │\n│ true  │ false │ true    │\n│ false │ true  │ true    │\n│ false │ false │ false   │\n└───────┴───────┴─────────┘"
+        ">>> const df = $df.data({ a: [true, true, false, false], b: [true, false, true, false] })\n>>> df\nshape: (4, 2)\n┌───────┬───────┐\n│ a     │ b     │\n├───────┼───────┤\n│ true  │ true  │\n│ true  │ false │\n│ false │ true  │\n│ false │ false │\n└───────┴───────┘\n>>> df.withColumns($df.col(\"a\").xor($df.col(\"b\")).alias(\"xor_res\"))\r\nshape: (4, 3)\r\n┌───────┬───────┬─────────┐\r\n│ a     │ b     │ xor_res │\r\n├───────┼───────┼─────────┤\r\n│ true  │ true  │ false   │\r\n│ true  │ false │ true    │\r\n│ false │ true  │ true    │\r\n│ false │ false │ false   │\r\n└───────┴───────┴─────────┘"
       ],
       "params": [
         {
@@ -2955,8 +3010,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).xor(...)",
       "signature": "$df.col(<column_name>).xor(\n  other: any\n)",
-      "lineStart": 2628,
-      "lineEnd": 2630
+      "lineStart": 2712,
+      "lineEnd": 2714
     }
   },
   "columnExpressions/mixins/StringExpr.ts": {
@@ -4944,7 +4999,7 @@
       "syntax": "df.DataFrame(...)",
       "signature": "df.DataFrame<T extends RowRecord = any>",
       "lineStart": 30,
-      "lineEnd": 1746
+      "lineEnd": 1758
     },
     "clone": {
       "desc": "Creates a deep copy of the current DataFrame instance, duplicating all underlying column data arrays and schema metadata. Modifying columns or values in the cloned DataFrame will not mutate the original.",
@@ -5030,7 +5085,7 @@
       "lineEnd": 246
     },
     "dropNulls": {
-      "desc": "Drops rows containing null or undefined values in specified subset columns.",
+      "desc": "Drops rows with null or undefined values.",
       "examples": [
         ">>> const df = $df.data({ a: [1, null, 3], b: [null, 2, null] })\n>>> df\nshape: (3, 2)\n┌──────┬──────┐\n│ a    │ b    │\n├──────┼──────┤\n│ 1    │ null │\n│ null │ 2    │\n│ 3    │ null │\n└──────┴──────┘\n>>> df.dropNulls()\r\nshape: (2, 1)\r\n┌───┐\r\n│ a │\r\n├───┤\r\n│ 1 │\r\n│ 3 │\r\n└───┘"
       ],
@@ -5150,7 +5205,7 @@
       "syntax": "df.filter(...)",
       "signature": "df.filter(\n  ...exprs: (IExpr | ((row: T) => any))[]\n): DataFrame<T>",
       "lineStart": 381,
-      "lineEnd": 439
+      "lineEnd": 451
     },
     "groupBy": {
       "desc": "Groups rows by key columns to prepare for aggregations.",
@@ -5169,8 +5224,8 @@
       "category": "DataFrame",
       "syntax": "df.groupBy(...)",
       "signature": "df.groupBy<K extends keyof T>(\n  keys: K | K[]\n): GroupedData<T, K>",
-      "lineStart": 456,
-      "lineEnd": 467
+      "lineStart": 468,
+      "lineEnd": 479
     },
     "head": {
       "desc": "Returns the first N rows as a new DataFrame.",
@@ -5188,8 +5243,8 @@
       "category": "DataFrame",
       "syntax": "df.head(...)",
       "signature": "df.head(\n  n: number = 10\n): DataFrame<T>",
-      "lineStart": 484,
-      "lineEnd": 486
+      "lineStart": 496,
+      "lineEnd": 498
     },
     "height": {
       "desc": "Gets height (total row count) of the DataFrame.",
@@ -5201,8 +5256,8 @@
       "category": "DataFrame",
       "syntax": "df.height(...)",
       "signature": "df.get height(): number",
-      "lineStart": 496,
-      "lineEnd": 498
+      "lineStart": 508,
+      "lineEnd": 510
     },
     "hstack": {
       "desc": "Concatenates columns horizontally to the current DataFrame.",
@@ -5231,8 +5286,8 @@
       "category": "DataFrame",
       "syntax": "df.hstack(...)",
       "signature": "df.hstack<U extends RowRecord = any>(\n  other: ConcatItem | ConcatItem[],\n  options?: {\n    strict?: boolean\n  }\n): DataFrame<U>",
-      "lineStart": 517,
-      "lineEnd": 522
+      "lineStart": 529,
+      "lineEnd": 534
     },
     "insertColumn": {
       "desc": "Inserts a new column at a specific ordinal index position.",
@@ -5261,8 +5316,8 @@
       "category": "DataFrame",
       "syntax": "df.insertColumn(...)",
       "signature": "df.insertColumn(\n  index: number,\n  name: string,\n  expr: IntoExpr\n): DataFrame<any>",
-      "lineStart": 541,
-      "lineEnd": 558
+      "lineStart": 553,
+      "lineEnd": 570
     },
     "item": {
       "desc": "Retrieves a single scalar cell value by row and column position or name.",
@@ -5286,8 +5341,8 @@
       "category": "DataFrame",
       "syntax": "df.item(...)",
       "signature": "df.item(\n  row?: number,\n  column?: number | string\n): any",
-      "lineStart": 572,
-      "lineEnd": 601
+      "lineStart": 584,
+      "lineEnd": 613
     },
     "iterColumns": {
       "desc": "Yields a generator iterating over raw column arrays.",
@@ -5299,8 +5354,8 @@
       "category": "DataFrame",
       "syntax": "df.iterColumns(...)",
       "signature": "df.iterColumns(): Generator<ColumnData>",
-      "lineStart": 611,
-      "lineEnd": 617
+      "lineStart": 623,
+      "lineEnd": 629
     },
     "iterRows": {
       "desc": "Yields a generator iterating over rows as tuples or named objects.",
@@ -5322,8 +5377,8 @@
       "category": "DataFrame",
       "syntax": "df.iterRows(...)",
       "signature": "df.iterRows(\n  { named = false }: { named?: boolean } = {}\n): Generator<any[] | Record<string, any>>",
-      "lineStart": 629,
-      "lineEnd": 651
+      "lineStart": 641,
+      "lineEnd": 663
     },
     "join": {
       "desc": "Joins two DataFrames on key columns using a specified join strategy. - `\"inner\"` — Only rows with matching keys in both DataFrames. - `\"left\"` — All left rows; unmatched right values are `null`. - `\"right\"` — All right rows; unmatched left values are `null`. - `\"outer\"` — All rows from both sides; unmatched values are `null`. - `\"semi\"` — Left rows that have a match in the right DataFrame (only left columns retained). - `\"anti\"` — Left rows that have **no** match in the right DataFrame (only left columns retained). - `\"cross\"` — Cartesian product pairing every left row with every right row (keyless). non-key column names (default `[\"\", \"_right\"]`). Ignored for `\"semi\"` and `\"anti\"` joins. across DataFrames. Default `false` (SQL-standard: `NULL != NULL`). - `\"none\"` (or `false`) — No specific ordering is desired. - `\"left\"` (or `true`) — Preserves the order of the left DataFrame. - `\"right\"` — Preserves the order of the right DataFrame. - `\"left_right\"` — Preserves the order of the left DataFrame first, then the right. - `\"right_left\"` — Preserves the order of the right DataFrame first, then the left.",
@@ -5387,8 +5442,8 @@
       "category": "DataFrame",
       "syntax": "df.join(...)",
       "signature": "df.join<U extends RowRecord = any, R extends RowRecord = any>(\n  config: {\n    other: DataFrame,\n    on?: string | string[],\n    leftOn?: string | string[],\n    rightOn?: string | string[],\n    how?: JoinType,\n    suffixes?: [string, string],\n    joinNulls?: boolean,\n    coalesce?: boolean,\n    maintainOrder?: JoinMaintainOrder | boolean\n  }\n): DataFrame<R>",
-      "lineStart": 691,
-      "lineEnd": 780
+      "lineStart": 703,
+      "lineEnd": 792
     },
     "joinAsof": {
       "desc": "Performs an asof (as-of) join for inexact matching on ordered numeric or temporal key columns.\n\nSimilar to a left join, but instead of exact key equality, matches the nearest key row from the right DataFrame according to the selected `strategy` (\"backward\", \"forward\", or \"nearest\") and optional `tolerance`. Both DataFrames must be sorted in ascending order on their respective `on` / `leftOn` / `rightOn` join keys.\n\n- `\"backward\"` — Matches the latest right row where `rightKey <= leftKey`. - `\"forward\"` — Matches the earliest right row where `rightKey >= leftKey`. - `\"nearest\"` — Matches the right row with the absolute nearest key value to `leftKey`.",
@@ -5472,8 +5527,8 @@
       "category": "DataFrame",
       "syntax": "df.joinAsof(...)",
       "signature": "df.joinAsof<U extends RowRecord = any, R extends RowRecord = any>(\n  options: {\n    other: DataFrame,\n    on?: string,\n    leftOn?: string,\n    rightOn?: string,\n    by?: string | string[],\n    leftBy?: string | string[],\n    rightBy?: string | string[],\n    strategy?: AsofJoinStrategy,\n    tolerance?: number | string,\n    allowExactMatches?: boolean,\n    suffixes?: [string, string],\n    coalesce?: boolean,\n    checkSorted?: boolean\n  }\n): DataFrame<R>",
-      "lineStart": 819,
-      "lineEnd": 896
+      "lineStart": 831,
+      "lineEnd": 908
     },
     "limit": {
       "desc": "Limits the output to N rows starting from offset.",
@@ -5507,8 +5562,8 @@
       "category": "DataFrame",
       "syntax": "df.limit(...)",
       "signature": "df.limit(\n  n: number,\n  {\n    offset = 0,\n    from = \"start\"\n  }: LimitOptions = {}\n): DataFrame<T>",
-      "lineStart": 916,
-      "lineEnd": 940
+      "lineStart": 928,
+      "lineEnd": 952
     },
     "pivot": {
       "desc": "Pivots columns from long format to a wide datagrid structure.",
@@ -5546,8 +5601,8 @@
       "category": "DataFrame",
       "syntax": "df.pivot(...)",
       "signature": "df.pivot<U extends RowRecord = any>(\n  config: {\n    index: string | string[],\n    columns: string,\n    values: string,\n    agg?: AggFn | string\n  }\n): DataFrame<U>",
-      "lineStart": 961,
-      "lineEnd": 1022
+      "lineStart": 973,
+      "lineEnd": 1034
     },
     "rename": {
       "desc": "Renames columns based on a key-value mapping dictionary.",
@@ -5566,8 +5621,8 @@
       "category": "DataFrame",
       "syntax": "df.rename(...)",
       "signature": "df.rename(\n  mapping: Partial<Record<keyof T, string>> = {}\n): DataFrame<any>",
-      "lineStart": 1039,
-      "lineEnd": 1051
+      "lineStart": 1051,
+      "lineEnd": 1063
     },
     "reverse": {
       "desc": "Reverses the row ordering of the DataFrame.",
@@ -5579,8 +5634,8 @@
       "category": "DataFrame",
       "syntax": "df.reverse(...)",
       "signature": "df.reverse(): DataFrame<T>",
-      "lineStart": 1067,
-      "lineEnd": 1069
+      "lineStart": 1079,
+      "lineEnd": 1081
     },
     "schema": {
       "desc": "Gets current DataFrameSchema dictionary mapping column names to DataType.",
@@ -5592,8 +5647,8 @@
       "category": "DataFrame",
       "syntax": "df.schema(...)",
       "signature": "df.get schema(): DataFrameSchema",
-      "lineStart": 1079,
-      "lineEnd": 1081
+      "lineStart": 1091,
+      "lineEnd": 1093
     },
     "select": {
       "desc": "Selects specific columns or evaluates column expressions.",
@@ -5612,8 +5667,8 @@
       "category": "DataFrame",
       "syntax": "df.select(...)",
       "signature": "df.select<U extends RowRecord = any>(\n  ...args: (string | IExpr | Record<string, any> | (string | IExpr | Record<string, any>)[])[]\n): DataFrame<U>",
-      "lineStart": 1098,
-      "lineEnd": 1195
+      "lineStart": 1110,
+      "lineEnd": 1207
     },
     "shape": {
       "desc": "Gets DataFrame dimensions as [height, width] tuple.",
@@ -5625,8 +5680,8 @@
       "category": "DataFrame",
       "syntax": "df.shape(...)",
       "signature": "df.get shape(): [number, number]",
-      "lineStart": 1205,
-      "lineEnd": 1207
+      "lineStart": 1217,
+      "lineEnd": 1219
     },
     "slice": {
       "desc": "Slices a subset range of rows between start and end index.",
@@ -5650,8 +5705,8 @@
       "category": "DataFrame",
       "syntax": "df.slice(...)",
       "signature": "df.slice(\n  start: number,\n  end?: number\n): DataFrame<T>",
-      "lineStart": 1225,
-      "lineEnd": 1234
+      "lineStart": 1237,
+      "lineEnd": 1246
     },
     "sort": {
       "desc": "Sorts DataFrame rows by one or more column expressions or custom sorters.",
@@ -5690,8 +5745,8 @@
       "category": "DataFrame",
       "syntax": "df.sort(...)",
       "signature": "df.sort(\n  config?: {\n    by: keyof T | (keyof T)[] | IExpr | IExpr[],\n    descending?: boolean | boolean[],\n    nullsLast?: boolean,\n    custom?: Partial<Record<keyof T, (a: any, b: any) => number>>\n  }\n): DataFrame<T>",
-      "lineStart": 1256,
-      "lineEnd": 1290
+      "lineStart": 1268,
+      "lineEnd": 1302
     },
     "tail": {
       "desc": "Returns the last N rows as a new DataFrame.",
@@ -5709,8 +5764,8 @@
       "category": "DataFrame",
       "syntax": "df.tail(...)",
       "signature": "df.tail(\n  n: number = 10\n): DataFrame<T>",
-      "lineStart": 1307,
-      "lineEnd": 1309
+      "lineStart": 1319,
+      "lineEnd": 1321
     },
     "toArray": {
       "desc": "Evaluates a column expression or retrieves column values as a raw JavaScript array.",
@@ -5729,8 +5784,8 @@
       "category": "DataFrame",
       "syntax": "df.toArray(...)",
       "signature": "df.toArray<K extends keyof T>(\n  nameOrExpr: K | IExpr\n): any[]",
-      "lineStart": 1320,
-      "lineEnd": 1322
+      "lineStart": 1332,
+      "lineEnd": 1334
     },
     "toDict": {
       "desc": "Converts columns into a JavaScript dictionary mapping column keys to raw arrays.",
@@ -5742,8 +5797,8 @@
       "category": "DataFrame",
       "syntax": "df.toDict(...)",
       "signature": "df.toDict(): DataFrameColumns<T>",
-      "lineStart": 1332,
-      "lineEnd": 1334
+      "lineStart": 1344,
+      "lineEnd": 1346
     },
     "toDicts": {
       "desc": "Converts rows into an array of JavaScript objects.",
@@ -5755,8 +5810,8 @@
       "category": "DataFrame",
       "syntax": "df.toDicts(...)",
       "signature": "df.toDicts(): T[]",
-      "lineStart": 1344,
-      "lineEnd": 1346
+      "lineStart": 1356,
+      "lineEnd": 1358
     },
     "transpose": {
       "desc": "Transposes rows into columns and columns into rows.",
@@ -5790,8 +5845,8 @@
       "category": "DataFrame",
       "syntax": "df.transpose(...)",
       "signature": "df.transpose(\n  {\n    includeHeader: includeHeader = false,\n    headerName: headerName = \"column\",\n    columnNames: colNamesOpt\n  }: TransposeOptions = {}\n): DataFrame<any>",
-      "lineStart": 1366,
-      "lineEnd": 1429
+      "lineStart": 1378,
+      "lineEnd": 1441
     },
     "unique": {
       "desc": "Filters distinct unique rows matching target key columns.",
@@ -5810,8 +5865,8 @@
       "category": "DataFrame",
       "syntax": "df.unique(...)",
       "signature": "df.unique<K extends keyof T>(\n  columns?: K | K[]\n): DataFrame<T>",
-      "lineStart": 1446,
-      "lineEnd": 1449
+      "lineStart": 1458,
+      "lineEnd": 1461
     },
     "unpivot": {
       "desc": "Unpivots a wide DataFrame into a long format structure.",
@@ -5850,8 +5905,8 @@
       "category": "DataFrame",
       "syntax": "df.unpivot(...)",
       "signature": "df.unpivot<U extends RowRecord = any>(\n  config: {\n    idVars: keyof T | (keyof T)[],\n    valueVars: keyof T | (keyof T)[],\n    varName?: string,\n    valueName?: string\n  }\n): DataFrame<U>",
-      "lineStart": 1472,
-      "lineEnd": 1519
+      "lineStart": 1484,
+      "lineEnd": 1531
     },
     "vstack": {
       "desc": "Concatenates DataFrames vertically. Alias for concat({ how: \"vertical\" }).",
@@ -5870,8 +5925,8 @@
       "category": "DataFrame",
       "syntax": "df.vstack(...)",
       "signature": "df.vstack<U extends RowRecord = any>(\n  other: ConcatItem | ConcatItem[]\n): DataFrame<U>",
-      "lineStart": 1538,
-      "lineEnd": 1542
+      "lineStart": 1550,
+      "lineEnd": 1554
     },
     "width": {
       "desc": "Gets width (total column count) of the DataFrame.",
@@ -5883,8 +5938,8 @@
       "category": "DataFrame",
       "syntax": "df.width(...)",
       "signature": "df.get width(): number",
-      "lineStart": 1552,
-      "lineEnd": 1554
+      "lineStart": 1564,
+      "lineEnd": 1566
     },
     "withColumns": {
       "desc": "Adds new columns or updates existing ones using column expressions.",
@@ -5903,8 +5958,8 @@
       "category": "DataFrame",
       "syntax": "df.withColumns(...)",
       "signature": "df.withColumns(\n  ...args: (string | IExpr | Record<string, any> | (string | IExpr | Record<string, any>)[])[]\n): DataFrame<any>",
-      "lineStart": 1571,
-      "lineEnd": 1602
+      "lineStart": 1583,
+      "lineEnd": 1614
     },
     "withRowIndex": {
       "desc": "Appends an incremental index column.",
@@ -5928,8 +5983,8 @@
       "category": "DataFrame",
       "syntax": "df.withRowIndex(...)",
       "signature": "df.withRowIndex(\n  name: string = \"index\",\n  offset: number = 0\n): DataFrame<any>",
-      "lineStart": 1620,
-      "lineEnd": 1630
+      "lineStart": 1632,
+      "lineEnd": 1642
     },
     "writeCsv": {
       "desc": "Writes DataFrame to CSV format string or file/stream target.",
@@ -5971,8 +6026,8 @@
       "category": "DataFrame",
       "syntax": "df.writeCsv(...)",
       "signature": "df.writeCsv(\n  file?: string | { write: (str: string) => void },\n  options?: {\n    delimiter?: string,\n    header?: boolean,\n    quoteChar?: string\n  }\n): string",
-      "lineStart": 1647,
-      "lineEnd": 1682
+      "lineStart": 1659,
+      "lineEnd": 1694
     },
     "writeJson": {
       "desc": "Writes DataFrame rows to JSON format string or file/stream target.",
@@ -6109,8 +6164,8 @@
       "category": "DataFrame",
       "syntax": "df.writeJson(...)",
       "signature": "df.writeJson(\n  file?: string | { write: (str: string) => void },\n  {\n    format = \"json\",\n    replacerOptions\n  }: WriteJSONOptions = {}\n): string",
-      "lineStart": 1718,
-      "lineEnd": 1745
+      "lineStart": 1730,
+      "lineEnd": 1757
     }
   },
   "dataframe/grouped/grouped.ts": {
