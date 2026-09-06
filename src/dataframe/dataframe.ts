@@ -488,11 +488,6 @@ export class DataFrame<T extends RowRecord = any> {
      * @returns GroupedData
      * @example
      * <!-- doc:base_dataframe_dynamic -->
-     * >>> const df = new DataFrame([
-     * ...   { time: new Date("2024-01-01T00:00:00Z"), val: 10 },
-     * ...   { time: new Date("2024-01-01T12:00:00Z"), val: 20 },
-     * ...   { time: new Date("2024-01-02T00:00:00Z"), val: 30 }
-     * ... ]);
      * >>> df.groupByDynamic("time", { every: "1d", period: "1d" }).agg($df.col("val").sum().alias("daily_sum"))
      * shape: (2, 2)
      * ┌──────────────────────────┬───────────┐
