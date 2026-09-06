@@ -25,6 +25,7 @@ import "./iterColumns.test";
 import "./iterRows.test";
 import "./join.test";
 import "./joinAsof.test";
+import "./joinWhere.test";
 import "./limit.test";
 import "./pivot.test";
 import "./rename.test";

@@ -3,7 +3,7 @@ import { GroupedData } from "./grouped"
 import { NEWLINE, MS_PER_DAY, DAY_OF_WEEK_MAP } from "../constants"
 import { createSafeJsonReplacer } from "../utils/json"
 import type { IExpr, ColumnData, ColumnDict, DataFrameColumns, ConcatOptions, ConcatItem, HorizontalConcatOptions, RowRecord, DataFrameSchema, RegisteredDataType, ExplodeOptions, IntoExpr, FillNullOptions, SortArrayOptions } from "../types"
-import type { LimitOptions, SortOptions, PivotOptions, JoinOptions, JoinMaintainOrder, AsofJoinOptions, GroupByDynamicOptions, UnpivotOptions, TransposeOptions, WriteJSONOptions, WriteCSVOptions } from "./types"
+import type { LimitOptions, SortOptions, PivotOptions, JoinOptions, JoinMaintainOrder, JoinAsofOptions, JoinWhereOptions, GroupByDynamicOptions, UnpivotOptions, TransposeOptions, WriteJSONOptions, WriteCSVOptions } from "./types"
 import { DataTypeRegistry, DataType } from "../datatypes"
 import { isArrayOrTypedArray, toValidArray, toArrayOfType, isObj, isArrayOfType, isRegExp, clamp, stringifyCSV, compareScalarValues, filterByMask, toDuration, toValidDate, toValidNumber, isValidNumber, binarySearch, addCalendarDuration, parseDurationInterval, createUTCDate } from "../utils"
 import { assertColumnExists, assertHeight, DataFrameError, ShapeError, ColumnNotFoundError, InvalidArgumentError, IOStreamError } from "../exceptions"
@@ -20,6 +20,7 @@ import {
     coerceColumn,
     alignKeyIndices,
     alignAsofIndices,
+    alignWhereIndices,
     materializeJoinedDataFrame,
     writeStringToFileOrStream
 } from "./utils"
@@ -883,12 +884,12 @@ export class DataFrame<T extends RowRecord = any> {
 
     /**
      * Joins two DataFrames on key columns using a specified join strategy.
-     * @param {JoinOptions} config Join configuration object.
-     * @param {DataFrame} config.other Right DataFrame to join with.
-     * @param {string | string[]} [config.on] Join key column name or array of key column names that exist in both DataFrames.
-     * @param {string | string[]} [config.leftOn] Join key column(s) in the left DataFrame when key names differ.
-     * @param {string | string[]} [config.rightOn] Join key column(s) in the right DataFrame when key names differ.
-     * @param {JoinType} [config.how] Join strategy. Default `"inner"`.
+     * @param {DataFrame} other Right DataFrame to join with.
+     * @param {JoinOptions} [options={}] Join configuration object.
+     * @param {string | string[]} [options.on] Join key column name or array of key column names that exist in both DataFrames.
+     * @param {string | string[]} [options.leftOn] Join key column(s) in the left DataFrame when key names differ.
+     * @param {string | string[]} [options.rightOn] Join key column(s) in the right DataFrame when key names differ.
+     * @param {JoinType} [options.how] Join strategy. Default `"inner"`.
      *   - `"inner"` — Only rows with matching keys in both DataFrames.
      *   - `"left"` — All left rows; unmatched right values are `null`.
      *   - `"right"` — All right rows; unmatched left values are `null`.
@@ -896,12 +897,12 @@ export class DataFrame<T extends RowRecord = any> {
      *   - `"semi"` — Left rows that have a match in the right DataFrame (only left columns retained).
      *   - `"anti"` — Left rows that have **no** match in the right DataFrame (only left columns retained).
      *   - `"cross"` — Cartesian product pairing every left row with every right row (keyless).
-     * @param {[string, string]} [config.suffixes] Suffix tuple `[leftSuffix, rightSuffix]` appended to overlapping
+     * @param {[string, string]} [options.suffixes] Suffix tuple `[leftSuffix, rightSuffix]` appended to overlapping
      *   non-key column names (default `["", "_right"]`). Ignored for `"semi"` and `"anti"` joins.
-     * @param {boolean} [config.joinNulls] If `true`, null key values are treated as equal and will match each other
+     * @param {boolean} [options.joinNulls] If `true`, null key values are treated as equal and will match each other
      *   across DataFrames. Default `false` (SQL-standard: `NULL != NULL`).
-     * @param {boolean} [config.coalesce] Coalescing behavior for join key columns. Default `true`. If `true`, coalesces join key values into left key columns and drops right key columns. If `false`, keeps join key columns separate.
-     * @param {JoinMaintainOrder | boolean} [config.maintainOrder] Row order preservation strategy. Default `"none"`.
+     * @param {boolean} [options.coalesce] Coalescing behavior for join key columns. Default `true`. If `true`, coalesces join key values into left key columns and drops right key columns. If `false`, keeps join key columns separate.
+     * @param {JoinMaintainOrder | boolean} [options.maintainOrder] Row order preservation strategy. Default `"none"`.
      *   - `"none"` (or `false`) — No specific ordering is desired.
      *   - `"left"` (or `true`) — Preserves the order of the left DataFrame.
      *   - `"right"` — Preserves the order of the right DataFrame.
@@ -910,7 +911,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @returns {DataFrame}
      * @example
      * <!-- doc:base_join_pair -->
-     * >>> df1.join({ other: df2, on: "id" })
+     * >>> df1.join(df2, { on: "id" })
      * shape: (2, 3)
      * ┌────┬─────┬─────┐
      * │ id │ val │ num │
@@ -919,9 +920,15 @@ export class DataFrame<T extends RowRecord = any> {
      * │ 2  │ b   │ 200 │
      * └────┴─────┴─────┘
      */
-    join<U extends RowRecord = any, R extends RowRecord = any>(config: JoinOptions<T, U>): DataFrame<R> {
+    join<U extends RowRecord = any, R extends RowRecord = any>(
+        other: DataFrame<U>,
+        options: JoinOptions<T, U> = {}
+    ): DataFrame<R> {
+        if (!other || !(other instanceof DataFrame)) {
+            throw new InvalidArgumentError('join() requires a valid DataFrame in "other"');
+        }
+
         const {
-            other,
             on,
             leftOn,
             rightOn,
@@ -930,7 +937,7 @@ export class DataFrame<T extends RowRecord = any> {
             joinNulls = false,
             coalesce = true,
             maintainOrder = "none"
-        } = config;
+        } = options;
 
         const hasOn = on !== undefined;
         const hasLeftRight = leftOn !== undefined || rightOn !== undefined;
@@ -979,7 +986,7 @@ export class DataFrame<T extends RowRecord = any> {
             : (maintainOrder ?? "none");
 
         const resolvedConfig: JoinOptions<T, U> = {
-            ...config,
+            ...options,
             how,
             suffixes,
             joinNulls,
@@ -1017,15 +1024,15 @@ export class DataFrame<T extends RowRecord = any> {
      * DataFrame according to the selected `strategy` ("backward", "forward", or "nearest") and optional `tolerance`.
      * Both DataFrames must be sorted in ascending order on their respective `on` / `leftOn` / `rightOn` join keys.
      *
-     * @param {AsofJoinOptions} options Asof join configuration options.
-     * @param {DataFrame} options.other The right DataFrame to join with.
+     * @param {DataFrame} other The right DataFrame to join with.
+     * @param {JoinAsofOptions} options Asof join configuration options.
      * @param {string} [options.on] Column name to join on (must exist in both DataFrames and be sorted ascending).
      * @param {string} [options.leftOn] Left DataFrame join key column name.
      * @param {string} [options.rightOn] Right DataFrame join key column name.
      * @param {string | string[]} [options.by] Optional exact-match group column(s) present in both DataFrames.
      * @param {string | string[]} [options.leftBy] Group column(s) for exact key matching in left DataFrame.
      * @param {string | string[]} [options.rightBy] Group column(s) for exact key matching in right DataFrame.
-     * @param {AsofJoinStrategy} [options.strategy] Match search strategy. Default `"backward"`.
+     * @param {JoinAsofStrategy} [options.strategy] Match search strategy. Default `"backward"`.
      *   - `"backward"` — Matches the latest right row where `rightKey <= leftKey`.
      *   - `"forward"` — Matches the earliest right row where `rightKey >= leftKey`.
      *   - `"nearest"` — Matches the right row with the absolute nearest key value to `leftKey`.
@@ -1037,7 +1044,7 @@ export class DataFrame<T extends RowRecord = any> {
      * @returns A new DataFrame containing the joined results.
      * @example
      * <!-- doc:base_asof_pair -->
-     * >>> trades.joinAsof({ other: quotes, on: "time", by: "ticker" })
+     * >>> trades.joinAsof(quotes, { on: "time", by: "ticker" })
      * shape: (3, 4)
      * ┌──────┬────────┬───────┬───────┐
      * │ time │ ticker │ price │ bid   │
@@ -1047,9 +1054,15 @@ export class DataFrame<T extends RowRecord = any> {
      * │ 1015 │ AAPL   │ 151.0 │ 150.8 │
      * └──────┴────────┴───────┴───────┘
      */
-    joinAsof<U extends RowRecord = any, R extends RowRecord = any>(options: AsofJoinOptions<T, U>): DataFrame<R> {
+    joinAsof<U extends RowRecord = any, R extends RowRecord = any>(
+        other: DataFrame<U>,
+        options: JoinAsofOptions<T, U>
+    ): DataFrame<R> {
+        if (!other || !(other instanceof DataFrame)) {
+            throw new InvalidArgumentError('joinAsof() requires a valid DataFrame in "other"');
+        }
+
         const {
-            other,
             on,
             leftOn,
             rightOn,
@@ -1062,11 +1075,7 @@ export class DataFrame<T extends RowRecord = any> {
             suffixes = ["", "_right"],
             coalesce = true,
             checkSorted = true
-        } = options;
-
-        if (!other || !(other instanceof DataFrame)) {
-            throw new InvalidArgumentError('joinAsof() requires a valid DataFrame in "other"');
-        }
+        } = options ?? {};
 
         const leftOnKey = String(leftOn ?? on ?? "");
         const rightOnKey = String(rightOn ?? on ?? "");
@@ -1088,7 +1097,7 @@ export class DataFrame<T extends RowRecord = any> {
             assertColumnExists(rightByKeys[i], other._columns, "Partition key", " in the right DataFrame.");
         }
 
-        const resolvedOptions: AsofJoinOptions<T, U> = {
+        const resolvedOptions: JoinAsofOptions<T, U> = {
             ...options,
             strategy,
             tolerance,
@@ -1123,6 +1132,90 @@ export class DataFrame<T extends RowRecord = any> {
             leftKeysStr,
             rightKeysStr,
             { suffixes, coalesce, how: "left" }
+        );
+    }
+
+    /**
+     * Joins two DataFrames based on arbitrary expression predicates (non-equi joins).
+     *
+     * Evaluates one or more boolean expressions across combined rows from both DataFrames.
+     * When column names collide between the two DataFrames, columns are suffixed according to
+     * `options.suffixes` (default `["", "_right"]`).
+     *
+     * @param {DataFrame} other The right DataFrame to join with.
+     * @param {...(IntoExpr | IntoExpr[] | JoinWhereOptions)} args Predicate expression(s), arrays of expressions,
+     *   and an optional configuration options object (`{ how, suffixes }`).
+     * @returns {DataFrame} A new DataFrame containing the joined results.
+     * @example
+     * <!-- doc:base_join_where_pair -->
+     * >>> east.joinWhere(
+     * ...     west,
+     * ...     $df.col("dur").lt($df.col("time")),
+     * ...     $df.col("rev").lt($df.col("cost"))
+     * ... )
+     * shape: (5, 8)
+     * ┌─────┬─────┬─────┬───────┬──────┬──────┬──────┬─────────────┐
+     * │ id  │ dur │ rev │ cores │ t_id │ time │ cost │ cores_right │
+     * ├─────┼─────┼─────┼───────┼──────┼──────┼──────┼─────────────┤
+     * │ 100 │ 120 │ 12  │ 2     │ 498  │ 130  │ 13   │ 2           │
+     * │ 100 │ 120 │ 12  │ 2     │ 676  │ 150  │ 15   │ 1           │
+     * │ 100 │ 120 │ 12  │ 2     │ 742  │ 170  │ 16   │ 4           │
+     * │ 101 │ 140 │ 14  │ 8     │ 676  │ 150  │ 15   │ 1           │
+     * │ 101 │ 140 │ 14  │ 8     │ 742  │ 170  │ 16   │ 4           │
+     * └─────┴─────┴─────┴───────┴──────┴──────┴──────┴─────────────┘
+     */
+    joinWhere<U extends RowRecord = any, R extends RowRecord = any>(
+        other: DataFrame<U>,
+        ...args: (IntoExpr | IntoExpr[] | JoinWhereOptions)[]
+    ): DataFrame<R> {
+        if (!other || !(other instanceof DataFrame)) {
+            throw new InvalidArgumentError('joinWhere() requires a valid DataFrame in "other"');
+        }
+
+        let options: JoinWhereOptions = {};
+        const predicates: IExpr[] = [];
+
+        for (let i = 0; i < args.length; i++) {
+            const arg = args[i];
+
+            if (Array.isArray(arg)) {
+                for (let j = 0; j < arg.length; j++) predicates.push(ColumnExpr.toColExpr(arg[j]));
+                continue;
+            }
+
+            if (isObj(arg) && !ColumnExpr.isColExpr(arg) && !("_ops" in (arg as any))) {
+                options = { ...options, ...(arg as JoinWhereOptions) };
+                continue;
+            }
+
+            predicates.push(ColumnExpr.toColExpr(arg as IntoExpr));
+        }
+
+        const { how = "inner", suffixes = ["", "_right"] } = options;
+
+        if (how !== "inner" && how !== "left" && how !== "right") {
+            throw new InvalidArgumentError(`joinWhere() "how" must be one of "inner", "left", "right", got "${how}"`);
+        }
+
+        const { leftIndices, rightIndices } = alignWhereIndices(
+            this._columns,
+            other._columns,
+            this._height,
+            other._height,
+            predicates,
+            { how, suffixes }
+        );
+
+        return materializeJoinedDataFrame<R>(
+            this._columns,
+            other._columns,
+            this._schema,
+            other._schema,
+            leftIndices,
+            rightIndices,
+            [],
+            [],
+            { suffixes, coalesce: false, how }
         );
     }
 

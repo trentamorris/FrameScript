@@ -1,5 +1,4 @@
 import type { AggFn, RowRecord, DataFrameSchema, JSONFormat, SortArrayOptions, SortOptions } from "../types";
-import type { DataFrame } from "./dataframe";
 import type { JSONParseOptions, SafeJsonReplacerOptions, NDJSONParseOptions } from "../utils";
 
 export type { JSONParseOptions, SafeJsonReplacerOptions, NDJSONParseOptions, SortArrayOptions, SortOptions };
@@ -22,7 +21,6 @@ export interface PivotOptions<T> {
 }
 
 export interface JoinOptions<T = any, U extends RowRecord = any> {
-    other: DataFrame<U>;
     on?: (keyof T & keyof U) | (keyof T & keyof U)[];
     leftOn?: (keyof T) | (keyof T)[];
     rightOn?: (keyof U) | (keyof U)[];
@@ -33,22 +31,30 @@ export interface JoinOptions<T = any, U extends RowRecord = any> {
     maintainOrder?: JoinMaintainOrder | boolean;
 }
 
-export type AsofJoinStrategy = "backward" | "forward" | "nearest";
+export type JoinAsofStrategy = "backward" | "forward" | "nearest";
 
-export interface AsofJoinOptions<T = any, U extends RowRecord = any> {
-    other: DataFrame<U>;
+export interface JoinAsofOptions<T = any, U extends RowRecord = any> {
     on?: (keyof T & keyof U);
     leftOn?: (keyof T);
     rightOn?: (keyof U);
     by?: (keyof T & keyof U) | (keyof T & keyof U)[];
     leftBy?: (keyof T) | (keyof T)[];
     rightBy?: (keyof U) | (keyof U)[];
-    strategy?: AsofJoinStrategy;
+    strategy?: JoinAsofStrategy;
     tolerance?: number | string;
     allowExactMatches?: boolean;
     suffixes?: [string, string];
     coalesce?: boolean;
     checkSorted?: boolean;
+}
+
+export type JoinWhereStrategy = "inner" | "left" | "right";
+
+export interface JoinWhereOptions {
+    /** Join strategy: "inner", "left", or "right". Default "inner". */
+    how?: JoinWhereStrategy;
+    /** Column name suffixes [leftSuffix, rightSuffix] to resolve duplicate column names. Default ["", "_right"]. */
+    suffixes?: [string, string];
 }
 
 export type DynamicClosed = "left" | "right" | "both" | "none";

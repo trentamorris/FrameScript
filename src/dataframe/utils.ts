@@ -1,10 +1,10 @@
 /** @internalfile */
 import type { IExpr, ColumnData, ColumnDict, RegisteredDataType, DataFrameSchema, RowRecord } from "../types"
-import type { JoinOptions, AsofJoinOptions } from "./types"
+import type { JoinOptions, JoinAsofOptions, JoinWhereOptions } from "./types"
 import { DataFrame } from "./dataframe"
 import { DataTypeRegistry } from "../datatypes"
 import { KEY_SEPARATOR, UNMATCHED_ROW_INDEX } from "../constants"
-import { isObj, isTypedArray, toCanonicalString, isArrayOrTypedArray, isValidDateObj, computeCartesianProduct, toValidNumber, isValidNumber, binarySearch } from "../utils"
+import { isObj, isTypedArray, toCanonicalString, isArrayOrTypedArray, isValidDateObj, computeCartesianProduct, toValidNumber, isValidNumber, isValidInt, binarySearch } from "../utils"
 import { assertColumnExists, IOStreamError, InvalidArgumentError } from "../exceptions"
 
 function _partitionByColumns(
@@ -80,42 +80,30 @@ export function rowsToColumns(rows: any[]): { columns: ColumnDict; height: numbe
     const keysSet = new Set<string>();
     for (let r = 0; r < height; r++) {
         const row = rows[r];
-        if (isObj(row)) {
-            const rowKeys = Object.keys(row);
-            for (let i = 0; i < rowKeys.length; i++) {
-                keysSet.add(rowKeys[i]);
-            }
+        if (!isObj(row)) continue;
+        const rowKeys = Object.keys(row);
+        const numRowKeys = rowKeys.length;
+        for (let i = 0; i < numRowKeys; i++) {
+            keysSet.add(rowKeys[i]);
         }
     }
-    const keys = Array.from(keysSet);
-    const columns: Record<string, any[]> = {};
-    for (let i = 0; i < keys.length; i++) {
-        columns[keys[i]] = new Array(height);
-    }
-    for (let r = 0; r < height; r++) {
-        const row = rows[r] || {};
-        for (let i = 0; i < keys.length; i++) {
-            const k = keys[i];
-            const val = row[k];
-            columns[k][r] = val === undefined ? null : val;
-        }
-    }
-    return { columns, height };
-}
 
-export function columnsToRows(columns: ColumnDict, height: number): any[] {
-    const keys = Object.keys(columns);
-    const rows = new Array(height);
-    for (let r = 0; r < height; r++) {
-        const row: any = {};
-        for (let i = 0; i < keys.length; i++) {
-            const k = keys[i];
-            const val = columns[k][r];
-            row[k] = val === undefined ? null : val;
+    const keys = Array.from(keysSet);
+    const numKeys = keys.length;
+    const columns: ColumnDict = {};
+
+    for (let i = 0; i < numKeys; i++) {
+        const k = keys[i];
+        const col = new Array(height);
+        for (let r = 0; r < height; r++) {
+            const row = rows[r];
+            const val = row != null ? row[k] : null;
+            col[r] = val === undefined ? null : val;
         }
-        rows[r] = row;
+        columns[k] = col;
     }
-    return rows;
+
+    return { columns, height };
 }
 
 export function getRowFromColumns(columns: ColumnDict, idx: number, keys: string[]): any {
@@ -126,6 +114,14 @@ export function getRowFromColumns(columns: ColumnDict, idx: number, keys: string
         row[k] = val === undefined ? null : val;
     }
     return row;
+}
+export function columnsToRows(columns: ColumnDict, height: number): any[] {
+    const keys = Object.keys(columns);
+    const rows = new Array(height);
+    for (let r = 0; r < height; r++) {
+        rows[r] = getRowFromColumns(columns, r, keys);
+    }
+    return rows;
 }
 
 export function inferColumnType(col: ColumnData): RegisteredDataType {
@@ -190,8 +186,7 @@ export function inferColumnType(col: ColumnData): RegisteredDataType {
         let fitsInInt32 = true;
         for (let i = 0; i < col.length; i++) {
             const val = col[i];
-            if (val == null) continue;
-            if (val < -2147483648 || val > 2147483647) {
+            if (val != null && !isValidInt(val, { range: "Int32" })) {
                 fitsInInt32 = false;
                 break;
             }
@@ -263,30 +258,29 @@ export function computeRowHash(columns: ColumnDict, keys: string[], rowIndex: nu
 }
 
 export function coerceColumn(col: ColumnData, type: RegisteredDataType, height: number): ColumnData {
-    let newCol: any = type.allocate ? type.allocate(height) : new Array(height);
-    const isTyped = isTypedArray(newCol);
-    if (isTyped) {
-        const typedCol = newCol as any;
-        for (let i = 0; i < height; i++) {
-            const coerced = type.coerce(col[i]);
-            if (coerced == null) {
-                const fallback = new Array(height);
-                for (let j = 0; j < i; j++) {
-                    fallback[j] = typedCol[j];
-                }
-                fallback[i] = null;
-                for (let j = i + 1; j < height; j++) {
-                    fallback[j] = type.coerce(col[j]);
-                }
-                return fallback;
-            }
-            typedCol[i] = coerced;
-        }
-    } else {
+    const newCol: any = type.allocate ? type.allocate(height) : new Array(height);
+
+    if (!isTypedArray(newCol)) {
         for (let i = 0; i < height; i++) {
             newCol[i] = type.coerce(col[i]);
         }
+        return newCol;
     }
+
+    for (let i = 0; i < height; i++) {
+        const coerced = type.coerce(col[i]);
+        if (coerced !== null && coerced !== undefined) {
+            newCol[i] = coerced;
+            continue;
+        }
+
+        const fallback = new Array(height);
+        for (let j = 0; j < i; j++) fallback[j] = newCol[j];
+        fallback[i] = null;
+        for (let j = i + 1; j < height; j++) fallback[j] = type.coerce(col[j]);
+        return fallback;
+    }
+
     return newCol;
 }
 
@@ -308,6 +302,41 @@ export function writeStringToFileOrStream(
     }
 }
 
+function _alignEmptySideIndices(
+    how: string,
+    leftHeight: number,
+    rightHeight: number
+): { leftIndices: number[]; rightIndices: (number | null)[] } | null {
+    if (leftHeight > 0 && rightHeight > 0) return null;
+
+    const keepLeft = (how === "left" || how === "anti" || how === "outer") && leftHeight > 0;
+    const keepRight = (how === "right" || how === "outer") && rightHeight > 0;
+    if (!keepLeft && !keepRight) return { leftIndices: [], rightIndices: [] };
+
+    const len = keepLeft ? leftHeight : rightHeight;
+    const leftIndices: number[] = new Array(len);
+    const rightIndices: (number | null)[] = new Array(len);
+
+    for (let i = 0; i < len; i++) {
+        leftIndices[i] = keepLeft ? i : UNMATCHED_ROW_INDEX;
+        rightIndices[i] = keepLeft ? null : i;
+    }
+    return { leftIndices, rightIndices };
+}
+
+function _appendUnmatchedRightRows(
+    leftIndices: number[],
+    rightIndices: (number | null)[],
+    matchedRightIndices: Uint8Array,
+    rightHeight: number
+): void {
+    for (let j = 0; j < rightHeight; j++) {
+        if (matchedRightIndices[j] === 1) continue;
+        leftIndices.push(UNMATCHED_ROW_INDEX);
+        rightIndices.push(j);
+    }
+}
+
 /**
  * Generic key-alignment engine computing positional row index mappings (leftIndex <-> rightIndex)
  * between two columnar datasets based on key hashing.
@@ -324,24 +353,29 @@ export function alignKeyIndices(
 ): { leftIndices: number[]; rightIndices: (number | null)[] } {
     const { how = "inner", joinNulls = false, maintainOrder } = options;
 
-    const getRowHashAt = (cols: ColumnDict, keys: string[], idx: number): string | null => {
+    if (how === "cross") {
+        return computeCartesianProduct(leftHeight, rightHeight);
+    }
+
+    const emptyFastPath = _alignEmptySideIndices(how, leftHeight, rightHeight);
+    if (emptyFastPath) return emptyFastPath;
+
+    const numLeftKeys = leftKeys.length;
+    const numRightKeys = rightKeys.length;
+
+    const getRowHashAt = (cols: ColumnDict, keys: string[], numKeys: number, idx: number): string | null => {
         if (!joinNulls) {
-            for (let i = 0; i < keys.length; i++) {
+            for (let i = 0; i < numKeys; i++) {
                 if (cols[keys[i]][idx] == null) return null;
             }
         }
         return computeRowHash(cols, keys, idx);
     };
 
-    // 1b. Fast path for Cross join (Cartesian product)
-    if (how === "cross") {
-        return computeCartesianProduct(leftHeight, rightHeight);
-    }
-
-    // 1. Build hash table for right DataFrame
+    // 3. Build hash table for right DataFrame
     const rightHash = new Map<string, number[]>();
     for (let i = 0; i < rightHeight; i++) {
-        const hash = getRowHashAt(rightCols, rightKeys, i);
+        const hash = getRowHashAt(rightCols, rightKeys, numRightKeys, i);
         if (hash === null) continue;
         let list = rightHash.get(hash);
         if (list === undefined) {
@@ -354,14 +388,15 @@ export function alignKeyIndices(
     const leftIndices: number[] = [];
     const rightIndices: (number | null)[] = [];
 
-    // 2. Fast path for Semi & Anti joins (returns matching left row indices only)
+    // 4. Semi & Anti joins: left row indices only
     if (how === "semi" || how === "anti") {
+        const isSemi = how === "semi";
         for (let i = 0; i < leftHeight; i++) {
-            const hash = getRowHashAt(leftCols, leftKeys, i);
+            const hash = getRowHashAt(leftCols, leftKeys, numLeftKeys, i);
             const matches = hash === null ? undefined : rightHash.get(hash);
             const hasMatch = matches !== undefined && matches.length > 0;
 
-            if ((how === "semi" && hasMatch) || (how === "anti" && !hasMatch)) {
+            if (isSemi === hasMatch) {
                 leftIndices.push(i);
                 rightIndices.push(null);
             }
@@ -369,49 +404,44 @@ export function alignKeyIndices(
         return { leftIndices, rightIndices };
     }
 
-    // 3. Handle Inner, Left, Right, and Outer index alignment
+    // 5. Inner, Left, Right, and Outer index alignment
     const trackRight = how === "outer" || how === "right";
-    const matchedRightIndices = trackRight ? new Set<number>() : null;
+    const matchedRightIndices = trackRight ? new Uint8Array(rightHeight) : null;
+    const keepUnmatchedLeft = how === "left" || how === "outer";
 
     for (let i = 0; i < leftHeight; i++) {
-        const hash = getRowHashAt(leftCols, leftKeys, i);
+        const hash = getRowHashAt(leftCols, leftKeys, numLeftKeys, i);
         const matches = hash === null ? undefined : rightHash.get(hash);
 
         if (matches === undefined) {
-            if (how === "left" || how === "outer") {
+            if (keepUnmatchedLeft) {
                 leftIndices.push(i);
                 rightIndices.push(null);
             }
-        } else {
-            for (let m = 0; m < matches.length; m++) {
-                const rIdx = matches[m];
-                if (trackRight) matchedRightIndices!.add(rIdx);
-                leftIndices.push(i);
-                rightIndices.push(rIdx);
-            }
+            continue;
+        }
+
+        const matchCount = matches.length;
+        for (let m = 0; m < matchCount; m++) {
+            const rIdx = matches[m];
+            if (trackRight) matchedRightIndices![rIdx] = 1;
+            leftIndices.push(i);
+            rightIndices.push(rIdx);
         }
     }
 
-    // 4. Append unmatched right rows for Right & Outer alignments
+    // 6. Append unmatched right rows for Right & Outer joins
     if (trackRight) {
-        for (let j = 0; j < rightHeight; j++) {
-            if (!matchedRightIndices!.has(j)) {
-                leftIndices.push(UNMATCHED_ROW_INDEX);
-                rightIndices.push(j);
-            }
-        }
+        _appendUnmatchedRightRows(leftIndices, rightIndices, matchedRightIndices!, rightHeight);
     }
 
-    // 5. Apply maintainOrder sorting if requested
+    // 7. Order preservation: "left" and "none" naturally maintain left-table order
     const orderStrategy = maintainOrder || "none";
-
-    // Fast-path: "left" (and "none") are naturally emitted in left-table row order!
     if (orderStrategy === "none" || orderStrategy === "left") {
         return { leftIndices, rightIndices };
     }
 
     const len = leftIndices.length;
-    // Flat index array to avoid object allocations
     const perm = new Int32Array(len);
     for (let idx = 0; idx < len; idx++) perm[idx] = idx;
 
@@ -445,14 +475,17 @@ export function alignAsofIndices(
     rightOnKey: string,
     leftByKeys: string[],
     rightByKeys: string[],
-    options: AsofJoinOptions = {} as AsofJoinOptions
+    options: JoinAsofOptions = {} as JoinAsofOptions
 ): { leftIndices: number[]; rightIndices: (number | null)[] } {
-    const strategy = options.strategy ?? "backward";
-    const allowExactMatches = options.allowExactMatches ?? true;
-    const checkSorted = options.checkSorted ?? true;
+    const emptyFastPath = _alignEmptySideIndices("left", leftHeight, rightHeight);
+    if (emptyFastPath) return emptyFastPath;
 
     assertColumnExists(leftOnKey, leftCols, "Join on key", " in the left DataFrame.");
     assertColumnExists(rightOnKey, rightCols, "Join on key", " in the right DataFrame.");
+
+    const strategy = options.strategy ?? "backward";
+    const allowExactMatches = options.allowExactMatches ?? true;
+    const checkSorted = options.checkSorted ?? true;
 
     const leftOnCol = leftCols[leftOnKey];
     const rightOnCol = rightCols[rightOnKey];
@@ -472,18 +505,7 @@ export function alignAsofIndices(
     }
 
     const hasBy = leftByKeys.length > 0;
-    const rightByMap = new Map<string, number[]>();
-    if (hasBy) {
-        for (let j = 0; j < rightHeight; j++) {
-            const hash = computeRowHash(rightCols, rightByKeys, j);
-            let group = rightByMap.get(hash);
-            if (!group) {
-                group = [];
-                rightByMap.set(hash, group);
-            }
-            group.push(j);
-        }
-    }
+    const rightByMap = hasBy ? buildGroupMap(rightCols, rightByKeys, rightHeight) : null;
 
     const allRightCandidates: number[] = new Array(rightHeight);
     if (!hasBy) {
@@ -508,7 +530,6 @@ export function alignAsofIndices(
             return pos < len ? candidates[pos] : null;
         }
 
-        // strategy === "nearest"
         const pos = binarySearch(candidates, leftVal, { side: "right", getValue: getVal });
         let bIdx = pos - 1, fIdx = pos;
         if (!allowExactMatches) {
@@ -534,7 +555,7 @@ export function alignAsofIndices(
         }
 
         const candidates = hasBy
-            ? (rightByMap.get(computeRowHash(leftCols, leftByKeys, i)) || [])
+            ? (rightByMap!.get(computeRowHash(leftCols, leftByKeys, i)) || [])
             : allRightCandidates;
 
         if (candidates.length === 0) {
@@ -552,6 +573,84 @@ export function alignAsofIndices(
         }
 
         rightIndices[i] = matchedRIdx;
+    }
+
+    return { leftIndices, rightIndices };
+}
+
+export function alignWhereIndices(
+    leftCols: ColumnDict,
+    rightCols: ColumnDict,
+    leftHeight: number,
+    rightHeight: number,
+    predicates: IExpr[],
+    options: JoinWhereOptions = {}
+): { leftIndices: number[]; rightIndices: (number | null)[] } {
+    const how = options.how ?? "inner";
+
+    const emptyFastPath = _alignEmptySideIndices(how, leftHeight, rightHeight);
+    if (emptyFastPath) return emptyFastPath;
+
+    const [leftSuffix = "", rightSuffix = "_right"] = options.suffixes ?? ["", "_right"];
+    const leftIndices: number[] = [];
+    const rightIndices: (number | null)[] = [];
+
+    const numPreds = predicates.length;
+    const trackRight = how === "right";
+    const matchedRightIndices = trackRight ? new Uint8Array(rightHeight) : null;
+
+    const evalCols: ColumnDict = {};
+    const initTargetKeys = (sourceCols: ColumnDict, checkCols: ColumnDict, suffix: string): string[] => {
+        const keys = Object.keys(sourceCols);
+        const len = keys.length;
+        const targetKeys: string[] = new Array(len);
+        for (let k = 0; k < len; k++) {
+            const key = keys[k];
+            const targetKey = (key in checkCols && suffix !== "") ? `${key}${suffix}` : key;
+            targetKeys[k] = targetKey;
+            evalCols[targetKey] = new Array(1);
+        }
+        return targetKeys;
+    };
+
+    const leftTargetKeys = initTargetKeys(leftCols, rightCols, leftSuffix);
+    const rightTargetKeys = initTargetKeys(rightCols, leftCols, rightSuffix);
+    const leftKeys = Object.keys(leftCols);
+    const rightKeys = Object.keys(rightCols);
+    const leftKeysLen = leftKeys.length;
+    const rightKeysLen = rightKeys.length;
+
+    for (let i = 0; i < leftHeight; i++) {
+        let leftMatched = false;
+
+        for (let k = 0; k < leftKeysLen; k++) {
+            (evalCols[leftTargetKeys[k]] as any[])[0] = leftCols[leftKeys[k]][i];
+        }
+
+        rightLoop: for (let j = 0; j < rightHeight; j++) {
+            for (let k = 0; k < rightKeysLen; k++) {
+                (evalCols[rightTargetKeys[k]] as any[])[0] = rightCols[rightKeys[k]][j];
+            }
+
+            for (let p = 0; p < numPreds; p++) {
+                const evalRes = predicates[p].evaluate(evalCols, 1);
+                if (evalRes[0] !== true) continue rightLoop;
+            }
+
+            leftMatched = true;
+            leftIndices.push(i);
+            rightIndices.push(j);
+            if (trackRight) matchedRightIndices![j] = 1;
+        }
+
+        if (!leftMatched && how === "left") {
+            leftIndices.push(i);
+            rightIndices.push(null);
+        }
+    }
+
+    if (trackRight) {
+        _appendUnmatchedRightRows(leftIndices, rightIndices, matchedRightIndices!, rightHeight);
     }
 
     return { leftIndices, rightIndices };
@@ -582,16 +681,9 @@ export function materializeJoinedDataFrame<R extends RowRecord = any>(
     const leftKeysSet = new Set(leftKeysStr);
     const rightKeysSet = new Set(rightKeysStr);
 
-    const resolveUniqueColumnName = (colName: string, suffix: string): string => {
-        const effectiveSuffix = suffix !== "" ? suffix : "_left";
-        let candidate = `${colName}${effectiveSuffix}`;
-        let counter = 1;
-        while (allocatedNames.has(candidate)) {
-            candidate = `${colName}${effectiveSuffix}_${counter++}`;
-        }
-        allocatedNames.add(candidate);
-        return candidate;
-    };
+    const allocatedNames = new Set<string>();
+    const leftColKeys = Object.keys(leftCols);
+    const rightColKeys = Object.keys(rightCols);
 
     const leftToRightKeyMap = new Map<string, string>();
     for (let i = 0; i < leftKeysStr.length; i++) {
@@ -600,9 +692,16 @@ export function materializeJoinedDataFrame<R extends RowRecord = any>(
         }
     }
 
-    const allocatedNames = new Set<string>();
-    const leftColKeys = Object.keys(leftCols);
-    const rightColKeys = Object.keys(rightCols);
+    const resolveUniqueColumnName = (colName: string, suffix: string): string => {
+        const effectiveSuffix = suffix || "_left";
+        let candidate = `${colName}${effectiveSuffix}`;
+        let counter = 1;
+        while (allocatedNames.has(candidate)) {
+            candidate = `${colName}${effectiveSuffix}_${counter++}`;
+        }
+        allocatedNames.add(candidate);
+        return candidate;
+    };
 
     for (let i = 0; i < leftColKeys.length; i++) {
         const k = leftColKeys[i];
@@ -657,13 +756,8 @@ export function materializeJoinedDataFrame<R extends RowRecord = any>(
             const k = rightColKeys[i];
             if (shouldCoalesce && rightKeysSet.has(k)) continue;
 
-            let targetName: string;
-            if (allocatedNames.has(k)) {
-                targetName = resolveUniqueColumnName(k, rightSuffix);
-            } else {
-                targetName = k;
-                allocatedNames.add(k);
-            }
+            const targetName = allocatedNames.has(k) ? resolveUniqueColumnName(k, rightSuffix) : k;
+            allocatedNames.add(targetName);
 
             newColumns[targetName] = gatherColumnByIndices(rightCols[k], rightIndices);
             if (rightSchema[k]) outSchema[targetName] = rightSchema[k];

@@ -1,5 +1,5 @@
 import { ExprBase, derive } from "../ExprBase";
-import { kleeneUnary, evaluateExpression } from "../utils";
+import { kleeneUnary, kleeneBinary, evaluateExpression } from "../utils";
 import {
     isArrayOrTypedArray,
     getArrayStats,
@@ -34,6 +34,14 @@ export class ArrayExprNamespace {
         return derive(this.expr, kleeneUnary((v) => {
             return isArrayOrTypedArray(v) ? fn(v as any) : null;
         }));
+    }
+
+    _deriveArrayBinary(other: any, fn: (arr: any[] | AnyTypedArray, val: any) => any) {
+        const result = derive(this.expr, kleeneBinary(this.expr, other, (arr, val) => {
+            return isArrayOrTypedArray(arr) ? fn(arr as any, val) : null;
+        }));
+        result._binaryMeta = undefined;
+        return result;
     }
 
     /**
@@ -159,7 +167,7 @@ export class ArrayExprNamespace {
      * └───────────┴───────────┘
      */
     contains(item: any) {
-        return this._deriveArray((arr) => Array.prototype.includes.call(arr, item));
+        return this._deriveArrayBinary(item, (arr, val) => Array.prototype.includes.call(arr, val));
     }
 
     /**
@@ -217,7 +225,7 @@ export class ArrayExprNamespace {
      * └───────────┴──────┘
      */
     countMatches(item: any, options: UniqueArrayStatsOptions = {}) {
-        return this._deriveArray((arr) => getUniqueArrayStats(arr, options).frequencies.get(item) ?? 0);
+        return this._deriveArrayBinary(item, (arr, val) => getUniqueArrayStats(arr, options).frequencies.get(val) ?? 0);
     }
 
     /**
@@ -846,6 +854,7 @@ export class ArrayExprNamespace {
         return derive(this.expr, (vArray, columns) => {
             const height = vArray.length;
             const result = new Array(height);
+            const subColumns = Object.create(columns);
             for (let i = 0; i < height; i++) {
                 const val = vArray[i];
                 if (!isArrayOrTypedArray(val)) {
@@ -853,7 +862,7 @@ export class ArrayExprNamespace {
                     continue;
                 }
                 const subHeight = val.length;
-                const subColumns = { ...columns, [ELEMENT_MARKER]: val };
+                subColumns[ELEMENT_MARKER] = val;
                 const isGlobalAgg = expr._aggFn != null && (expr._partitionBy == null || expr._partitionBy.length === 0);
                 if (isGlobalAgg) {
                     const preOpsIdx = expr._groupingOpsIndex !== undefined ? expr._groupingOpsIndex : expr._ops.length;

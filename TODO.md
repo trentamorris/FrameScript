@@ -44,7 +44,7 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
   
 ### ⏱️ Inexact Asof Join (`df.join_asof`)
 - [x] **Asof Join (`df.join_asof(...)`)**:
-  * [x] Add `AsofJoinOptions` types interface in `src/dataframe/types.ts`.
+  * [x] Add `JoinAsofOptions` types interface in `src/dataframe/types.ts`.
   * [x] Add `join_asof` method declaration & signature to `DataFrame.ts` in `src/dataframe/dataframe.ts`.
   * [x] Add `alignAsofIndices` helper function in `src/dataframe/utils.ts` for index matching.
   * [x] Support `on`, `leftOn`, and `rightOn` key parameters.
@@ -242,7 +242,7 @@ The following list tracks the complete surface of Polars functionality to achiev
 - [ ] `/DataFrame/hash_rows`
 - [ ] `/DataFrame/interpolate`
 - [ ] `/DataFrame/iter_slices`
-- [ ] `/DataFrame/join_where`
+- [x] `/DataFrame/join_where`
 - [ ] `/DataFrame/map_columns`
 - [ ] `/DataFrame/map_rows`
 - [ ] `/DataFrame/match_to_schema`
