@@ -15,7 +15,7 @@ const dfAgg = df.groupBy("dept").agg(
     $df.col("salary").mean().alias("avg_salary")
 );
 
-if (dfAgg.height !== 2) throw new Error("Groupby aggregation height mismatch");
+if (dfAgg.height !== 2) throw new Error("groupBy aggregation height mismatch");
 const collected = dfAgg.toDicts();
 
 const hrRow = collected.find(r => r.dept === "HR");

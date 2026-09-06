@@ -8,8 +8,7 @@
 [![Universal Runtimes](https://img.shields.io/badge/Runtimes-Node%20%7C%20Bun%20%7C%20Deno%20%7C%20Browser-brightgreen?style=for-the-badge)](#)
 [![License](https://img.shields.io/npm/l/df-script?style=for-the-badge&color=informational)](LICENSE)
 [![Donate](https://img.shields.io/badge/Donate-Support-green?style=for-the-badge)](DONATIONS.md)
-
-**df-script** is a blazing-fast, **zero-dependency**, expression-based DataFrame and data manipulation library for **TypeScript** and **JavaScript**. Heavily inspired by modern columnar engines like **Polars** and **Pandas**, `df-script` brings declarative, lazy-compiled columnar analytical queries and ETL workflows directly to JavaScript environments (Node.js, Browser, Bun, Deno, and Edge Workers).
+**df-script** is a blazing-fast, **zero-dependency**, expression-based DataFrame and data manipulation library for **TypeScript** and **JavaScript**. Heavily inspired by modern columnar engines like **Polars** and **Pandas**, `df-script` brings declarative, high-performance columnar analytical queries and ETL workflows directly to JavaScript environments (Node.js, Browser, Bun, Deno, and Edge Workers).
 
 With cache-optimized columnar storage and flat memory layout under the hood, `df-script` eliminates garbage collection thrashing caused by intermediate array allocations in chained `.map()`, `.filter()`, and `.reduce()` calls.
 

@@ -171,25 +171,11 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
 - [x] **Datatype & Pattern Selectors (`$df.col(DataType)` / `$df.col(RegExp)` / `cs.*`)**:
   * [x] Allow selecting columns dynamically by concrete/abstract data types (`$df.Numeric`, `$df.Temporal`, `$df.Float64`, `$df.Struct`, `$df.Array`) in `select()` and `with_columns()`.
   * [x] Allow selecting columns dynamically by RegExp patterns (`df.select(/^prefix_/)`, `$df.col(/_suffix$/)`) with full transformation expression support.
-
-### 🧠 Lazy Execution & Query Optimization (`LazyFrame`)
-- [ ] **`df.lazy()` & `LazyFrame` API**:
-  * Implement `.lazy()` to transition a `DataFrame` into a `LazyFrame`, building a Directed Acyclic Graph (DAG) query plan instead of executing operations eagerly.
-- [ ] **Predicate & Projection Pushdown Optimizations**:
-  * **Predicate Pushdown**: Push `filter()` expressions up the DAG (and into `read_csv`/`read_json` readers) so unneeded rows are filtered out before transformations or joins occur.
-  * **Projection Pushdown**: Inspect final `select()` columns and prune unused columns early in the DAG to minimize memory allocations.
-- [ ] **Query Execution & Inspection (`.collect()`, `.explain()`)**:
-  * **`.collect()`**: Execute the optimized logical/physical query plan DAG and return a concrete `DataFrame`.
-  * **`df.explain({ optimized?: boolean })`**: Format and return a text/tree string representation of the unoptimized or optimized query plan DAG, allowing developers to inspect predicate pushdown, projection pushdown, and join order optimizations.
-  * **`expr.explain()`**: Format and output a detailed tree representation of `ColumnExpression` ASTs, allowing developers to inspect complex nested operations, alias bindings, and expression DAGs.
-
-
-
 ## 🔮 Future / Backlog Scope (V2.0+)
 
 ### ⚡ Performance & Interoperability
 - [ ] **Primitive Fast-Path Row Hashing**:
-  * Optimize `computeRowHash` and `toCanonicalString` to use numeric hashing algorithms (e.g., FNV-1a or 64-bit integer mixing) when keys consist strictly of primitive types (integers, strings, booleans), bypassing string allocations during large `DataFrame.join()` and `.groupby()` operations.
+  * Optimize `computeRowHash` and `toCanonicalString` to use numeric hashing algorithms (e.g., FNV-1a or 64-bit integer mixing) when keys consist strictly of primitive types (integers, strings, booleans), bypassing string allocations during large `DataFrame.join()` and `.groupBy()` operations.
 - [ ] **Apache Arrow & IPC Interoperability**:
   * Provide lightweight serialization adapters for Apache Arrow IPC memory format, facilitating zero-copy data exchange with Python Polars, PyArrow, and browser WebAssembly runtimes.
 
@@ -257,7 +243,6 @@ The following list tracks the complete surface of Polars functionality to achiev
 - [ ] `/DataFrame/interpolate`
 - [ ] `/DataFrame/iter_slices`
 - [ ] `/DataFrame/join_where`
-- [ ] `/DataFrame/lazy`
 - [ ] `/DataFrame/map_columns`
 - [ ] `/DataFrame/map_rows`
 - [ ] `/DataFrame/match_to_schema`

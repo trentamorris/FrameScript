@@ -151,7 +151,7 @@ try {
         throw new Error(`Expected is_valid_range to be Boolean, got ${(windowRes.schema["is_valid_range"] as any)?.name}`);
     }
 
-    // 9. Grouped Aggregations (groupby.agg) with Type Deduction
+    // 9. Grouped Aggregations (groupBy.agg) with Type Deduction
     const groupDf = windowDf.groupBy("dept").agg(
         // Duration max/min/sum inside groupBy
         $df.col("shift_dur").max().alias("max_shift"),
