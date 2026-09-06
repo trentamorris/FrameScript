@@ -6204,7 +6204,7 @@
     "toDataframe": {
       "desc": "Converts group keys back into a single distinct DataFrame without aggregations.",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").toDataframe()\nshape: (2, 1)\n┌───────┐\n│ group │\n├───────┤\n│ A     │\n│ B     │\n└───────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").toDataframe()\r\nshape: (2, 1)\r\n┌───────┐\r\n│ group │\r\n├───────┤\r\n│ A     │\r\n│ B     │\r\n└───────┘"
       ],
       "returns": "DataFrame",
       "namespace": "df",
@@ -6217,7 +6217,7 @@
     "agg": {
       "desc": "Aggregates grouped partitions using aggregation column expressions.",
       "examples": [
-        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").sum().alias(\"sum_val\"))\nshape: (2, 2)\n┌───────┬─────────┐\n│ group │ sum_val │\n├───────┼─────────┤\n│ A     │ 30      │\n│ B     │ 30      │\n└───────┴─────────┘"
+        ">>> const df = $df.data({ group: [\"A\", \"A\", \"B\"], val: [10, 20, 30] })\n>>> df\nshape: (3, 2)\n┌───────┬─────┐\n│ group │ val │\n├───────┼─────┤\n│ A     │ 10  │\n│ A     │ 20  │\n│ B     │ 30  │\n└───────┴─────┘\n>>> df.groupBy(\"group\").agg($df.col(\"val\").sum().alias(\"sum_val\"))\r\nshape: (2, 2)\r\n┌───────┬─────────┐\r\n│ group │ sum_val │\r\n├───────┼─────────┤\r\n│ A     │ 30      │\r\n│ B     │ 30      │\r\n└───────┴─────────┘"
       ],
       "params": [
         {

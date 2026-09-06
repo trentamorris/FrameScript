@@ -38,7 +38,7 @@ function syncJSDocsInFiles(sourceFiles) {
         let changed = false;
 
         content = content.replace(tagRegex, (jsdoc) => {
-            return jsdoc.replace(/<!-- @?doc:([a-zA-Z0-9_]+) -->([\s\S]*?)(?=(\n\s*\* >>> (?:df\.[a-zA-Z0-9_$]|df1\.|df2\.|trades\.|quotes\.|\$df\.|\$col|\/\/)|$|\n\s*\* @|\*\/))/g, (match, key, tableContent) => {
+            return jsdoc.replace(/<!-- @?doc:([a-zA-Z0-9_]+) -->([\s\S]*?)(?=(\n\s*\* >>>|\n\s*\* @|\*\/))/g, (match, key, tableContent) => {
                 if (tableContent && tableContent.trim()) {
                     changed = true;
                     return `<!-- doc:${key} -->`;

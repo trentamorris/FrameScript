@@ -136,26 +136,26 @@ console.log(processedDf.toDicts());
 - `$df.data(dataRowsOrCols, schema?)`: Instantiates a new `DataFrame`.
 - `$df.readJson(content, options?)`: Reads JSON/NDJSON content into a new `DataFrame`.
 - `$df.readCsv(content, options?)`: Reads CSV content into a new `DataFrame` with automatic schema inference.
-- `$df.col(name)`: Creates a column reference expression.
+- `$df.col(selector)`: Creates a column reference expression by column name (`"a"`), multiple names (`["a", "b"]`), RegExp pattern (`/^user_/`), or DataType selector (`$df.Float64`, `$df.Numeric`).
 - `$df.all()`: Selects all columns in the DataFrame.
 - `$df.exclude(columns)`: Matches all columns except the specified ones.
 - `$df.coalesce(...exprs)`: Returns the first non-null value among columns or expressions.
 - `$df.lit(val)`: Explicitly wraps a raw value into a literal expression.
-- `$df.duration(options)`: Constructs a `Duration` expression (supporting days, hours, minutes, seconds, milliseconds, weeks).
+- `$df.duration(optionsOrString)`: Constructs a `Duration` expression from component options (`{ days: 1, hours: 12 }`) or compound duration strings (`"1d 12h 30m"`).
 - `$df.struct(fields)`: Constructs a nested struct object expression from named expressions or sibling columns.
 - `$df.when(predicate).then(value)...otherwise(value)`: Constructs a conditional `CASE WHEN` expression chain.
 - `$df.implode(column)`: Aggregates a column's rows or grouped values into a list.
 - `$df.seqRange(value, options?)`: Generates a sequence range of values.
 - `$df.element()`: References the current array element within an `.arr.eval(...)` expression.
-- `$df.DataType`: Direct access to the `DataTypeRegistry` for schema definitions.
+- `$df.Float64`, `$df.Int32`, `$df.Utf8`, etc.: Direct access to data types and constructors for schema definitions and type-based column selection.
 
 ---
 
 ## 🛠️ DataFrame API Reference
 
 ### 1. Transformations & Projection
-- **`select(...exprs)`**: Projects columns. Supports strings, `$df.col(...)` expressions, `$df.all()`, and `$df.col("struct").struct.unnest()`.
-- **`withColumns(...exprs)`**: Adds or overrides columns. Accepts expressions or an options object mapping keys to values/expressions.
+- **`select(...exprs)`**: Projects columns. Supports strings, `$df.col(...)` expressions, `$df.all()`, RegExp patterns (`/^prefix_/`), DataType selectors (`$df.Numeric`), and `$df.col("struct").struct.unnest()`.
+- **`withColumns(...exprs)`**: Adds or overrides columns. Accepts expressions, options mapping keys, RegExp patterns, or DataType selectors.
 - **`drop(...names)`**: Drops one or more columns from the DataFrame.
 - **`rename(mapping)`**: Renames columns using a `{ oldName: newName }` object.
 - **`explode(columns)`**: Unnests list-like columns into multiple rows, replicating other columns per list element.
@@ -176,7 +176,8 @@ console.log(processedDf.toDicts());
 - **`transpose(options?)`**: Transposes the DataFrame (swapping rows and columns).
 
 ### 4. Grouping & Aggregations
-- **`groupby(keys)`**: Groups data by one or more columns, returning a `GroupedData` object.
+- **`groupBy(keys)`**: Groups data by one or more columns, returning a `GroupedData` object.
+- **`groupByDynamic(indexColumn, options)`**: Dynamic time-series / numeric window grouping over tumbling, sliding, or rolling temporal aggregation intervals (`every`, `period`, `offset`, `closed`, `label`, `startBy`, `includeBoundaries`, `by`).
 - **`GroupedData.agg(...exprs)`**: Computes aggregations on grouped data (e.g. `$df.col("sales").sum()`).
 
 ### 5. Reshaping & Joining
