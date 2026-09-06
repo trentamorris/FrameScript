@@ -1,4 +1,13 @@
-import { DataType as BaseDataType } from "./DataType";
+import {
+    DataType as BaseDataType,
+    NumericDataType,
+    IntegerDataType,
+    SignedIntegerType,
+    UnsignedIntegerType,
+    FloatDataType,
+    TemporalDataType,
+    NestedDataType
+} from "./DataType";
 import {
     Int8,
     Int16,
@@ -25,6 +34,9 @@ import {
 } from "./types";
 
 export { BaseDataType as DataType };
+export { Boolean, Date, Object, Array };
+export * from "./types";
+export * from "./DataType";
 
 export const DataTypeRegistry = {
     Int8,
@@ -48,9 +60,12 @@ export const DataTypeRegistry = {
     Object,
     Null,
     Array,
-    Struct
+    Struct,
+    Numeric: NumericDataType,
+    Integer: IntegerDataType,
+    SignedInteger: SignedIntegerType,
+    UnsignedInteger: UnsignedIntegerType,
+    Float: FloatDataType,
+    Temporal: TemporalDataType,
+    Nested: NestedDataType
 };
-
-export { Boolean, Date, Object, Array };
-export * from "./types";
-export * from "./DataType";

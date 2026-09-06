@@ -8,7 +8,7 @@ const df = $df.data([
     { date: "2024-02-15" },
     { date: "2023-03-15" },
     { date: null }
-], { date: $df.DataType.Date });
+], { date: $df.Date });
 
 const res = df.select([$df.col("date").dt.monthEnd().alias("m_end")]).toDicts() as any[];
 if (res[0].m_end.toISOString() !== "2024-02-29T00:00:00.000Z") throw new Error("2024 Feb end expected 2024-02-29");

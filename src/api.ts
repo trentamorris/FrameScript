@@ -12,23 +12,23 @@ function data(data: any[] | ColumnDict, schema?: DataFrameSchema): DataFrame<any
 }
 
 export const $df = {
-    data,
-    col: <T = any>(
-        name: keyof T | string | (keyof T | string)[] | DataType | Function | (DataType | Function)[]
-    ) => new ColumnExpr<T>(name),
     all,
-    exclude,
     coalesce,
+    col: <T = any>(
+        name: keyof T | string | (keyof T | string)[] | RegExp | RegExp[] | DataType | Function | (DataType | Function)[]
+    ) => new ColumnExpr<T>(name),
     concat,
-    readJson,
-    readCsv,
-    lit,
-    when,
-    implode,
-    seqRange,
-    element,
-    struct,
+    data,
     duration,
-    DataType: DataTypeRegistry
+    element,
+    exclude,
+    implode,
+    lit,
+    readCsv,
+    readJson,
+    seqRange,
+    struct,
+    when,
+    ...DataTypeRegistry,
 };
-
+

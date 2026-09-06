@@ -40,6 +40,27 @@ try {
         throw new Error("Dynamic days duration failed: " + JSON.stringify(resDyn));
     }
 
+    // 3. String Duration Parsing & Fast-path literals
+    const resStrings = df.select([
+        $df.duration("1d 12h").alias("str_compound"),
+        $df.duration("500ms").alias("str_ms"),
+        $df.duration("2w").alias("str_weeks")
+    ]).toDicts()[0];
+
+    if (resStrings["str_compound"] !== 86400000 + 43200000) throw new Error("String duration 1d 12h failed");
+    // 4. Constant Folding & Mixed Column + Literal Durations
+    const resFolded = df.select([
+        $df.duration({ days: 1, hours: 12 }).alias("folded_const"),
+        $df.duration({ days: $df.col("days_col"), hours: 6 }).alias("mixed_dyn")
+    ]).toDicts();
+
+    if (resFolded[0].folded_const !== 86400000 + 43200000) {
+        throw new Error("Folded constant duration failed: " + resFolded[0].folded_const);
+    }
+    if (resFolded[0].mixed_dyn !== 86400000 + 21600000) {
+        throw new Error("Mixed dynamic + literal duration failed: " + resFolded[0].mixed_dyn);
+    }
+
     console.log("✓ $df.duration() tests passed successfully!");
 } catch (err) {
     console.error("❌ $df.duration() tests failed:", err);

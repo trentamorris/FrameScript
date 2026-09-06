@@ -21,7 +21,7 @@ const df = $df.data({
         d1,
         null
     ]
-}, { date: $df.DataType.Datetime });
+}, { date: $df.Datetime });
 
 const res = df.select([$df.col("date").dt.century().alias("c")]).toDicts() as any[];
 if (res[0].c !== 21) throw new Error("2026 expected century 21");

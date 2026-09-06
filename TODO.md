@@ -158,6 +158,19 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
 - [x] **Decompose Column Expression Mixin Test Suites into 1:1 Atomic Test Files**:
   * Mirrored `_tests/dataframe` structure across `ArrayExpr`, `StandardExpr`, `StringExpr`, `StructExpr`, and `TemporalExpr`.
 
+### 🗂️ Recommended DataFrame Operations
+- [x] **Dynamic Time-Series Grouping (`df.groupByDynamic()`)**:
+  * [x] Implement `.groupByDynamic(index_column, { every, period, offset, label, closed, includeBoundaries, by, startBy, checkSorted })` for time-series windowing (tumbling, sliding, and rolling temporal aggregation buckets).
+- [x] **Temporal Duration Construction & Parsing (`$df.duration()`, `utils/duration.ts`)**:
+  * [x] Multi-token compound string parsing (`"1d 12h 30m"`, `"-1h 30m"`, scientific notation `"1.5e3ms"`, micro-sign `"µs"` / `"μs"`).
+
+### 🔢 Expressions & Transformations Missing Matrix
+- [x] **Select Columns by DataType (`$df.col(DataType)` / `pl.col(pl.Float64)`)**:
+  * [x] Allow passing `DataType` instances (or constructors) directly into `col()` (e.g. `$df.col(DataTypeRegistry.Float64)`, `$df.col(DataTypeRegistry.Numeric)`).
+  * [x] Expand the column selector engine in `select()` and `with_columns()` to match and expand all DataFrame columns possessing the matching datatype, applying expressions uniformly across all matching columns.
+- [x] **Datatype & Pattern Selectors (`$df.col(DataType)` / `$df.col(RegExp)` / `cs.*`)**:
+  * [x] Allow selecting columns dynamically by concrete/abstract data types (`$df.Numeric`, `$df.Temporal`, `$df.Float64`, `$df.Struct`, `$df.Array`) in `select()` and `with_columns()`.
+  * [x] Allow selecting columns dynamically by RegExp patterns (`df.select(/^prefix_/)`, `$df.col(/_suffix$/)`) with full transformation expression support.
 
 ### 🧠 Lazy Execution & Query Optimization (`LazyFrame`)
 - [ ] **`df.lazy()` & `LazyFrame` API**:
@@ -169,6 +182,10 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
   * **`.collect()`**: Execute the optimized logical/physical query plan DAG and return a concrete `DataFrame`.
   * **`df.explain({ optimized?: boolean })`**: Format and return a text/tree string representation of the unoptimized or optimized query plan DAG, allowing developers to inspect predicate pushdown, projection pushdown, and join order optimizations.
   * **`expr.explain()`**: Format and output a detailed tree representation of `ColumnExpression` ASTs, allowing developers to inspect complex nested operations, alias bindings, and expression DAGs.
+
+
+
+## 🔮 Future / Backlog Scope (V2.0+)
 
 ### ⚡ Performance & Interoperability
 - [ ] **Primitive Fast-Path Row Hashing**:
@@ -188,27 +205,7 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
 - [ ] **Dedicated Primitive `TimeType` & `DateType` Storage**:
   * Introduce dedicated low-level `TimeType` (nanoseconds/milliseconds since midnight) and 32-bit integer `DateType` (days since epoch) to match Polars native primitive types beyond combined JS `Date` objects.
 
-### 🗂️ Recommended DataFrame Operations
-- [ ] **Dynamic Time-Series Grouping (`df.group_by_dynamic()`)**:
-  * Implement `.group_by_dynamic(index_column, { every, period, offset, label, closed })` for time-series windowing (e.g. tumbling & sliding temporal aggregation buckets).
-- [ ] **Rolling Window Grouping (`df.group_by_rolling()`)**:
-  * Implement `.group_by_rolling(index_column, { period, offset, closed })` for continuous rolling window aggregations on sorted time/numeric series.
-- [ ] **Random Sampling (`df.sample()`)**:
-  * Implement `.sample(nOrFraction, options)` to randomly select $N$ rows or a fractional percentage of rows (with optional seed and replacement), useful for ML train/test splitting and dataset exploration.
 
-### 🔢 Expressions & Transformations Missing Matrix
-- [ ] **Select Columns by DataType (`$df.col(DataType)` / `pl.col(pl.Float64)`)**:
-  * Allow passing `DataType` instances (or constructors) directly into `col()` (e.g. `$df.col(DataTypeRegistry.Float64)`, `$df.col(DataTypeRegistry.Numeric)`).
-  * Expand the column selector engine in `select()` and `with_columns()` to match and expand all DataFrame columns possessing the matching datatype, applying expressions uniformly across all matching columns.
-- [ ] **Lead/Lag & Difference (`col.shift()`, `col.diff()`)**:
-  * Implement `.shift(n, fill_value)` for lead/lag calculations and `.diff(n)` for step differences across rows.
-- [ ] **Ranking (`col.rank()`)**:
-  * Implement `.rank(method, descending)` supporting dense, ordinal, min, max, and average rank methods.
-- [ ] **Datatype & Pattern Selectors (`cs.numeric()`, `cs.string()`, `cs.matches()`)**:
-  * Add column selector helpers (`cs.*`) to allow selecting columns dynamically by data type or regex matching in `select()` and `with_columns()`.
-
-
-## 🔮 Future / Backlog Scope (V2.0+)
 
 ### 🐻 Complete Polars Functionality Parity & Migration Backlog
 The following list tracks the complete surface of Polars functionality to achieve 100% parity where applicable to JS/TS.
@@ -413,6 +410,7 @@ The following list tracks the complete surface of Polars functionality to achiev
 - [x] `/Expr/rollingSumBy` (`.rolling(w, $df.col("by").sum())`)
 - [x] `/Expr/rollingVar` (`.rolling(w, $df.col(...).variance())` / `.rollingStd(w).pow(2)`)
 - [x] `/Expr/rollingVarBy` (`.rolling(w, $df.col("by").variance())`)
+- [x] `/Expr/rank` (`.rank({ dense })`)
 - [ ] `/Expr/sample`
 - [ ] `/Expr/searchSorted`
 - [ ] `/Expr/setSorted`

@@ -11,7 +11,7 @@ const df = $df.data([
     { date: "2023-05-15T00:00:00Z" }, // non-leap -> false
     { date: "2024-01-01T03:00:00Z" }, // 2024 in UTC, but 2023-12-31 in NY
     { date: null }
-], { date: $df.DataType.Datetime });
+], { date: $df.Datetime });
 
 const res = df.select([
     $df.col("date").dt.isLeapYear().alias("leap_utc"),

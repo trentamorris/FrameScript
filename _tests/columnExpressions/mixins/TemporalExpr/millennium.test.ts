@@ -12,7 +12,7 @@ const df = $df.data({
         d1000,
         null
     ]
-}, { date: $df.DataType.Datetime });
+}, { date: $df.Datetime });
 
 const res = df.select([$df.col("date").dt.millennium().alias("m")]).toDicts() as any[];
 if (res[0].m !== 3) throw new Error("2026 expected millennium 3");

@@ -7,7 +7,7 @@ console.log("Running TemporalExpr.time tests...");
 const df = $df.data([
     { ts: "2026-05-25T10:37:16.123Z" },
     { ts: null }
-], { ts: $df.DataType.Datetime });
+], { ts: $df.Datetime });
 
 const res = df.select([$df.col("ts").dt.time().alias("t")]).toDicts() as any[];
 if (res[0].t !== "10:37:16.123") throw new Error("time extraction mismatch: " + res[0].t);

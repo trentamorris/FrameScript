@@ -70,6 +70,36 @@ export interface IExpr {
 
 export type TimeUnit = "s" | "ms" | "us" | "ns";
 export type DatetimeTimeUnit = "ms" | "us" | "ns";
+export type DurationUnit = "ns" | "us" | "ms" | "s" | "m" | "h" | "d" | "w" | "mo" | "q" | "y" | "i";
+
+
+export interface DurationInterval {
+    months: number;
+    days: number;
+    ms: number;
+    indexUnits: number;
+    isCalendar: boolean;
+    isIndex: boolean;
+}
+
+export interface DurationOptions {
+    weeks?: IntoExpr | number;
+    days?: IntoExpr | number;
+    hours?: IntoExpr | number;
+    minutes?: IntoExpr | number;
+    seconds?: IntoExpr | number;
+    milliseconds?: IntoExpr | number;
+    microseconds?: IntoExpr | number;
+    nanoseconds?: IntoExpr | number;
+}
+
+export interface ParseDurationStringOptions {
+    to?: DurationUnit;
+}
+
+export interface ToDurationOptions extends ParseDurationStringOptions {
+    fallback?: number;
+}
 
 export interface StrptimeOptions {
     format: string;

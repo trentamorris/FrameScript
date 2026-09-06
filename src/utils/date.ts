@@ -60,7 +60,7 @@ function _resolveTimeZone(tz?: string): string {
     return _isValidTimeZone(resolved) ? resolved : "UTC";
 }
 
-export function _createUTCDate(
+export function createUTCDate(
     year: number,
     monthZeroIndexed = 0,
     day = 1,
@@ -119,7 +119,7 @@ export function _getDateTimeParts(d: Date, timeZone?: string): DateTimeParts {
     if (hour === 24) hour = 0;
 
     const ms = Math.round(parseFloat("0." + values.fractionalSecond) * 1000) || 0;
-    const dayOfWeek = _createUTCDate(year, month - 1, day).getUTCDay();
+    const dayOfWeek = createUTCDate(year, month - 1, day).getUTCDay();
 
     return {
         year,
@@ -137,7 +137,7 @@ export function _getDateTimeParts(d: Date, timeZone?: string): DateTimeParts {
 function _getTimeZoneOffsetMinutes(d: Date, resolvedTz: string): number {
     if (resolvedTz.toUpperCase() === "UTC") return 0;
     const target = _getDateTimeParts(d, resolvedTz);
-    const targetMs = _createUTCDate(target.year, target.month - 1, target.day, target.hour, target.minute, target.second, target.ms).getTime();
+    const targetMs = createUTCDate(target.year, target.month - 1, target.day, target.hour, target.minute, target.second, target.ms).getTime();
     return Math.round((targetMs - d.getTime()) / MS_PER_MINUTE);
 }
 
@@ -159,7 +159,7 @@ export function toValidDate(input: unknown, options?: { dateOnly?: boolean }): D
     if (!d || !isValidDateObj(d)) return null;
 
     if (options?.dateOnly) {
-        return _createUTCDate(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+        return createUTCDate(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
     }
 
     return d;
@@ -211,13 +211,13 @@ function _normalizeEpochToMs(n: number | bigint): number {
 
 function _getOrdinalDay(d: Date): number | null {
     if (!isValidDateObj(d)) return null;
-    const utcDate = _createUTCDate(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()).getTime();
-    const start = _createUTCDate(d.getUTCFullYear(), 0, 1).getTime();
+    const utcDate = createUTCDate(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()).getTime();
+    const start = createUTCDate(d.getUTCFullYear(), 0, 1).getTime();
     return Math.floor((utcDate - start) / MS_PER_DAY) + 1;
 }
 
 function _getISO(y: number, m: number, d: number, field: "week" | "year" = "week"): number | null {
-    const date = _createUTCDate(y, m - 1, d);
+    const date = createUTCDate(y, m - 1, d);
     date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
     if (field === "year") return date.getUTCFullYear();
     const ordinal = _getOrdinalDay(date);
@@ -272,7 +272,7 @@ const _DIRECTIVES: Record<string, DateDirective> = {
     "b": { _key: "b", _format: (d, locale, tz) => d.toLocaleDateString(locale, { month: "short", timeZone: tz }) },
     "j": {
         _key: "j",
-        _format: (_d, _locale, _tz, parts) => String(_getOrdinalDay(_createUTCDate(parts.year, parts.month - 1, parts.day)) ?? 1).padStart(3, "0"),
+        _format: (_d, _locale, _tz, parts) => String(_getOrdinalDay(createUTCDate(parts.year, parts.month - 1, parts.day)) ?? 1).padStart(3, "0"),
         _parseRegex: "\\d{3}",
         _parseField: "day",
         _parseNormalize: (s) => parseInt(s, 10)
@@ -434,13 +434,13 @@ export function strptime(
 
     if (hasOrdinalDay) {
         if (parts.day < 1) return null;
-        const baseDate = _createUTCDate(parts.year, 0, parts.day);
+        const baseDate = createUTCDate(parts.year, 0, parts.day);
         if (baseDate.getUTCFullYear() !== parts.year) return null;
         parts.month = baseDate.getUTCMonth() + 1;
         parts.day = baseDate.getUTCDate();
     }
 
-    let d = _createUTCDate(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second, parts.ms);
+    let d = createUTCDate(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second, parts.ms);
     if (!isValidDateObj(d)) return null;
 
     if (d.getUTCFullYear() !== parts.year ||
@@ -501,7 +501,7 @@ export function offsetDay(
 
     if (7 - excludeWeekdays.length <= 0) throw new ComputeError("All weekdays are excluded; cannot offset.");
 
-    const initialDate = _createUTCDate(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+    const initialDate = createUTCDate(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
     const currentDate = new Date(initialDate.getTime());
 
     if (roll && _isDateExcluded(currentDate, excludeWeekdays, holidayTimestamps)) {
@@ -535,7 +535,7 @@ export function isBusinessDay(
     if (!isValidDateObj(d)) return null;
     const excludeWeekdays = options.excludeWeekdays ?? [0, 6];
     const holidayTimestamps = _resolveHolidaySet(options.holidays, excludeWeekdays);
-    const dUTC = _createUTCDate(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+    const dUTC = createUTCDate(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
     return !_isDateExcluded(dUTC, excludeWeekdays, holidayTimestamps);
 }
 
@@ -555,8 +555,8 @@ export function getTimeZoneOffset(
         const localParts = _getDateTimeParts(d, tz);
         const year = localParts.year;
 
-        const janOffset = _getTimeZoneOffsetMinutes(_createUTCDate(year, 0, 1), tz);
-        const julOffset = _getTimeZoneOffsetMinutes(_createUTCDate(year, 6, 1), tz);
+        const janOffset = _getTimeZoneOffsetMinutes(createUTCDate(year, 0, 1), tz);
+        const julOffset = _getTimeZoneOffsetMinutes(createUTCDate(year, 6, 1), tz);
         const baseOffset = Math.min(janOffset, julOffset);
 
         offsetMinutes = type === "daylightSavingTime"
@@ -587,12 +587,12 @@ export function replaceDateComponents(
     const p = _getDateTimeParts(d, opts?.timeZone ?? undefined);
     const year = opts?.year ?? p.year;
     const month = _resolveOffset(opts?.month, p.month, 12, true) - 1;
-    const daysInMonth = _createUTCDate(year, month + 1, 0).getUTCDate();
+    const daysInMonth = createUTCDate(year, month + 1, 0).getUTCDate();
     const day = _resolveOffset(opts?.day, p.day, daysInMonth, true);
     const hour = _resolveOffset(opts?.hour, p.hour, 24);
     const minute = _resolveOffset(opts?.minute, p.minute, 60);
     const second = _resolveOffset(opts?.second, p.second, 60);
     const ms = _resolveOffset(opts?.ms, p.ms, 1000);
 
-    return _createUTCDate(year, month, day, hour, minute, second, ms);
+    return createUTCDate(year, month, day, hour, minute, second, ms);
 }

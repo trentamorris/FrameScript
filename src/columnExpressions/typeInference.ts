@@ -1,4 +1,4 @@
-import type { IExpr, DataFrameSchema, RegisteredDataType, DatetimeTimeUnit } from "../types";
+import type { IExpr, DataFrameSchema, RegisteredDataType, DatetimeTimeUnit, ColumnData } from "../types";
 import {
     DatetimeType,
     DurationType,
@@ -92,7 +92,7 @@ export function resolveOperandType(
 export function deduceBinaryType(
     leftType: RegisteredDataType | undefined,
     rightType: RegisteredDataType | undefined,
-    colSample?: any[]
+    colSample?: ColumnData | any[]
 ): RegisteredDataType | undefined {
     if (!leftType || !rightType) return undefined;
 
@@ -172,7 +172,7 @@ export function deduceBinaryType(
 export function resolveExprOutputType(
     expr: IExpr,
     schema: DataFrameSchema,
-    colSample?: any[]
+    colSample?: ColumnData | any[]
 ): RegisteredDataType | undefined {
     if (!expr) return undefined;
 

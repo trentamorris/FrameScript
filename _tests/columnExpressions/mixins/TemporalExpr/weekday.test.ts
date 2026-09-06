@@ -8,7 +8,7 @@ const df = $df.data([
     { date: "2024-02-29" }, // Thursday -> 4
     { date: "2027-01-02" }, // Saturday -> 6
     { date: null }
-], { date: $df.DataType.Date });
+], { date: $df.Date });
 
 const res = df.select([$df.col("date").dt.weekday().alias("wd")]).toDicts() as any[];
 if (res[0].wd !== 4) throw new Error("Thursday expected weekday 4");

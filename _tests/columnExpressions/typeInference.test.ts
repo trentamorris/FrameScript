@@ -16,8 +16,8 @@ try {
     }, {
         start_dt: new DatetimeType("ms"),
         end_dt: new DatetimeType("ms"),
-        start_d: $df.DataType.Date,
-        end_d: $df.DataType.Date,
+        start_d: $df.Date,
+        end_d: $df.Date,
         offset_ms: new DurationType("ms")
     });
 
@@ -124,7 +124,7 @@ try {
         ],
         shift_dur: [3600000, 7200000, 1800000, 3600000]
     }, {
-        dept: $df.DataType.Utf8,
+        dept: $df.Utf8,
         start_dt: new DatetimeType("ms"),
         end_dt: new DatetimeType("ms"),
         shift_dur: new DurationType("ms")
@@ -303,9 +303,9 @@ try {
         float_val: [1.5, 2.5],
         big_val: [100n, 200n]
     }, {
-        int_val: $df.DataType.Int32,
-        float_val: $df.DataType.Float64,
-        big_val: $df.DataType.Int64
+        int_val: $df.Int32,
+        float_val: $df.Float64,
+        big_val: $df.Int64
     });
 
     const numericRes = numericDf.withColumns(
@@ -334,9 +334,9 @@ try {
             { name: "Bob", age: 25 }
         ]
     }, {
-        user: $df.DataType.Struct({
-            name: $df.DataType.Utf8,
-            age: $df.DataType.Int32
+        user: $df.Struct({
+            name: $df.Utf8,
+            age: $df.Int32
         })
     });
 
@@ -357,8 +357,8 @@ try {
         grp: ["A", "A", "B", "B"],
         val: [10, 20, 30, 40]
     }, {
-        grp: $df.DataType.Utf8,
-        val: $df.DataType.Int32
+        grp: $df.Utf8,
+        val: $df.Int32
     });
 
     const arrayGrouped = arrayDf.groupBy("grp").agg(
@@ -378,8 +378,8 @@ try {
         end_t: ["09:00:00.000", "13:30:00.000"],
         shift_dur: [1800000, 3600000]
     }, {
-        start_t: $df.DataType.Time,
-        end_t: $df.DataType.Time,
+        start_t: $df.Time,
+        end_t: $df.Time,
         shift_dur: new DurationType("ms")
     });
 
@@ -397,8 +397,8 @@ try {
         dec_val: [10.5, 20.25],
         f32_val: [1.2, 2.4]
     }, {
-        dec_val: $df.DataType.Decimal(10, 2),
-        f32_val: $df.DataType.Float32
+        dec_val: $df.Decimal(10, 2),
+        f32_val: $df.Float32
     });
 
     const decRes = decDf.withColumns(
@@ -416,9 +416,9 @@ try {
         last_name: ["Doe", "Smith"],
         bin_data: [new Uint8Array([1, 2]), new Uint8Array([3, 4])]
     }, {
-        first_name: $df.DataType.Utf8,
-        last_name: $df.DataType.Utf8,
-        bin_data: $df.DataType.Binary
+        first_name: $df.Utf8,
+        last_name: $df.Utf8,
+        bin_data: $df.Binary
     });
 
     const strRes = strDf.withColumns(
@@ -440,10 +440,10 @@ try {
         u32: [1000000, 2000000],
         u64: [10000000000n, 20000000000n]
     }, {
-        u8: $df.DataType.UInt8,
-        u16: $df.DataType.UInt16,
-        u32: $df.DataType.UInt32,
-        u64: $df.DataType.UInt64
+        u8: $df.UInt8,
+        u16: $df.UInt16,
+        u32: $df.UInt32,
+        u64: $df.UInt64
     });
 
     const uintRes = uintDf.withColumns(
@@ -462,7 +462,7 @@ try {
             [[5, 6], [7, 8]]
         ]
     }, {
-        matrix: $df.DataType.Array($df.DataType.Array($df.DataType.Int32))
+        matrix: $df.Array($df.Array($df.Int32))
     });
 
     const nestedArrRes = nestedArrDf.withColumns(
@@ -482,8 +482,8 @@ try {
         val: [null, 42],
         fallback: [100, 200]
     }, {
-        val: $df.DataType.Int32,
-        fallback: $df.DataType.Int32
+        val: $df.Int32,
+        fallback: $df.Int32
     });
 
     const nullRes = nullDf.withColumns(
@@ -501,10 +501,10 @@ try {
         i32: [100000, 200000],
         i64: [10000000000n, 20000000000n]
     }, {
-        i8: $df.DataType.Int8,
-        i16: $df.DataType.Int16,
-        i32: $df.DataType.Int32,
-        i64: $df.DataType.Int64
+        i8: $df.Int8,
+        i16: $df.Int16,
+        i32: $df.Int32,
+        i64: $df.Int64
     });
 
     const intRankRes = intRankDf.withColumns(
@@ -534,10 +534,10 @@ try {
         u32: [100000, 200000],
         u64: [10000000000n, 20000000000n]
     }, {
-        u8: $df.DataType.UInt8,
-        u16: $df.DataType.UInt16,
-        u32: $df.DataType.UInt32,
-        u64: $df.DataType.UInt64
+        u8: $df.UInt8,
+        u16: $df.UInt16,
+        u32: $df.UInt32,
+        u64: $df.UInt64
     });
 
     const uintRankRes = uintRankDf.withColumns(
@@ -562,9 +562,9 @@ try {
         f32_b: [3.5, 4.5],
         f64: [10.25, 20.75]
     }, {
-        f32_a: $df.DataType.Float32,
-        f32_b: $df.DataType.Float32,
-        f64: $df.DataType.Float64
+        f32_a: $df.Float32,
+        f32_b: $df.Float32,
+        f64: $df.Float64
     });
 
     const floatRes = floatDf.withColumns(
@@ -583,7 +583,7 @@ try {
     const objDf = $df.data({
         raw_obj: [{ foo: "bar" }, { foo: "baz" }]
     }, {
-        raw_obj: $df.DataType.Object
+        raw_obj: $df.Object
     });
 
     const objRes = objDf.withColumns(
@@ -601,10 +601,10 @@ try {
         str_col: ["Hello", "World"],
         other_num: [5, 15]
     }, {
-        i64_col: $df.DataType.Int64,
-        i32_col: $df.DataType.Int32,
-        str_col: $df.DataType.Utf8,
-        other_num: $df.DataType.Int32
+        i64_col: $df.Int64,
+        i32_col: $df.Int32,
+        str_col: $df.Utf8,
+        other_num: $df.Int32
     });
 
     const numericArgRes = numericArgDf.withColumns(
@@ -653,8 +653,8 @@ try {
         start_t: ["08:30:00.000", "09:00:00.000"],
         end_t: ["10:30:00.000", "17:00:00.000"]
     }, {
-        start_t: $df.DataType.Time,
-        end_t: $df.DataType.Time
+        start_t: $df.Time,
+        end_t: $df.Time
     });
 
     const edgeTimeRes = edgeTimeDf.withColumns(
@@ -683,9 +683,9 @@ try {
         u16_val: [500, 1000],
         u32_val: [100000, 200000]
     }, {
-        i8_val: $df.DataType.Int8,
-        u16_val: $df.DataType.UInt16,
-        u32_val: $df.DataType.UInt32
+        i8_val: $df.Int8,
+        u16_val: $df.UInt16,
+        u32_val: $df.UInt32
     });
 
     const mixedSignRes = mixedSignDf.withColumns(
@@ -706,9 +706,9 @@ try {
         i32_col: [10, 20],
         f64_col: [1.5, 2.5]
     }, {
-        dec_col: $df.DataType.Decimal(10, 2),
-        i32_col: $df.DataType.Int32,
-        f64_col: $df.DataType.Float64
+        dec_col: $df.Decimal(10, 2),
+        i32_col: $df.Int32,
+        f64_col: $df.Float64
     });
 
     const edgeDecimalRes = edgeDecimalDf.withColumns(
@@ -727,7 +727,7 @@ try {
     const edgeBinDf = $df.data({
         raw_bin: [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])]
     }, {
-        raw_bin: $df.DataType.Binary
+        raw_bin: $df.Binary
     });
 
     const edgeBinRes = edgeBinDf.withColumns(
@@ -761,9 +761,9 @@ try {
         i64_col: [1000000000n, 2000000000n],
         str: ["a", "b"]
     }, {
-        num: $df.DataType.Int32,
-        i64_col: $df.DataType.Int64,
-        str: $df.DataType.Utf8
+        num: $df.Int32,
+        i64_col: $df.Int64,
+        str: $df.Utf8
     });
 
     const boxedRes = boxedDf.withColumns(
@@ -790,7 +790,7 @@ try {
     const typedArrDf = $df.data({
         cat: ["A", "B"]
     }, {
-        cat: $df.DataType.Utf8
+        cat: $df.Utf8
     });
 
     const typedArrRes = typedArrDf.withColumns(
@@ -829,7 +829,7 @@ try {
     const arrLitDf = $df.data({
         flag: [true, false]
     }, {
-        flag: $df.DataType.Boolean
+        flag: $df.Boolean
     });
 
     const arrLitRes = arrLitDf.withColumns(
@@ -857,8 +857,8 @@ try {
         u32_val: [1000000, 2000000],
         i8_val: [10, 20]
     }, {
-        u32_val: $df.DataType.UInt32,
-        i8_val: $df.DataType.Int8
+        u32_val: $df.UInt32,
+        i8_val: $df.Int8
     });
 
     const bitwiseRes = bitwiseDf.withColumns(
@@ -876,7 +876,7 @@ try {
         dec_col: ["2.50", "4.00"]
     }, {
         dur_col: new DurationType("ms"),
-        dec_col: $df.DataType.Decimal(10, 2)
+        dec_col: $df.Decimal(10, 2)
     });
 
     const decDurRes = decDurDf.withColumns(
@@ -894,11 +894,11 @@ try {
             { id: 2, profile: { age: 30, score: 88.0 } }
         ]
     }, {
-        user_info: $df.DataType.Struct({
-            id: $df.DataType.Int32,
-            profile: $df.DataType.Struct({
-                age: $df.DataType.Int32,
-                score: $df.DataType.Float64
+        user_info: $df.Struct({
+            id: $df.Int32,
+            profile: $df.Struct({
+                age: $df.Int32,
+                score: $df.Float64
             })
         })
     });
@@ -922,9 +922,9 @@ try {
         d2: ["2026-01-10", "2026-02-15"],
         dt1: ["2026-01-01T00:00:00Z", "2026-02-01T00:00:00Z"]
     }, {
-        d1: $df.DataType.Date,
-        d2: $df.DataType.Date,
-        dt1: $df.DataType.Datetime
+        d1: $df.Date,
+        d2: $df.Date,
+        dt1: $df.Datetime
     });
 
     const mixedTemporalRes = mixedTemporalDf.withColumns(
@@ -1048,10 +1048,10 @@ try {
             { location: { city: "Dallas", zip: 75001 } }
         ]
     }, {
-        meta: $df.DataType.Struct({
-            location: $df.DataType.Struct({
-                city: $df.DataType.Utf8,
-                zip: $df.DataType.Int32
+        meta: $df.Struct({
+            location: $df.Struct({
+                city: $df.Utf8,
+                zip: $df.Int32
             })
         })
     });
@@ -1081,8 +1081,8 @@ try {
         dec: ["100.50", "200.75"],
         multiplier: [2, 3]
     }, {
-        dec: $df.DataType.Decimal(10, 2),
-        multiplier: $df.DataType.Int32
+        dec: $df.Decimal(10, 2),
+        multiplier: $df.Int32
     });
 
     const decimalScaleRes = decimalScaleDf.withColumns(
@@ -1154,8 +1154,8 @@ try {
         t: ["12:00:00.000", "15:30:00.000"],
         dur: [86400000, 3600000]
     }, {
-        d: $df.DataType.Date,
-        t: $df.DataType.Time,
+        d: $df.Date,
+        t: $df.Time,
         dur: new DurationType("ms")
     });
     const dateDurRes = dateDurDf.withColumns(
@@ -1181,7 +1181,7 @@ try {
     const arrExplodeDf = $df.data({
         items: [[10, 20], [30, 40]]
     }, {
-        items: $df.DataType.Array($df.DataType.Int32)
+        items: $df.Array($df.Int32)
     });
     const explodedDf = arrExplodeDf.select(
         $df.col("items").arr.explode().alias("single_item")
@@ -1206,8 +1206,8 @@ try {
         s1: [] as string[],
         s2: [] as string[]
     }, {
-        s1: $df.DataType.Utf8,
-        s2: $df.DataType.Utf8
+        s1: $df.Utf8,
+        s2: $df.Utf8
     });
     const emptyConcatDf = emptyStringDf.select(
         $df.col("s1").add($df.col("s2")).alias("s_concat")
@@ -1221,8 +1221,8 @@ try {
         u1: [100, 200],
         u2: [300, 400]
     }, {
-        u1: $df.DataType.UInt32,
-        u2: $df.DataType.UInt32
+        u1: $df.UInt32,
+        u2: $df.UInt32
     });
     const u32Res = u32Df.withColumns(
         $df.col("u1").add($df.col("u2")).alias("u_sum")
@@ -1264,7 +1264,7 @@ try {
     const branchNullDf = $df.data({
         val: [null, 42]
     }, {
-        val: $df.DataType.Int32
+        val: $df.Int32
     }).withColumns(
         $df.when($df.col("val").isNull()).then(null).otherwise($df.lit("fallback")).alias("cond_res"),
         $df.coalesce(null, $df.col("val"), 0).alias("coalesce_res")
@@ -1283,9 +1283,9 @@ try {
             { name: "Bob", age: 25 }
         ]
     }, {
-        user: $df.DataType.Struct({
-            name: $df.DataType.Utf8,
-            age: $df.DataType.Int32
+        user: $df.Struct({
+            name: $df.Utf8,
+            age: $df.Int32
         })
     }).select(
         $df.col("user").struct.field("name").alias("user_name"),
@@ -1338,10 +1338,10 @@ try {
         t1: ["10:00:00.000"],
         t2: ["12:30:00.000"]
     }, {
-        d1: $df.DataType.Date,
-        d2: $df.DataType.Date,
-        t1: $df.DataType.Time,
-        t2: $df.DataType.Time
+        d1: $df.Date,
+        d2: $df.Date,
+        t1: $df.Time,
+        t2: $df.Time
     }).withColumns(
         $df.col("d2").sub($df.col("d1")).alias("date_dur"),
         $df.col("t2").sub($df.col("t1")).alias("time_dur")
@@ -1359,8 +1359,8 @@ try {
         t: ["10:00:00.000"],
         dur: [1000]
     }, {
-        d: $df.DataType.Date,
-        t: $df.DataType.Time,
+        d: $df.Date,
+        t: $df.Time,
         dur: new DurationType("ms")
     }).withColumns(
         $df.col("dur").add($df.col("d")).alias("dur_d"),
@@ -1380,8 +1380,8 @@ try {
         factor_i: [3]
     }, {
         dur: new DurationType("ms"),
-        factor_f: $df.DataType.Float64,
-        factor_i: $df.DataType.Int32
+        factor_f: $df.Float64,
+        factor_i: $df.Int32
     }).withColumns(
         $df.col("dur").mul($df.col("factor_f")).alias("dur_f_mul"),
         $df.col("factor_f").mul($df.col("dur")).alias("f_dur_mul"),
@@ -1408,10 +1408,10 @@ try {
         i16: [300],
         i8: [10]
     }, {
-        u16: $df.DataType.UInt16,
-        u16_b: $df.DataType.UInt16,
-        i16: $df.DataType.Int16,
-        i8: $df.DataType.Int8
+        u16: $df.UInt16,
+        u16_b: $df.UInt16,
+        i16: $df.Int16,
+        i8: $df.Int8
     }).withColumns(
         $df.col("u16").add($df.col("u16_b")).alias("u16_sum"),
         $df.col("u16").add($df.col("i16")).alias("mixed_16_sum"),
@@ -1433,9 +1433,9 @@ try {
         u8_b: [20],
         i8: [30]
     }, {
-        u8: $df.DataType.UInt8,
-        u8_b: $df.DataType.UInt8,
-        i8: $df.DataType.Int8
+        u8: $df.UInt8,
+        u8_b: $df.UInt8,
+        i8: $df.Int8
     }).withColumns(
         $df.col("u8").add($df.col("u8_b")).alias("u8_sum"),
         $df.col("u8").add($df.col("i8")).alias("mixed_8_sum"),
@@ -1456,8 +1456,8 @@ try {
         u64: [100n],
         i64: [200n]
     }, {
-        u64: $df.DataType.UInt64,
-        i64: $df.DataType.Int64
+        u64: $df.UInt64,
+        i64: $df.Int64
     }).withColumns(
         $df.col("u64").add($df.col("i64")).alias("mixed_64_sum")
     );
@@ -1470,8 +1470,8 @@ try {
         f32: [1.5],
         dec: [10.5]
     }, {
-        f32: $df.DataType.Float32,
-        dec: $df.DataType.Decimal(10, 2)
+        f32: $df.Float32,
+        dec: $df.Decimal(10, 2)
     }).withColumns(
         $df.col("f32").add($df.col("dec")).alias("f32_dec_sum")
     );
@@ -1520,7 +1520,7 @@ try {
     }
 
     // 77. Statistical aggregation (mean / std) on integer column promoting to Float64
-    const intMeanDf77 = $df.data({ int_vals: [10, 20, 30] }, { int_vals: $df.DataType.Int32 }).select([
+    const intMeanDf77 = $df.data({ int_vals: [10, 20, 30] }, { int_vals: $df.Int32 }).select([
         $df.col("int_vals").mean().alias("mean_val"),
         $df.col("int_vals").std().alias("std_val")
     ]);
@@ -1532,7 +1532,7 @@ try {
     }
 
     // 78. Statistical aggregation on Float32 column yielding Float32 or Float64
-    const f32MeanDf78 = $df.data({ f32_vals: [1.5, 2.5] }, { f32_vals: $df.DataType.Float32 }).select([
+    const f32MeanDf78 = $df.data({ f32_vals: [1.5, 2.5] }, { f32_vals: $df.Float32 }).select([
         $df.col("f32_vals").mean().alias("f32_mean")
     ]);
     if (f32MeanDf78.schema["f32_mean"].name !== "Float64") {
@@ -1555,14 +1555,14 @@ try {
     const structArrDf80 = $df.data({
         arr_structs: [[{ id: 1, val: "A" }]]
     }, {
-        arr_structs: $df.DataType.Array($df.DataType.Struct({ id: $df.DataType.Int32, val: $df.DataType.Utf8 }))
+        arr_structs: $df.Array($df.Struct({ id: $df.Int32, val: $df.Utf8 }))
     }).explode("arr_structs");
     if (structArrDf80.schema["arr_structs"].name !== "Struct") {
         throw new Error(`Expected exploded arr_structs to be Struct, got ${structArrDf80.schema["arr_structs"].name}`);
     }
 
     // 81. when().then().otherwise() with mixed numeric branches (Int32 + Float64 -> Float64)
-    const mixedBranchDf81 = $df.data({ flag: [true, false] }, { flag: $df.DataType.Boolean }).withColumns(
+    const mixedBranchDf81 = $df.data({ flag: [true, false] }, { flag: $df.Boolean }).withColumns(
         $df.when($df.col("flag")).then(10).otherwise(2.5).alias("promoted_branch"),
         $df.when($df.col("flag")).then(5).otherwise(100n).alias("promoted_bigint_branch")
     );
@@ -1580,10 +1580,10 @@ try {
         u32_a: [1000], u32_b: [2000],
         i16_a: [100], i16_b: [200]
     }, {
-        u8_a: $df.DataType.UInt8, u8_b: $df.DataType.UInt8,
-        u16_a: $df.DataType.UInt16, u16_b: $df.DataType.UInt16,
-        u32_a: $df.DataType.UInt32, u32_b: $df.DataType.UInt32,
-        i16_a: $df.DataType.Int16, i16_b: $df.DataType.Int16
+        u8_a: $df.UInt8, u8_b: $df.UInt8,
+        u16_a: $df.UInt16, u16_b: $df.UInt16,
+        u32_a: $df.UInt32, u32_b: $df.UInt32,
+        i16_a: $df.Int16, i16_b: $df.Int16
     }).withColumns(
         $df.col("u8_a").add($df.col("u8_b")).alias("sum_u8"),
         $df.col("u16_a").add($df.col("u16_b")).alias("sum_u16"),
@@ -1604,7 +1604,7 @@ try {
     }
 
     // 83. Multi-branch when-then chain with sequential type widening
-    const multiBranchWideningDf83 = $df.data({ step: [1, 2, 3] }, { step: $df.DataType.Int32 }).withColumns(
+    const multiBranchWideningDf83 = $df.data({ step: [1, 2, 3] }, { step: $df.Int32 }).withColumns(
         $df.when($df.col("step").eq(1)).then(1)
             .when($df.col("step").eq(2)).then(2.5)
             .otherwise(10)
@@ -1632,9 +1632,9 @@ try {
         bools: [true, false, true],
         structs: [{ a: 1 }, { a: 2 }, { a: 3 }]
     }, {
-        words: $df.DataType.Utf8,
-        bools: $df.DataType.Boolean,
-        structs: $df.DataType.Struct({ a: $df.DataType.Int32 })
+        words: $df.Utf8,
+        bools: $df.Boolean,
+        structs: $df.Struct({ a: $df.Int32 })
     }).select([
         $df.col("words").count().alias("word_count"),
         $df.col("bools").count().alias("bool_count"),
@@ -1654,7 +1654,7 @@ try {
     const arrCountDf86 = $df.data({
         items: [[1, 2], [3, 4, 5]]
     }, {
-        items: $df.DataType.Array($df.DataType.Int32)
+        items: $df.Array($df.Int32)
     }).select([
         $df.col("items").count().alias("arr_count")
     ]);

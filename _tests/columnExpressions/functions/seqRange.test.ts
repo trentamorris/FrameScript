@@ -101,7 +101,7 @@ try {
 
     // 9. Dtype Coercion and Rename options
     const r9 = df.select([
-        $df.seqRange(10.5, { step: 1.5, dtype: $df.DataType.Int32, name: "coerced" })
+        $df.seqRange(10.5, { step: 1.5, dtype: $df.Int32, name: "coerced" })
     ]).toDicts() as any[];
     if (r9[0].coerced !== 10 || r9[1].coerced !== 12 || r9[2].coerced !== 13 || r9[3].coerced !== 15) {
         // Values: [10.5, 12, 13.5, 15] -> Coerced: [10, 12, 13, 15]
@@ -118,7 +118,7 @@ try {
             endIndex: -1,   // index 5 -> width 3
             step: 0.5,
             padValue: -99.9,
-            dtype: $df.DataType.Float64,
+            dtype: $df.Float64,
             mode: "cumulative"
         }).alias("seq")
     ]).toDicts() as any[];
@@ -131,7 +131,7 @@ try {
     const r11 = df.select([
         $df.seqRange(1000, {
             step: ({ prev }: { prev: number }) => Math.floor(prev / 2),
-            dtype: $df.DataType.Int32,
+            dtype: $df.Int32,
             mode: "cumulative"
         }).alias("decay")
     ]).toDicts() as any[];

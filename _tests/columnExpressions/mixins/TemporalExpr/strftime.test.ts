@@ -7,7 +7,7 @@ console.log("Running TemporalExpr.strftime tests...");
 const df = $df.data([
     { ts: "2026-05-25T10:37:16.123Z" },
     { ts: null }
-], { ts: $df.DataType.Datetime });
+], { ts: $df.Datetime });
 
 const res = df.select([
     $df.col("ts").dt.strftime({ format: "%Y/%m/%d %H:%M:%S.%ms" }).alias("f1"),

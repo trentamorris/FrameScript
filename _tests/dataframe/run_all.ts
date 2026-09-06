@@ -13,6 +13,7 @@ import "./explode.test";
 import "./fillNull.test";
 import "./filter.test";
 import "./groupBy.test";
+import "./groupByDynamic.test";
 import "./grouped/agg.test";
 import "./grouped/toDataframe.test";
 import "./head.test";

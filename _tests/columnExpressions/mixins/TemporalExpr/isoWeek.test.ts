@@ -9,7 +9,7 @@ const df = $df.data([
     { date: "2023-03-15" },
     { date: "2027-01-02" },
     { date: null }
-], { date: $df.DataType.Date });
+], { date: $df.Date });
 
 const res = df.select([$df.col("date").dt.isoWeek().alias("iw")]).toDicts() as any[];
 if (res[0].iw !== 9) throw new Error("2024-02-29 expected isoWeek 9");

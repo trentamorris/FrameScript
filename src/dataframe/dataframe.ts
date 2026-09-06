@@ -1,11 +1,11 @@
 import { ColumnExpr, resolveColumnSelectors, ALL_COLUMNS_MARKER, seqRange, all, exclude, evaluateExpression, resolveExprOutputType } from "../columnExpressions"
-import { GroupedData } from "./grouped/grouped"
-import { NEWLINE } from "../constants"
+import { GroupedData } from "./grouped"
+import { NEWLINE, MS_PER_DAY, DAY_OF_WEEK_MAP } from "../constants"
 import { createSafeJsonReplacer } from "../utils/json"
 import type { IExpr, ColumnData, ColumnDict, DataFrameColumns, ConcatOptions, ConcatItem, HorizontalConcatOptions, RowRecord, DataFrameSchema, RegisteredDataType, ExplodeOptions, IntoExpr, FillNullOptions, SortArrayOptions } from "../types"
-import type { LimitOptions, SortOptions, PivotOptions, JoinOptions, JoinMaintainOrder, AsofJoinOptions, UnpivotOptions, TransposeOptions, WriteJSONOptions, WriteCSVOptions } from "./types"
-import { DataTypeRegistry } from "../datatypes"
-import { isArrayOrTypedArray, toValidArray, toArrayOfType, isObj, isArrayOfType, clamp, stringifyCSV, compareScalarValues, filterByMask } from "../utils"
+import type { LimitOptions, SortOptions, PivotOptions, JoinOptions, JoinMaintainOrder, AsofJoinOptions, GroupByDynamicOptions, UnpivotOptions, TransposeOptions, WriteJSONOptions, WriteCSVOptions } from "./types"
+import { DataTypeRegistry, DataType } from "../datatypes"
+import { isArrayOrTypedArray, toValidArray, toArrayOfType, isObj, isArrayOfType, isRegExp, clamp, stringifyCSV, compareScalarValues, filterByMask, toDuration, toValidDate, toValidNumber, isValidNumber, binarySearch, addCalendarDuration, parseDurationInterval, createUTCDate } from "../utils"
 import { assertColumnExists, assertHeight, DataFrameError, ShapeError, ColumnNotFoundError, InvalidArgumentError, IOStreamError } from "../exceptions"
 import { concat } from "../functions/concat"
 import {
@@ -116,6 +116,8 @@ export class DataFrame<T extends RowRecord = any> {
                 exprs.push(new ColumnExpr(arg));
             } else if (ColumnExpr.isColExpr(arg)) {
                 exprs.push(arg);
+            } else if (arg instanceof DataType || typeof arg === "function" || isRegExp(arg)) {
+                exprs.push(new ColumnExpr(arg));
             } else if (isObj(arg)) {
                 const keys = Object.keys(arg);
                 const numKeys = keys.length;
@@ -477,6 +479,228 @@ export class DataFrame<T extends RowRecord = any> {
         const allKeys = Object.keys(this._columns) as (keyof T)[];
         return new GroupedData(groups, keysArr, allKeys, this._columns, this._height, this._schema);
     }
+
+    /**
+     * Groups dynamically based on a time or integer index column over sliding / stepping windows.
+     *
+     * @param indexColumn The time/integer column or column expression to group on.
+     * @param options Dynamic grouping configuration options (`every`, `period`, `offset`, `truncate`, `includeBoundaries`, `closed`, `label`, `by`, `startBy`, `checkSorted`).
+     * @returns GroupedData
+     * @example
+     * <!-- doc:base_dataframe_dynamic -->
+     * >>> const df = new DataFrame([
+     * ...   { time: new Date("2024-01-01T00:00:00Z"), val: 10 },
+     * ...   { time: new Date("2024-01-01T12:00:00Z"), val: 20 },
+     * ...   { time: new Date("2024-01-02T00:00:00Z"), val: 30 }
+     * ... ]);
+     * >>> df.groupByDynamic("time", { every: "1d", period: "1d" }).agg($df.col("val").sum().alias("daily_sum"))
+     * shape: (2, 2)
+     * ┌──────────────────────────┬───────────┐
+     * │ time                     │ daily_sum │
+     * ├──────────────────────────┼───────────┤
+     * │ 2024-01-01T00:00:00.000Z │ 30        │
+     * │ 2024-01-02T00:00:00.000Z │ 30        │
+     * └──────────────────────────┴───────────┘
+     */
+    groupByDynamic<K extends keyof T & string>(
+        indexColumn: K | IntoExpr,
+        options: GroupByDynamicOptions<T>
+    ): GroupedData<T, K> {
+        if (!options || options.every == null) throw new InvalidArgumentError('groupByDynamic requires "every" option');
+
+        const {
+            every: rawEvery,
+            period: rawPeriod,
+            offset: rawOffset = 0,
+            truncate = true,
+            closed = "left",
+            label = "left",
+            startBy = "window",
+            includeBoundaries = false,
+            checkSorted = true,
+            by,
+            groupBy
+        } = options;
+
+        const indexColName = typeof indexColumn === "string"
+            ? indexColumn
+            : ColumnExpr.isColExpr(indexColumn)
+                ? indexColumn._colName ?? String(indexColumn)
+                : String(indexColumn);
+        assertColumnExists(indexColName, this._columns, "Index column");
+
+        if (closed !== "left" && closed !== "right" && closed !== "both" && closed !== "none") {
+            throw new InvalidArgumentError(`Invalid "closed" option: "${closed}". Expected "left", "right", "both", or "none"`);
+        }
+        if (label !== "left" && label !== "right" && label !== "datapoint") {
+            throw new InvalidArgumentError(`Invalid "label" option: "${label}". Expected "left", "right", or "datapoint"`);
+        }
+
+        const startByNorm = typeof startBy === "string" ? startBy.toLowerCase() : "";
+        const isDayOfWeek = startByNorm in DAY_OF_WEEK_MAP;
+        if (startByNorm !== "window" && startByNorm !== "datapoint" && !isDayOfWeek) {
+            throw new InvalidArgumentError(`Invalid "startBy" option: "${startBy}". Expected "window", "datapoint", or a day of week`);
+        }
+
+        const offset = toDuration(rawOffset, { fallback: 0 });
+        if (!isValidNumber(offset)) throw new InvalidArgumentError(`Invalid "offset" option: ${rawOffset}`);
+
+        const isLowerClosed = closed === "left" || closed === "both";
+        const isUpperClosed = closed === "right" || closed === "both";
+        const startSide = isLowerClosed ? "left" : "right";
+        const endSide = isUpperClosed ? "right" : "left";
+
+        const LOWER_BOUNDARY_COL = "_lower_boundary";
+        const UPPER_BOUNDARY_COL = "_upper_boundary";
+
+        const everyInterval = typeof rawEvery === "string" ? parseDurationInterval(rawEvery) : null;
+        const periodInterval = typeof rawPeriod === "string" ? parseDurationInterval(rawPeriod) : null;
+
+        const secondaryBy = groupBy ?? by;
+        const rawByKeys = secondaryBy ? toArrayOfType<string>(toValidArray(secondaryBy), "string") : [];
+        const byKeys = Array.from(new Set(rawByKeys));
+        for (let j = 0; j < byKeys.length; j++) {
+            if (byKeys[j] === indexColName) throw new InvalidArgumentError(`Cannot group by index column "${indexColName}" in secondary grouping keys`);
+            assertColumnExists(byKeys[j], this._columns, "Secondary grouping key");
+        }
+
+        const height = this._height;
+        const indexCol = this._columns[indexColName];
+        const numVals = new Float64Array(height);
+        let isDateType = this._schema[indexColName]?.name === "Datetime";
+
+        for (let i = 0; i < height; i++) {
+            const val = indexCol[i];
+            const num = toValidNumber(val);
+            const d = num === null ? toValidDate(val) : null;
+            if (d) isDateType = true;
+            numVals[i] = num ?? d?.getTime() ?? NaN;
+        }
+
+        const isCalendarDynamic = isDateType && Boolean(everyInterval?.months || periodInterval?.months);
+        let every = 0;
+        let period = 0;
+        if (!isCalendarDynamic) {
+            every = toDuration(rawEvery);
+            period = toDuration(rawPeriod, { fallback: every });
+            if (!isValidNumber(every) || every <= Number.EPSILON) throw new InvalidArgumentError(`"every" must be positive, got ${rawEvery}`);
+            if (!isValidNumber(period) || period <= Number.EPSILON) throw new InvalidArgumentError(`"period" must be positive, got ${rawPeriod}`);
+        }
+
+        const partitions = byKeys.length > 0 && height > 0
+            ? buildGroupMap(this._columns, byKeys, height)
+            : new Map([["", Array.from({ length: height }, (_, i) => i)]]);
+
+        const outKeys = [
+            ...byKeys,
+            indexColName,
+            ...(includeBoundaries ? [LOWER_BOUNDARY_COL, UPPER_BOUNDARY_COL] : [])
+        ];
+        const dynGroups = new Map<string, number[]>();
+        const synCols: Record<string, any[]> = {};
+        for (let i = 0; i < outKeys.length; i++) synCols[outKeys[i]] = [];
+
+        const effPeriodInterval = periodInterval ?? everyInterval;
+        let groupCounter = 0;
+        for (const rawIndices of partitions.values()) {
+            const indices: number[] = [];
+            let lastVal = -Infinity;
+            let needsSort = false;
+            for (let i = 0; i < rawIndices.length; i++) {
+                const rIdx = rawIndices[i];
+                const val = numVals[rIdx];
+                if (!isValidNumber(val)) continue;
+                if (val < lastVal && checkSorted) {
+                    throw new DataFrameError(`Index column "${indexColName}" is not sorted in ascending order`);
+                }
+                if (val < lastVal) needsSort = true;
+                indices.push(rIdx);
+                lastVal = val;
+            }
+
+            const idxCount = indices.length;
+            if (idxCount === 0) continue;
+            if (needsSort) indices.sort((a, b) => numVals[a] - numVals[b]);
+
+            const minVal = numVals[indices[0]];
+            const maxVal = numVals[indices[idxCount - 1]];
+
+            let w0Date: Date | null = null;
+            let w0 = 0;
+
+            if (isCalendarDynamic) {
+                const minDate = new Date(minVal);
+                const month = everyInterval!.months % 12 === 0 ? 0 : minDate.getUTCMonth();
+                w0Date = startByNorm === "datapoint" ? minDate : createUTCDate(minDate.getUTCFullYear(), month, 1);
+            } else {
+                let wAnchor: number;
+                if (startByNorm === "datapoint") {
+                    wAnchor = minVal + offset;
+                } else if (isDayOfWeek && isDateType) {
+                    const daysBack = (new Date(minVal).getUTCDay() - DAY_OF_WEEK_MAP[startByNorm] + 7) % 7;
+                    wAnchor = Math.floor(minVal / MS_PER_DAY) * MS_PER_DAY - daysBack * MS_PER_DAY + offset;
+                } else {
+                    wAnchor = Math.floor((minVal - offset) / every) * every + offset;
+                }
+                w0 = !isLowerClosed && minVal - wAnchor <= 1e-9 ? wAnchor - every : wAnchor;
+            }
+
+            let step = 0;
+            while (true) {
+                const wStart = isCalendarDynamic
+                    ? addCalendarDuration(w0Date!, everyInterval!, step).getTime()
+                    : w0 + step * every;
+
+                if (isLowerClosed ? wStart > maxVal : wStart >= maxVal) break;
+
+                const wEnd = isCalendarDynamic
+                    ? addCalendarDuration(new Date(wStart), effPeriodInterval!).getTime()
+                    : wStart + period;
+
+                step++;
+
+                const startPos = binarySearch(indices, wStart, { side: startSide, getValue: (_, rIdx) => numVals[rIdx] });
+                const endPos = binarySearch(indices, wEnd, { side: endSide, getValue: (_, rIdx) => numVals[rIdx] });
+
+                if (startPos >= endPos) {
+                    const nextVal = !isCalendarDynamic && startPos < idxCount ? numVals[indices[startPos]] : NaN;
+                    const canSkip = isValidNumber(nextVal) && nextVal >= wEnd;
+                    const target = isUpperClosed ? nextVal - period : nextVal - period + 1e-9;
+                    if (canSkip) step = Math.max(step, Math.floor((target - w0) / every));
+                    continue;
+                }
+
+                const matchingIndices = indices.slice(startPos, endPos);
+                const firstIdx = matchingIndices[0];
+                const s = isDateType ? new Date(wStart) : wStart;
+                const e = isDateType ? new Date(wEnd) : wEnd;
+
+                synCols[indexColName].push(!truncate || label === "datapoint" ? indexCol[firstIdx] : label === "right" ? e : s);
+                if (includeBoundaries) {
+                    synCols[LOWER_BOUNDARY_COL].push(s);
+                    synCols[UPPER_BOUNDARY_COL].push(e);
+                }
+                for (let j = 0; j < byKeys.length; j++) {
+                    synCols[byKeys[j]].push(this._columns[byKeys[j]][firstIdx]);
+                }
+                dynGroups.set(`__dyn_${groupCounter++}__`, matchingIndices);
+            }
+        }
+
+        const bType = includeBoundaries ? (this._schema[indexColName] || (isDateType ? DataTypeRegistry.Datetime : DataTypeRegistry.Float64)) : null;
+        const outSchema: DataFrameSchema = bType ? { ...this._schema, [LOWER_BOUNDARY_COL]: bType, [UPPER_BOUNDARY_COL]: bType } : this._schema;
+
+        return new GroupedData(
+            dynGroups,
+            outKeys as any,
+            Object.keys(this._columns) as (keyof T)[],
+            this._columns,
+            this._height,
+            outSchema,
+            synCols
+        );
+    }
+
 
     /**
      * Returns the first N rows as a new DataFrame.

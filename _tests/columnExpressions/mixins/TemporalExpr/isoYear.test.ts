@@ -9,7 +9,7 @@ const df = $df.data([
     { date: "2023-03-15" },
     { date: "2027-01-02" }, // Gregorian 2027 is ISO year 2026
     { date: null }
-], { date: $df.DataType.Date });
+], { date: $df.Date });
 
 const res = df.select([$df.col("date").dt.isoYear().alias("iy")]).toDicts() as any[];
 if (res[0].iy !== 2024) throw new Error("2024 expected");

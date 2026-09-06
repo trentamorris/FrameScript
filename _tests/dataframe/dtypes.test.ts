@@ -7,9 +7,9 @@ console.log("=========================================");
 
 try {
     const schema = {
-        num: $df.DataType.Int32,
-        str: $df.DataType.Utf8,
-        flag: $df.DataType.Boolean
+        num: $df.Int32,
+        str: $df.Utf8,
+        flag: $df.Boolean
     };
 
     const df = $df.data({

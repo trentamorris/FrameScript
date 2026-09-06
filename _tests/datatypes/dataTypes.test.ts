@@ -6,13 +6,13 @@ console.log("STARTING POLARS DATATYPES TESTS...");
 console.log("=========================================");
 
 // 1. Test Metadata Classification Getters
-const tInt8 = $df.DataType.Int8;
-const tUInt32 = $df.DataType.UInt32;
-const tInt64 = $df.DataType.Int64;
-const tFloat32 = $df.DataType.Float32;
-const tDecimal = $df.DataType.Decimal(10, 2);
-const tDate = $df.DataType.Date;
-const tArray = $df.DataType.Array($df.DataType.Int32);
+const tInt8 = $df.Int8;
+const tUInt32 = $df.UInt32;
+const tInt64 = $df.Int64;
+const tFloat32 = $df.Float32;
+const tDecimal = $df.Decimal(10, 2);
+const tDate = $df.Date;
+const tArray = $df.Array($df.Int32);
 
 if (!tInt8.isNumeric || !tInt8.isInteger || !tInt8.isSigned || tInt8.isUnsigned) {
     throw new Error("Int8 metadata classification failed");
@@ -37,19 +37,19 @@ if (!tArray.isNested) {
 }
 
 // Check new getters
-if (!$df.DataType.Null.isNull) {
+if (!$df.Null.isNull) {
     throw new Error("Null isNull check failed");
 }
-if (!$df.DataType.Object.isObject) {
+if (!$df.Object.isObject) {
     throw new Error("Object isObject check failed");
 }
-if (!$df.DataType.Boolean.isBoolean) {
+if (!$df.Boolean.isBoolean) {
     throw new Error("Boolean isBoolean check failed");
 }
-if (!$df.DataType.Utf8.isString || !$df.DataType.Utf8.isUtf8) {
+if (!$df.Utf8.isString || !$df.Utf8.isUtf8) {
     throw new Error("Utf8 isString/isUtf8 check failed");
 }
-if (!$df.DataType.Binary.isBinary) {
+if (!$df.Binary.isBinary) {
     throw new Error("Binary isBinary check failed");
 }
 
@@ -72,18 +72,18 @@ const data = [
 ];
 
 const schema = {
-    val_i8: $df.DataType.Int8,
-    val_u8: $df.DataType.UInt8,
-    val_i64: $df.DataType.Int64,
-    val_u64: $df.DataType.UInt64,
-    val_f32: $df.DataType.Float32,
-    val_dec: $df.DataType.Decimal(10, 2),
-    val_date: $df.DataType.Date,
-    val_time: $df.DataType.Time,
-    val_duration: $df.DataType.Duration,
-    val_binary: $df.DataType.Binary,
-    val_obj: $df.DataType.Object,
-    val_null: $df.DataType.Null
+    val_i8: $df.Int8,
+    val_u8: $df.UInt8,
+    val_i64: $df.Int64,
+    val_u64: $df.UInt64,
+    val_f32: $df.Float32,
+    val_dec: $df.Decimal(10, 2),
+    val_date: $df.Date,
+    val_time: $df.Time,
+    val_duration: $df.Duration,
+    val_binary: $df.Binary,
+    val_obj: $df.Object,
+    val_null: $df.Null
 };
 
 const df = new DataFrame(data, schema);
@@ -116,11 +116,11 @@ if (row.val_obj.x !== 1) throw new Error(`Expected val_obj to preserve propertie
 if (row.val_null !== null) throw new Error(`Expected val_null to be null, got ${row.val_null}`);
 
 // 3. Test Datetime Strict Typing & TimeZone Equality (Polars Behavior)
-const dtNaiveDefault = $df.DataType.Datetime; // Default: ms, null timezone (naive)
-const dtNaiveMs = new ($df.DataType.Datetime.constructor as any)("ms", null);
-const dtAwareUTC = new ($df.DataType.Datetime.constructor as any)("ms", "UTC");
-const dtAwareNY = new ($df.DataType.Datetime.constructor as any)("ms", "America/New_York");
-const dtAwareNsUTC = new ($df.DataType.Datetime.constructor as any)("ns", "UTC");
+const dtNaiveDefault = $df.Datetime; // Default: ms, null timezone (naive)
+const dtNaiveMs = new ($df.Datetime.constructor as any)("ms", null);
+const dtAwareUTC = new ($df.Datetime.constructor as any)("ms", "UTC");
+const dtAwareNY = new ($df.Datetime.constructor as any)("ms", "America/New_York");
+const dtAwareNsUTC = new ($df.Datetime.constructor as any)("ns", "UTC");
 
 if (dtNaiveDefault.timeZone !== null) throw new Error("Default Datetime should be timezone-naive (timeZone === null)");
 if (dtNaiveDefault.timeUnit !== "ms") throw new Error("Default Datetime timeUnit should be 'ms'");

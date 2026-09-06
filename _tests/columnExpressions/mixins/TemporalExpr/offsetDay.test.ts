@@ -13,7 +13,7 @@ const df = $df.data([
     { date: "2026-05-20", offset: -3 },
     { date: null, offset: 2 },
     { date: "2026-05-20", offset: null }
-], { date: $df.DataType.Date, offset: $df.DataType.Int32 });
+], { date: $df.Date, offset: $df.Int32 });
 
 const res = df.select([
     $df.col("date").dt.offsetDay(3).alias("add_scalar"),

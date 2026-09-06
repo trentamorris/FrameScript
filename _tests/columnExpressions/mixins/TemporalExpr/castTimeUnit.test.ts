@@ -7,7 +7,7 @@ console.log("Running TemporalExpr.castTimeUnit tests...");
 const df = $df.data([
     { ts: "2026-05-20T10:00:00.123Z" },
     { ts: null }
-], { ts: $df.DataType.Datetime });
+], { ts: $df.Datetime });
 
 const res = df.withColumns($df.col("ts").dt.castTimeUnit("us").alias("ts_us")).toDicts() as any[];
 if (res[0].ts_us.getTime() !== new Date("2026-05-20T10:00:00.123Z").getTime()) throw new Error("castTimeUnit failed");

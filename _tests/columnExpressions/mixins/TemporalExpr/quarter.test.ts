@@ -9,7 +9,7 @@ const df = $df.data([
     { date: "2026-05-25" },
     { date: "2026-01-01T02:00:00.000Z" }, // Q1 UTC, Q4 NY
     { date: null }
-], { date: $df.DataType.Datetime });
+], { date: $df.Datetime });
 
 const res = df.select([
     $df.col("date").dt.quarter().alias("q_utc"),

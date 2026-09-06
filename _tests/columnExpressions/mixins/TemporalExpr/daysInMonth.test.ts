@@ -9,7 +9,7 @@ const df = $df.data([
     { date: "2023-02-15" }, // Non-leap Feb -> 28
     { date: "2023-03-15" }, // March -> 31
     { date: null }
-], { date: $df.DataType.Date });
+], { date: $df.Date });
 
 const res = df.select([$df.col("date").dt.daysInMonth().alias("dim")]).toDicts() as any[];
 if (res[0].dim !== 29) throw new Error("2024-02 expected 29 days");

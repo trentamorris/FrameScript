@@ -9,7 +9,7 @@ import {
     offsetDay,
     isBusinessDay,
     getTimeZoneOffset,
-    _createUTCDate
+    createUTCDate
 } from "../../src/utils/date";
 import { ComputeError } from "../../src/exceptions";
 
@@ -112,7 +112,7 @@ try {
 
 
 
-    // 9. Visualize and test _createUTCDate(d.getUTCFullYear(), d.getUTCMonth() + 1, 0) for daysInMonth
+    // 9. Visualize and test createUTCDate(d.getUTCFullYear(), d.getUTCMonth() + 1, 0) for daysInMonth
     console.log("\n--- VISUALIZING DAYS IN MONTH CALCULATION ---");
     const testDates = [
         new Date("2024-02-15T00:00:00Z"), // Leap year February
@@ -123,7 +123,7 @@ try {
 
     for (const d of testDates) {
         const nextMonthZeroIndexed = d.getUTCMonth() + 1;
-        const endOfMonthDate = _createUTCDate(d.getUTCFullYear(), d.getUTCMonth() + 1, 0);
+        const endOfMonthDate = createUTCDate(d.getUTCFullYear(), d.getUTCMonth() + 1, 0);
         const days = endOfMonthDate ? endOfMonthDate.getUTCDate() : null;
 
         console.log(`Input Date: ${d.toISOString().substring(0, 10)}`);
@@ -572,7 +572,7 @@ try {
 
     // (B) Extreme Year Boundaries & Historical / 2-Digit / Negative Years
     // Two-digit year 0050: 0050-02-28 (Saturday in Julian/proleptic Gregorian: getUTCDay() === 6) -> roll forward to Monday 0050-03-02 (+2 cal days)
-    const year50Sat = _createUTCDate(50, 1, 28);
+    const year50Sat = createUTCDate(50, 1, 28);
     const y50Offset = offsetDay(year50Sat, 0, { excludeWeekdays: [0, 6], roll: "forward" });
     const expectedY50Offset = (8 - year50Sat.getUTCDay()) % 7 || 7;
     if (y50Offset !== expectedY50Offset && y50Offset !== 0) {
@@ -948,8 +948,8 @@ try {
     console.log("✓ strptime defaultTimeZone tests passed");
 
     // 10. getTimeZoneOffset (exercises _getTimeZoneOffsetMinutes with pre-resolved tz)
-    const janDate = _createUTCDate(2026, 0, 15, 12, 0, 0);
-    const julDate = _createUTCDate(2026, 6, 15, 12, 0, 0);
+    const janDate = createUTCDate(2026, 0, 15, 12, 0, 0);
+    const julDate = createUTCDate(2026, 6, 15, 12, 0, 0);
 
     // Total offset for New York: -300 min (EST) / -240 min (EDT)
     const janTotalMin = getTimeZoneOffset(janDate, "America/New_York", { format: "minutes" }) as number;
@@ -1162,7 +1162,7 @@ try {
     if (toValidDate(Symbol("date")) !== null) throw new Error("toValidDate(Symbol) should be null");
     if (toValidDate({}) !== null) throw new Error("toValidDate({}) should be null");
     if (toValidDate([]) !== null) throw new Error("toValidDate([]) should be null");
-    if (toValidDate(() => {}) !== null) throw new Error("toValidDate(function) should be null");
+    if (toValidDate(() => { }) !== null) throw new Error("toValidDate(function) should be null");
     if (toValidDate("") !== null) throw new Error("toValidDate('') should be null");
     if (toValidDate("   ") !== null) throw new Error("toValidDate('   ') should be null");
     if (toValidDate("invalid-date-string") !== null) throw new Error("toValidDate('invalid-date-string') should be null");

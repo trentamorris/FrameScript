@@ -7,7 +7,7 @@ console.log("Running TemporalExpr.totalSeconds tests...");
 const df = $df.data([
     { dur: 123456789 },
     { dur: null }
-], { dur: $df.DataType.Float64 });
+], { dur: $df.Float64 });
 
 const res = df.select([$df.col("dur").dt.totalSeconds().alias("s")]).toDicts() as any[];
 if (res[0].s !== 123456.789) throw new Error("Expected 123456.789 s");

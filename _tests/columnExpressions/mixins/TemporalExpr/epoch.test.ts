@@ -7,7 +7,7 @@ console.log("Running TemporalExpr.epoch tests...");
 const df = $df.data([
     { ts: "2026-05-25T10:37:16.123Z" },
     { ts: null }
-], { ts: $df.DataType.Datetime });
+], { ts: $df.Datetime });
 
 const t0 = new Date("2026-05-25T10:37:16.123Z").getTime();
 const res = df.select([

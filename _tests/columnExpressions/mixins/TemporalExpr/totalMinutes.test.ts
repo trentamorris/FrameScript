@@ -8,7 +8,7 @@ const df = $df.data([
     { dur: 60000 },
     { dur: -3600000 },
     { dur: null }
-], { dur: $df.DataType.Float64 });
+], { dur: $df.Float64 });
 
 const res = df.select([$df.col("dur").dt.totalMinutes().alias("m")]).toDicts() as any[];
 if (res[0].m !== 1) throw new Error("Expected 1 min");

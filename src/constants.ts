@@ -23,6 +23,17 @@ export const NS_PER_MS = 1_000_000;
 export const US_PER_MS_BI = 1000n;
 export const NS_PER_MS_BI = 1_000_000n;
 
+/** Day of week string to UTC day index mapping (Sunday = 0, Saturday = 6) */
+export const DAY_OF_WEEK_MAP: Readonly<Record<string, number>> = Object.freeze({
+    sunday: 0,
+    monday: 1,
+    tuesday: 2,
+    wednesday: 3,
+    thursday: 4,
+    friday: 5,
+    saturday: 6
+});
+
 /** Separates composite key segments within a single row hash (e.g. multi-column join keys). */
 export const KEY_SEPARATOR = "\x00";
 /** Separates key-value pairs within a serialized object or map canonical hash. */

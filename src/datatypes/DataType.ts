@@ -19,6 +19,12 @@ export abstract class DataType<T = any> {
             if (selector.prototype instanceof DataType) {
                 return this instanceof selector;
             }
+            if (selector.name === "Struct" || selector.name === "StructType") {
+                return this.name === "Struct";
+            }
+            if (selector.name === "ArrayDataType" || selector.name === "ArrayType" || selector === Array) {
+                return this.name === "Array";
+            }
             try {
                 const dummy = selector();
                 if (dummy instanceof DataType) {

@@ -4,7 +4,7 @@ import { StringExpr } from "./mixins/StringExpr"
 import { TemporalExpr } from "./mixins/TemporalExpr"
 import { ArrayExpr } from "./mixins/ArrayExpr"
 import { StructExpr } from "./mixins/StructExpr"
-import { isObj } from "../utils"
+import { isObj, isRegExp, isArrayOfType } from "../utils"
 import { DataType } from "../datatypes"
 import type { IntoExpr, IExpr, DataFrameSchema, ColumnDict } from "../types"
 import { assertNotNull, SchemaError } from "../exceptions"
@@ -16,6 +16,8 @@ export class ColumnExpr<T> extends ExprBase {
     _excludedCols: string[] = [];
     _targetType?: any;
     _targetTypes?: any[];
+    _pattern?: RegExp;
+    _patterns?: RegExp[];
 
     static isColExpr(v: unknown): v is ColumnExpr<any> {
         if (!isObj(v)) return false;
@@ -37,21 +39,45 @@ export class ColumnExpr<T> extends ExprBase {
      * @category ColumnExpression
      * @syntax $df.col(<column_name>).{symbol}(...)
      */
-    constructor(colName: keyof T | string | (keyof T | string)[] | DataType | Function | (DataType | Function)[]) {
-        super()
-        if (Array.isArray(colName)) {
-            const hasTypes = colName.some(x => x instanceof DataType || typeof x === "function");
-            if (hasTypes) {
-                this._targetTypes = colName;
-            } else {
-                this._colNames = colName.map(String);
-            }
-        } else if (colName instanceof DataType || typeof colName === "function") {
-            this._targetType = colName;
-        } else {
+    constructor(colName: keyof T | string | (keyof T | string)[] | RegExp | RegExp[] | DataType | Function | (DataType | Function)[]) {
+        super();
+
+        if (isRegExp(colName)) {
+            this._patterns = [colName];
+            return;
+        }
+
+        if (colName instanceof DataType || typeof colName === "function") {
+            this._targetTypes = [colName];
+            return;
+        }
+
+        if (!Array.isArray(colName)) {
             this._colName = String(colName);
             this._outputName = this._colName;
+            return;
         }
+
+        if (isArrayOfType(colName, (x) => x instanceof DataType || typeof x === "function", { mode: "some" })) {
+            this._targetTypes = colName;
+            return;
+        }
+
+        const len = colName.length;
+        const strings: string[] = [];
+        let patterns: RegExp[] | undefined;
+
+        for (let i = 0; i < len; i++) {
+            const item = colName[i];
+            if (isRegExp(item)) {
+                (patterns ??= []).push(item);
+            } else {
+                strings.push(String(item));
+            }
+        }
+
+        if (patterns) this._patterns = patterns;
+        if (strings.length > 0) this._colNames = strings;
     }
 }
 
@@ -95,68 +121,58 @@ function _getTargetKeys(
     excludeSet: Set<string>,
     schema?: DataFrameSchema
 ): string[] | null {
-    if (!(expr instanceof ColumnExpr)) {
-        if (isObj(expr) && "evaluate" in expr && !expr._colName) {
-            const targets: string[] = [];
-            for (let i = 0; i < allKeys.length; i++) {
-                if (!excludeSet.has(allKeys[i])) {
-                    targets.push(allKeys[i]);
-                }
-            }
-            return targets;
-        }
-        return null;
-    }
-
-    if (expr._colNames && expr._colNames.length > 0) {
+    if (expr instanceof ColumnExpr && expr._colNames?.length) {
         return expr._colNames;
     }
 
-    if (expr._colName === ALL_COLUMNS_MARKER) {
-        const excluded = new Set(expr._excludedCols);
-        const targets: string[] = [];
-        for (let i = 0; i < allKeys.length; i++) {
-            const key = allKeys[i];
-            if (!excluded.has(key) && !excludeSet.has(key)) {
-                targets.push(key);
-            }
-        }
-        return targets;
+    if (!(expr instanceof ColumnExpr) && (!isObj(expr) || !("evaluate" in expr) || expr._colName)) {
+        return null;
     }
 
-    if (expr._targetType || (expr._targetTypes && expr._targetTypes.length > 0)) {
+    let predicate: (key: string) => boolean;
+
+    if (!(expr instanceof ColumnExpr)) {
+        predicate = () => true;
+    } else if (expr._colName === ALL_COLUMNS_MARKER) {
+        const excluded = new Set(expr._excludedCols);
+        predicate = (k) => !excluded.has(k);
+    } else if (expr._patterns?.length) {
+        const patterns = expr._patterns;
+        const numPatterns = patterns.length;
+        predicate = (k) => {
+            for (let i = 0; i < numPatterns; i++) {
+                patterns[i].lastIndex = 0;
+                if (patterns[i].test(k)) return true;
+            }
+            return false;
+        };
+    } else if (expr._targetTypes?.length) {
         if (!schema) {
             throw new SchemaError("Cannot resolve DataType column selector without DataFrame schema.");
         }
-        const targets: string[] = [];
-        for (let i = 0; i < allKeys.length; i++) {
-            const key = allKeys[i];
-            if (excludeSet.has(key)) {
-                continue;
+        const types = expr._targetTypes;
+        const numTypes = types.length;
+        predicate = (k) => {
+            const colType = schema[k];
+            if (!colType) return false;
+            for (let i = 0; i < numTypes; i++) {
+                if (colType.matches(types[i])) return true;
             }
-
-            const colType = schema[key];
-            if (!colType) {
-                continue;
-            }
-
-            if (expr._targetType) {
-                if (colType.matches(expr._targetType)) {
-                    targets.push(key);
-                }
-            } else if (expr._targetTypes) {
-                for (let k = 0; k < expr._targetTypes.length; k++) {
-                    if (colType.matches(expr._targetTypes[k])) {
-                        targets.push(key);
-                        break;
-                    }
-                }
-            }
-        }
-        return targets;
+            return false;
+        };
+    } else {
+        return null;
     }
 
-    return null;
+    const targets: string[] = [];
+    const allLen = allKeys.length;
+    for (let i = 0; i < allLen; i++) {
+        const key = allKeys[i];
+        if (!excludeSet.has(key) && predicate(key)) {
+            targets.push(key);
+        }
+    }
+    return targets;
 }
 
 /**

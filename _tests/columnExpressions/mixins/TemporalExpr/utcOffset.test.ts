@@ -8,7 +8,7 @@ const df = $df.data([
     { date: "2012-01-01T00:00:00Z" }, // Samoa after shift
     { date: "2026-07-01T00:00:00Z" }, // NY Summer (DST)
     { date: null }
-], { date: $df.DataType.Date });
+], { date: $df.Date });
 
 const res = df.select([
     $df.col("date").dt.utcOffset("Pacific/Apia", { type: "base" }).alias("samoa_base"),

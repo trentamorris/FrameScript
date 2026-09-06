@@ -8,7 +8,7 @@ const df = $df.data([
     { date: "2024-02-29" }, // Thursday -> true
     { date: "2027-01-02" }, // Saturday -> false
     { date: null }
-], { date: $df.DataType.Date });
+], { date: $df.Date });
 
 const res = df.select([
     $df.col("date").dt.isBusinessDay().alias("is_biz"),

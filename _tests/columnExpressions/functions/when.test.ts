@@ -85,7 +85,7 @@ try {
         $df.when($df.col("val").gt(10)).then($df.col("category")).otherwise($df.col("fallback_val"))
             .alias("new_alias"),
         $df.when($df.col("val").gt(10)).then($df.lit(1)).otherwise($df.lit(0))
-            .cast($df.DataType.Boolean)
+            .cast($df.Boolean)
             .alias("cast_bool")
     ).toDicts() as any[];
 

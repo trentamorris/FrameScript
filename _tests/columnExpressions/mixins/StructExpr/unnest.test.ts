@@ -12,9 +12,9 @@ const df = $df.data([
 
 // 1. unnest() with explicit schema
 const schema = {
-    s: $df.DataType.Struct({
-        a: $df.DataType.Int32,
-        b: $df.DataType.Utf8
+    s: $df.Struct({
+        a: $df.Int32,
+        b: $df.Utf8
     })
 };
 const dfWithSchema = $df.data([

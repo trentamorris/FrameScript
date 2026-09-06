@@ -9,7 +9,7 @@ const df = $df.data([
     { ts: "2026-05-20T10:00:00.000Z" },
     { ts: "2026-05-20T10:00:00.999Z" },
     { ts: null }
-], { ts: $df.DataType.Datetime });
+], { ts: $df.Datetime });
 
 const res = df.select([$df.col("ts").dt.nanosecond().alias("ns")]).toDicts() as any[];
 if (res[0].ns !== 123000000) throw new Error("Expected 123000000 ns");

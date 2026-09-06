@@ -7,7 +7,7 @@ console.log("Running TemporalExpr.date tests...");
 const df = $df.data([
     { datetime_str: "2026-05-25T10:37:16.123Z" },
     { datetime_str: null }
-], { datetime_str: $df.DataType.Datetime });
+], { datetime_str: $df.Datetime });
 
 const res = df.select([
     $df.col("datetime_str").dt.date().alias("d")

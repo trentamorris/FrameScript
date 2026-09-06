@@ -8,7 +8,7 @@ const df = $df.data([
     { dur: 86400000 },
     { dur: 0 },
     { dur: null }
-], { dur: $df.DataType.Float64 });
+], { dur: $df.Float64 });
 
 const res = df.select([$df.col("dur").dt.totalDays().alias("d")]).toDicts() as any[];
 if (res[0].d !== 1) throw new Error("Expected 1 day");

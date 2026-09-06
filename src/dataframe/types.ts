@@ -51,6 +51,35 @@ export interface AsofJoinOptions<T = any, U extends RowRecord = any> {
     checkSorted?: boolean;
 }
 
+export type DynamicClosed = "left" | "right" | "both" | "none";
+export type DynamicLabel = "left" | "right" | "datapoint";
+export type DynamicStartBy = "window" | "datapoint" | "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
+
+export interface GroupByDynamicOptions<T = any> {
+    /** Time interval window period (e.g. "1d", "1h", 1000). Defaults to every if not specified. */
+    every: string | number;
+    /** Time period duration window width. Defaults to every if omitted. */
+    period?: string | number;
+    /** Offset window start by a duration. Defaults to 0. */
+    offset?: string | number;
+    /** Truncate the index column values to the window start. Default: true */
+    truncate?: boolean;
+    /** Include the lower and upper window boundaries (_lower_boundary, _upper_boundary). Default: false */
+    includeBoundaries?: boolean;
+    /** Which boundary of the window interval is closed ("left", "right", "both", "none"). Default: "left" */
+    closed?: DynamicClosed;
+    /** Which window boundary to use as the timestamp label ("left", "right", "data_point"). Default: "left" */
+    label?: DynamicLabel;
+    /** Additional columns to partition / group by before dynamic windowing */
+    by?: (keyof T) | (keyof T)[];
+    /** Polars alias for by */
+    groupBy?: (keyof T) | (keyof T)[];
+    /** Strategy to determine window start ("window", "datapoint", or day of week). Default: "window" */
+    startBy?: DynamicStartBy;
+    /** Verify whether index column is sorted in ascending order. Default: true */
+    checkSorted?: boolean;
+}
+
 export interface UnpivotOptions<T> {
     idVars: (keyof T) | (keyof T)[];
     valueVars: (keyof T) | (keyof T)[];

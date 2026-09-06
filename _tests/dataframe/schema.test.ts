@@ -28,11 +28,11 @@ try {
 
     // 2. Test explicit schema coercion
     const explicitSchema = {
-        name: $df.DataType.Utf8,
-        age: $df.DataType.Int32, // coerce float string to int
-        is_active: $df.DataType.Boolean, // coerce 1/0/null to boolean/null
-        joined: $df.DataType.Datetime,
-        missing_col: $df.DataType.Utf8 // will be null-padded
+        name: $df.Utf8,
+        age: $df.Int32, // coerce float string to int
+        is_active: $df.Boolean, // coerce 1/0/null to boolean/null
+        joined: $df.Datetime,
+        missing_col: $df.Utf8 // will be null-padded
     };
 
     const dfCoerced = $df.data(data, explicitSchema);
@@ -62,10 +62,10 @@ try {
     ];
 
     const complexSchema = {
-        tags: $df.DataType.Array($df.DataType.Utf8),
-        info: $df.DataType.Struct({
-            val: $df.DataType.Int32,
-            label: $df.DataType.Utf8
+        tags: $df.Array($df.Utf8),
+        info: $df.Struct({
+            val: $df.Int32,
+            label: $df.Utf8
         })
     };
 
