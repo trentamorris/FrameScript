@@ -3,7 +3,7 @@ import { GroupedData } from "./grouped"
 import { NEWLINE, MS_PER_DAY, DAY_OF_WEEK_MAP } from "../constants"
 import { createSafeJsonReplacer } from "../utils/json"
 import type { IExpr, ColumnData, ColumnDict, DataFrameColumns, ConcatOptions, ConcatItem, RowRecord, DataFrameSchema, RegisteredDataType, ExplodeOptions, IntoExpr, FillNullOptions, SortArrayOptions } from "../types"
-import type { LimitOptions, SortOptions, PivotOptions, JoinOptions, JoinMaintainOrder, JoinAsofOptions, JoinWhereOptions, GroupByDynamicOptions, UnpivotOptions, TransposeOptions, WriteJSONOptions, WriteCSVOptions } from "./types"
+import type { LimitOptions, SortOptions, PivotOptions, JoinOptions, JoinMaintainOrder, JoinAsofOptions, JoinWhereOptions, GroupByDynamicOptions, UnpivotOptions, TransposeOptions, UnstackOptions, WriteJSONOptions, WriteCSVOptions } from "./types"
 import { DataTypeRegistry, DataType } from "../datatypes"
 import { isArrayOrTypedArray, toValidArray, toArrayOfType, isObj, isArrayOfType, isRegExp, clamp, stringifyCSV, compareScalarValues, filterByMask, toDuration, toValidDate, toValidNumber, isValidNumber, binarySearch, addCalendarDuration, parseDurationInterval, createUTCDate } from "../utils"
 import { assertColumnExists, assertHeight, DataFrameError, ShapeError, ColumnNotFoundError, InvalidArgumentError, IOStreamError } from "../exceptions"
@@ -136,6 +136,38 @@ export class DataFrame<T extends RowRecord = any> {
             }
         }
         return exprs;
+    }
+
+    private _resolveTargetColumns(
+        columns: IntoExpr | IntoExpr[],
+        contextName: string = "Target column"
+    ): string[] {
+        const rawArgs = Array.isArray(columns) ? columns : [columns];
+        const exprArgs = this._normalizeArgs(rawArgs);
+        const expandedExprs = resolveColumnSelectors(
+            exprArgs,
+            Object.keys(this._columns),
+            undefined,
+            this._schema,
+            this._columns
+        );
+
+        const targetCols: string[] = [];
+        const seen = new Set<string>();
+        const len = expandedExprs.length;
+        for (let i = 0; i < len; i++) {
+            const expr = expandedExprs[i];
+            const colName = expr._outputName || expr._colName;
+            if (!colName || colName === ALL_COLUMNS_MARKER) {
+                throw new DataFrameError(`Expression passed to ${contextName} must have a column name.`);
+            }
+            if (!seen.has(colName)) {
+                assertColumnExists(colName, this._columns, contextName);
+                seen.add(colName);
+                targetCols.push(colName);
+            }
+        }
+        return targetCols;
     }
 
     /**
@@ -307,26 +339,8 @@ export class DataFrame<T extends RowRecord = any> {
         columns: IntoExpr | IntoExpr[],
         options?: ExplodeOptions
     ): DataFrame<any> {
-        const rawArgs = Array.isArray(columns) ? columns : [columns];
-        const normalized = this._normalizeArgs(rawArgs);
-        const expandedExprs = resolveColumnSelectors(
-            normalized,
-            Object.keys(this._columns),
-            undefined,
-            this._schema,
-            this._columns
-        );
-        const colsToExplode = new Set<string>();
-        const numCols = expandedExprs.length;
-        for (let i = 0; i < numCols; i++) {
-            const expr = expandedExprs[i];
-            const name = expr._colName || expr._outputName;
-            if (!name || name === ALL_COLUMNS_MARKER) {
-                throw new DataFrameError("Expression passed to explode must have a column name.");
-            }
-            assertColumnExists(name, this._columns, "Explode column");
-            colsToExplode.add(name);
-        }
+        const targetCols = this._resolveTargetColumns(columns, "Explode column");
+        const colsToExplode = new Set<string>(targetCols);
         const keys = Object.keys(this._columns);
         const selectList: IExpr[] = [];
         const numKeys = keys.length;
@@ -1810,6 +1824,82 @@ export class DataFrame<T extends RowRecord = any> {
         outSchema[valueName] = inferColumnType(newColumns[valueName]);
 
         return DataFrame._createDirect<U>(newColumns as any, outSchema, newHeight);
+    }
+
+    /**
+     * Unstacks selected columns into multiple wide columns of size `step`.
+     * Reshapes data from long to wide format without aggregation.
+     *
+     * @param columns Column name(s) or selector(s) to unstack.
+     * @param options Unstack configuration options (`step`, `how`, `fillValues`).
+     * @returns {DataFrame} A new wide DataFrame with unstacked columns.
+     * @example
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.unstack("a", { step: 2, how: "horizontal" })
+     * shape: (2, 2)
+     * ┌─────┬──────┐
+     * │ a_0 │ a_1  │
+     * ├─────┼──────┤
+     * │ 1   │ 2    │
+     * │ 3   │ null │
+     * └─────┴──────┘
+     */
+    unstack(
+        columns: IntoExpr | IntoExpr[],
+        options: UnstackOptions
+    ): DataFrame<any> {
+        if (!isValidNumber(options?.step) || options.step < 1) {
+            throw new InvalidArgumentError("unstack() requires a positive integer 'step' >= 1");
+        }
+        if (options.how !== undefined && options.how !== "vertical" && options.how !== "horizontal") {
+            throw new InvalidArgumentError("unstack() 'how' must be either 'vertical' or 'horizontal'");
+        }
+
+        const { how = "vertical", fillValues: fillValue = null } = options;
+        const step = Math.trunc(options.step);
+
+        if (this._height === 0) {
+            return DataFrame._createDirect<any>({}, {}, 0);
+        }
+
+        const targetCols = this._resolveTargetColumns(columns, "unstack target column");
+        if (targetCols.length === 0) {
+            return DataFrame._createDirect<any>({}, {}, 0);
+        }
+
+        const origHeight = this._height;
+        const newHeight = Math.ceil(origHeight / step);
+        const newColumns: Record<string, any[]> = {};
+        const newSchema: DataFrameSchema = {};
+
+        const numTargets = targetCols.length;
+        for (let t = 0; t < numTargets; t++) {
+            const colName = targetCols[t];
+            const src = this._columns[colName];
+            const srcSchema = this._schema[colName];
+
+            for (let s = 0; s < step; s++) {
+                const subColName = `${colName}_${s}`;
+                const arr = new Array(newHeight).fill(fillValue);
+
+                if (how === "vertical") {
+                    const start = s * newHeight;
+                    const end = Math.min(start + newHeight, origHeight);
+                    for (let i = start; i < end; i++) {
+                        arr[i - start] = src[i];
+                    }
+                } else {
+                    for (let r = 0, i = s; i < origHeight; r++, i += step) {
+                        arr[r] = src[i];
+                    }
+                }
+
+                newColumns[subColName] = arr;
+                if (srcSchema) newSchema[subColName] = srcSchema;
+            }
+        }
+
+        return DataFrame._createDirect<any>(newColumns, newSchema, newHeight);
     }
 
     /**

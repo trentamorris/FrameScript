@@ -22,7 +22,7 @@ import {
 } from "../utils";
 import { isExpr } from "./ExprBase";
 
-const TYPED_ARRAY_MAP: Record<string, RegisteredDataType> = {
+const _TYPED_ARRAY_MAP: Record<string, RegisteredDataType> = {
     Int8Array: DataTypeRegistry.Int8,
     Uint8Array: DataTypeRegistry.UInt8,
     Uint8ClampedArray: DataTypeRegistry.UInt8,
@@ -78,7 +78,7 @@ export function resolveOperandType(
 
     if (isTypedArray(unboxed)) {
         const tag = typedArrayTagGetter ? typedArrayTagGetter.call(unboxed) : (unboxed as any).constructor.name;
-        const inner = TYPED_ARRAY_MAP[tag];
+        const inner = _TYPED_ARRAY_MAP[tag];
         return inner ? DataTypeRegistry.Array(inner) : DataTypeRegistry.Binary;
     }
 
@@ -183,8 +183,8 @@ export function resolveExprOutputType(
     // 2. Expression AST branches (binary, coalesce/when-then, struct field)
     if (expr._binaryMeta) {
         return deduceBinaryType(
-            resolveOperandType(expr._binaryMeta.left, schema),
-            resolveOperandType(expr._binaryMeta.right, schema),
+            resolveOperandType(expr._binaryMeta._left, schema),
+            resolveOperandType(expr._binaryMeta._right, schema),
             colSample
         );
     }

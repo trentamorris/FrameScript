@@ -17,7 +17,7 @@ import {
     filterByMask,
     shiftArray
 } from "../../utils";
-import type { SortArrayOptions, ExplodeOptions, IExpr, AnyTypedArray, ToStructOptions } from "../../types";
+import type { SortArrayOptions, ExplodeOptions, IExpr, AnyTypedArray, ToStructOptions, ShiftOptions } from "../../types";
 import { ELEMENT_MARKER } from "../constants";
 import { ComputeError } from "../../exceptions";
 
@@ -28,14 +28,14 @@ import { ComputeError } from "../../exceptions";
  * @syntax $df.col(<column_name>).arr.{symbol}(...)
  */
 export class ArrayExprNamespace {
-    constructor(public expr: any) { }
+    constructor(public _expr: any) { }
 
     _deriveArray(fn: (arr: any[] | AnyTypedArray) => any) {
-        return this.expr._deriveUnary((v: any) => isArrayOrTypedArray(v) ? fn(v as any) : null);
+        return this._expr._deriveUnary((v: any) => isArrayOrTypedArray(v) ? fn(v as any) : null);
     }
 
     _deriveArrayBinary(other: any, fn: (arr: any[] | AnyTypedArray, val: any) => any) {
-        const result = this.expr._deriveBinary(other, (arr: any, val: any) => {
+        const result = this._expr._deriveBinary(other, (arr: any, val: any) => {
             return isArrayOrTypedArray(arr) ? fn(arr as any, val) : null;
         });
         result._binaryMeta = undefined;
@@ -47,7 +47,7 @@ export class ArrayExprNamespace {
         fn: (val: any[] | AnyTypedArray, evaluated: any) => any,
         evaluator?: (expr: IExpr, subColumns: any, subHeight: number) => any
     ) {
-        return this.expr._derive((vArray: any[], columns: any) => {
+        return this._expr._derive((vArray: any[], columns: any) => {
             const height = vArray.length;
             const result = new Array(height);
             const subColumns = Object.create(columns);
@@ -270,8 +270,7 @@ export class ArrayExprNamespace {
      */
     eval(expr: IExpr) {
         return this._evalSubExpr(expr, (_val, res) => res, (subExpr, subColumns, subHeight) => {
-            const isGlobalAgg = subExpr._aggFn != null && (subExpr._partitionBy == null || subExpr._partitionBy.length === 0);
-            if (isGlobalAgg) {
+            if (subExpr._isGlobalAgg?.()) {
                 const preOpsIdx = subExpr._groupingOpsIndex !== undefined ? subExpr._groupingOpsIndex : subExpr._ops.length;
                 const preVal = subExpr._evaluatePre(preOpsIdx, subColumns, subHeight);
                 const aggVal = subExpr._aggFn!(Array.from(preVal));
@@ -297,7 +296,7 @@ export class ArrayExprNamespace {
      * └───────┴────────┘
      */
     explode({ emptyAsNull = true, keepNulls = true }: ExplodeOptions = {}) {
-        return this.expr._derive((vArray: any[]) => {
+        return this._expr._derive((vArray: any[]) => {
             const height = vArray.length;
             let newHeight = 0;
             for (let i = 0; i < height; i++) {
@@ -649,8 +648,8 @@ export class ArrayExprNamespace {
      * │ [4, 5]    │ [null, 4]        │
      * └───────────┴──────────────────┘
      */
-    shift(n: number = 1) {
-        return this._deriveArray((arr) => shiftArray(arr, n));
+    shift(n: number = 1, options: ShiftOptions = {}) {
+        return this._deriveArray((arr) => shiftArray(arr, n, options.fillValue));
     }
 
     /**
@@ -769,7 +768,7 @@ export class ArrayExprNamespace {
      * └────────┴────────────────┘
      */
     toStruct({ upperBound, fields }: ToStructOptions = {}) {
-        return this.expr._derive((vArray: any[]) => {
+        return this._expr._derive((vArray: any[]) => {
             const height = vArray.length;
             const result = new Array(height);
 

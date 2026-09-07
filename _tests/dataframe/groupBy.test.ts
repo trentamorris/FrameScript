@@ -111,6 +111,25 @@ const dfAllNull = new DataFrame([
 
 const dfAllNullAgg = dfAllNull.groupBy("cat").agg($df.col("val").sum().alias("total"));
 if (dfAllNullAgg.height !== 1) throw new Error("All-null key should produce exactly 1 group");
-if ((dfAllNullAgg.toDicts()[0] as any).total !== 6) throw new Error("All-null group sum wrong");
+// ─── 7. NaN key forms its own group (NaN == NaN in group hashing, distinct from null) ────
+
+const dfNaNKey = new DataFrame([
+    { cat: NaN, val: 10 },
+    { cat: NaN, val: 20 },
+    { cat: null, val: 30 },
+    { cat: 1, val: 40 },
+]);
+
+const dfNaNKeyAgg = dfNaNKey.groupBy("cat").agg($df.col("val").sum().alias("total"));
+if (dfNaNKeyAgg.height !== 3) throw new Error("NaN, null, and number should form 3 distinct groups, got " + dfNaNKeyAgg.height);
+
+const nanRows = dfNaNKeyAgg.toDicts() as any[];
+const nanGroup = nanRows.find(r => typeof r.cat === "number" && Number.isNaN(r.cat));
+const nullGrp7 = nanRows.find(r => r.cat === null);
+const oneGrp = nanRows.find(r => r.cat === 1);
+
+if (!nanGroup || nanGroup.total !== 30) throw new Error("NaN group total wrong: " + nanGroup?.total);
+if (!nullGrp7 || nullGrp7.total !== 30) throw new Error("null group total wrong: " + nullGrp7?.total);
+if (!oneGrp || oneGrp.total !== 40) throw new Error("one group total wrong: " + oneGrp?.total);
 
 console.log("✓ groupBy tests passed!");

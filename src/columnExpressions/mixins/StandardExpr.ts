@@ -5,7 +5,8 @@ import type {
     KurtosisOptions,
     EntropyOptions,
     FillNullOptions,
-    RollingOptions
+    RollingOptions,
+    ShiftOptions
 } from "../../types"
 import type { RandomOptions, NumericArg, IsCloseOptions } from "../types"
 import { ExprBase } from "../ExprBase"
@@ -33,7 +34,7 @@ import {
     isValidNumber,
     mulberry32,
     reduceBitwise,
-    roundToScale,
+    roundToScale
 } from "../../utils"
 
 /**
@@ -1477,11 +1478,11 @@ export class StandardExpr extends ExprBase {
     /**
      * Window: Shifts values down by offset, filling missing slots with default value.
      * @param offset Number of rows to shift down (default 1).
-     * @param defaultVal Fallback fill value for empty slots (default null).
+     * @param options Shift options configuring fallback fillValue (default null).
      * @returns ColumnExpression
      * @example
      * <!-- doc:base_numbers_3x1 -->
-     * >>> df.withColumns($df.col("val").lag(1, 0).alias("prev"))
+     * >>> df.withColumns($df.col("val").lag(1, { fillValue: 0 }).alias("prev"))
      * shape: (3, 2)
      * ┌─────┬──────┐
      * │ val │ prev │
@@ -1491,13 +1492,16 @@ export class StandardExpr extends ExprBase {
      * │ 30  │ 20   │
      * └─────┴──────┘
      */
-    lag(offset: number = 1, defaultVal: any = null) {
+    lag(offset: number = 1, options: ShiftOptions = {}) {
+        const fillValue = options.fillValue ?? null;
+
         return this._window(function (this: IExpr, groupPreValues: any[], _partitionIndices: number[], currentIndex: number) {
-            let val = defaultVal;
-            if (currentIndex - offset >= 0) {
-                val = groupPreValues[currentIndex - offset];
+            const targetIndex = currentIndex - offset;
+            if (targetIndex >= 0 && targetIndex < groupPreValues.length) {
+                const val = groupPreValues[targetIndex];
+                return val === undefined ? fillValue : val;
             }
-            return val;
+            return fillValue;
         });
     }
 
@@ -1542,11 +1546,11 @@ export class StandardExpr extends ExprBase {
     /**
      * Window: Shifts values up by offset, filling missing slots with default value.
      * @param offset Number of rows to shift up (default 1).
-     * @param defaultVal Fallback fill value for empty slots (default null).
+     * @param options Shift options configuring fallback fillValue (default null).
      * @returns ColumnExpression
      * @example
      * <!-- doc:base_numbers_3x1 -->
-     * >>> df.withColumns($df.col("val").lead(1, 0).alias("next"))
+     * >>> df.withColumns($df.col("val").lead(1, { fillValue: 0 }).alias("next"))
      * shape: (3, 2)
      * ┌─────┬──────┐
      * │ val │ next │
@@ -1556,14 +1560,8 @@ export class StandardExpr extends ExprBase {
      * │ 30  │ 0    │
      * └─────┴──────┘
      */
-    lead(offset: number = 1, defaultVal: any = null) {
-        return this._window(function (this: IExpr, groupPreValues: any[], _partitionIndices: number[], currentIndex: number) {
-            let val = defaultVal;
-            if (currentIndex + offset < groupPreValues.length) {
-                val = groupPreValues[currentIndex + offset];
-            }
-            return val;
-        });
+    lead(offset: number = 1, options: ShiftOptions = {}) {
+        return this.lag(-offset, options);
     }
 
     /**
@@ -2431,6 +2429,30 @@ export class StandardExpr extends ExprBase {
         });
         newInst._outputName = "row_number";
         return newInst;
+    }
+
+    /**
+     * Shifts values by the given number of rows, filling newly introduced slots with null.
+     * Positive offsets shift values down (lag); negative offsets shift values up (lead).
+     * 
+     * Supports windowing and partition grouping via `.over(...)`.
+     * 
+     * @param n Number of rows to shift (positive for down, negative for up). Default 1.
+     * @returns ColumnExpression
+     * @example
+     * <!-- doc:base_numbers_3x1 -->
+     * >>> df.withColumns($df.col("a").shift(1).alias("shifted"))
+     * shape: (3, 2)
+     * ┌───┬─────────┐
+     * │ a │ shifted │
+     * ├───┼─────────┤
+     * │ 1 │ null    │
+     * │ 2 │ 1       │
+     * │ 3 │ 2       │
+     * └───┴─────────┘
+     */
+    shift(n: number = 1, options: ShiftOptions = {}) {
+        return this.lag(Math.trunc(n) || 0, options);
     }
 
     /**

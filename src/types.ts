@@ -38,7 +38,7 @@ export type ValidScalarTypes = Exclude<ValidPrimitiveTypes, symbol> | Date | Any
 export type AggFn<V, R = any> = (values: V[]) => R;
 export type OpFn = (vals: ColumnData, columns: ColumnDict) => ColumnData;
 
-export type IntoExpr = string | IExpr;
+export type IntoExpr = string | RegExp | IExpr;
 
 export interface IExpr {
     _ops: OpFn[];
@@ -48,7 +48,7 @@ export interface IExpr {
     _literalValue?: any;
     _aggFn?: AggFn<any> | null;
     _castType?: RegisteredDataType;
-    _binaryMeta?: { left: any; right: any };
+    _binaryMeta?: { _left: any; _right: any };
     _groupingOpsIndex?: number;
     _partitionOpsIndex?: number;
     _partitionBy?: (string | IExpr)[] | null;
@@ -58,6 +58,7 @@ export interface IExpr {
     _fieldName?: string;
     _isUnnest?: boolean;
     _branchOperands?: any[];
+    _isGlobalAgg?(): boolean;
     alias(name: string): this;
     cast(dataType: RegisteredDataType): this;
     _resolve(val: any, columns: ColumnDict, height: number): ColumnData | any;
@@ -327,4 +328,12 @@ export interface KurtosisOptions {
 export interface EntropyOptions {
     base?: number;
     normalize?: boolean;
+}
+
+export interface ShiftOptions {
+    /**
+     * Fallback fill value for empty slots introduced by shift/lag/lead.
+     * @default null
+     */
+    fillValue?: any;
 }

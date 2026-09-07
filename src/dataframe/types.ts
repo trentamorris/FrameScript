@@ -99,6 +99,27 @@ export interface TransposeOptions {
     columnNames?: string | Iterable<string>;
 }
 
+export interface UnstackOptions {
+    /**
+     * Number of columns to reshape each input column into.
+     */
+    step: number;
+
+    /**
+     * Reshaping direction:
+     * - "vertical" (default): fills down the new columns first before moving to the next column.
+     * - "horizontal": fills across row-by-row before moving to the next row.
+     * @default "vertical"
+     */
+    how?: "vertical" | "horizontal";
+
+    /**
+     * Value to fill in empty cells when length is not evenly divisible by step.
+     * @default null
+     */
+    fillValues?: any;
+}
+
 
 export interface ReadJSONOptions extends JSONParseOptions {
     /**

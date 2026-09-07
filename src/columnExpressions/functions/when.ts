@@ -1,6 +1,6 @@
 import { ColumnExpr } from "../ColumnExpr";
 import type { IExpr, ValidScalarTypes } from "../../types";
-import { evaluateArg, isEvaluatedColumn } from "../utils";
+import { evaluateArg, isEvaluatedColumn, evaluateArgsMatrix } from "../utils";
 import { WHEN_MARKER } from "../constants";
 
 type WhenArg = IExpr | ValidScalarTypes | any[] | Record<string, any>;
@@ -32,26 +32,10 @@ export class WhenThen extends ColumnExpr<any> {
 
         this._ops = [(_, columns) => {
             const height = _.length;
-            const preds = this._predicates;
-            const vals = this._values;
-            const numConditions = preds.length;
+            const numConditions = this._predicates.length;
 
-            const evaluatedPreds = new Array(numConditions);
-            const evaluatedVals = new Array(numConditions);
-            const isPredCol = new Array(numConditions);
-            const isValCol = new Array(numConditions);
-
-            for (let j = 0; j < numConditions; j++) {
-                const pj = preds[j];
-                const vj = vals[j];
-                const ep = evaluateArg(pj, columns, height);
-                const ev = evaluateArg(vj, columns, height);
-
-                evaluatedPreds[j] = ep;
-                evaluatedVals[j] = ev;
-                isPredCol[j] = isEvaluatedColumn(pj, ep, columns, height);
-                isValCol[j] = isEvaluatedColumn(vj, ev, columns, height);
-            }
+            const { evaluatedArrays: evaluatedPreds, isCol: isPredCol } = evaluateArgsMatrix(this._predicates, columns, height);
+            const { evaluatedArrays: evaluatedVals, isCol: isValCol } = evaluateArgsMatrix(this._values, columns, height);
 
             const currentOtherwise = this._otherwise;
             const evaluatedOtherwise = evaluateArg(currentOtherwise, columns, height);

@@ -115,6 +115,7 @@ import "./rollingSum.test";
 import "./round.test";
 import "./roundSigFigs.test";
 import "./rowNumber.test";
+import "./shift.test";
 import "./sign.test";
 import "./sin.test";
 import "./sinh.test";

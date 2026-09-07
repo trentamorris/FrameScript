@@ -32,7 +32,7 @@ export class ExprBase implements IExpr {
     _literalValue?: any;
     _aggFn?: AggFn<any> | null = null;
     _castType?: RegisteredDataType;
-    _binaryMeta?: { left: any; right: any };
+    _binaryMeta?: { _left: any; _right: any };
     _groupingOpsIndex?: number;
     _partitionOpsIndex?: number;
     _partitionBy: (string | IExpr)[] | null = null;
@@ -80,6 +80,10 @@ export class ExprBase implements IExpr {
         }
         const val = name && name !== ALL_COLUMNS_MARKER ? columns[name] : null;
         return val || new Array(height).fill(null);
+    }
+
+    _isGlobalAgg(): boolean {
+        return this._aggFn != null && (!this._partitionBy || this._partitionBy.length === 0);
     }
 
     _resolve(val: any, columns: ColumnDict, height: number) {

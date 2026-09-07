@@ -1370,6 +1370,25 @@ if (heteroRows[0].rval !== 100 || heteroRows[1].rval !== 200) {
         }
         if (!threwAsofMismatchBy) throw new Error("Asof mismatch by length validation failed");
     }
+
+    // ─── NaN Join Key Behavior ──────────────────────────────────────────
+    {
+        const leftNaN = new DataFrame([
+            { id: NaN, val: "L_NaN" },
+            { id: 1, val: "L_1" }
+        ]);
+        const rightNaN = new DataFrame([
+            { id: NaN, rval: "R_NaN" },
+            { id: 1, rval: "R_1" }
+        ]);
+        const joinedNaN = leftNaN.join(rightNaN, { on: "id", how: "inner" });
+        if (joinedNaN.height !== 2) throw new Error("NaN join expected 2 matches, got " + joinedNaN.height);
+        const rows = joinedNaN.toDicts() as any[];
+        const nanMatch = rows.find(r => typeof r.id === "number" && Number.isNaN(r.id));
+        if (!nanMatch || nanMatch.val !== "L_NaN" || nanMatch.rval !== "R_NaN") {
+            throw new Error("NaN join match values mismatch");
+        }
+    }
 }
 
 console.log("✓ join tests passed!");

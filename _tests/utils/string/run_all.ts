@@ -1,5 +1,4 @@
 import "./isBlankString.test";
-import "./_trimByMode.test";
 import "./stripChars.test";
 import "./toCanonicalString.test";
 import "./toWords.test";

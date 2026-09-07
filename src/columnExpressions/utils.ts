@@ -52,7 +52,7 @@ export const kleeneBinary = (expr: IExpr, other: any, fn: (v: any, r: any) => an
         }
         return result;
     };
-    (op as any)._binaryMeta = { left: expr, right: other };
+    (op as any)._binaryMeta = { _left: expr, _right: other };
     return op;
 };
 
@@ -99,6 +99,29 @@ export function isEvaluatedColumn(
         return true;
     }
     return false;
+}
+
+/**
+ * Evaluates multiple arguments against columns and height, returning the evaluated arrays
+ * and whether each argument resolved to a full column array.
+ */
+export function evaluateArgsMatrix(
+    args: unknown[],
+    columns: ColumnDict | null | undefined,
+    height: number
+): { evaluatedArrays: any[]; isCol: boolean[] } {
+    const len = args.length;
+    const evaluatedArrays = new Array(len);
+    const isCol = new Array(len);
+
+    for (let j = 0; j < len; j++) {
+        const raw = args[j];
+        const evaluated = evaluateArg(raw, columns, height);
+        evaluatedArrays[j] = evaluated;
+        isCol[j] = isEvaluatedColumn(raw, evaluated, columns, height);
+    }
+
+    return { evaluatedArrays, isCol };
 }
 
 export function buildCanonicalSet(vals: any): Set<string> {

@@ -80,7 +80,7 @@ export type StripCharsOptions = {
     };
 };
 
-export function _trimByMode(str: string, mode: StripMode = "both"): string {
+function _trimByMode(str: string, mode: StripMode = "both"): string {
     if (mode === "start") return str.trimStart();
     if (mode === "end") return str.trimEnd();
     return str.trim();
@@ -299,8 +299,8 @@ export interface ChangeCaseOptions {
     format: "camel" | "kebab" | "pascal" | "snake" | "title";
 }
 
-const CONTRACTION_REGEX = /(\p{L})['’]+(?=\p{L})/gu;
-const WORDS_REGEX = new RegExp(
+const _CONTRACTION_REGEX = /(\p{L})['’]+(?=\p{L})/gu;
+const _WORDS_REGEX = new RegExp(
     [
         // Rule A: Acronym Plurals (e.g., 'KPIs', 'APIs')
         `[\\p{Lu}\\p{M}]+s(?![\\p{Ll}\\p{M}])`,
@@ -319,7 +319,7 @@ const WORDS_REGEX = new RegExp(
 );
 
 // JavaScript language-level reserved keywords to block prototype pollution attacks
-const DANGEROUS_PROPERTIES = new Set(["__proto__", "proto", "constructor", "prototype"]);
+const _DANGEROUS_PROPERTIES = new Set(["__proto__", "proto", "constructor", "prototype"]);
 
 /**
  * Fully robust, Unicode-aware string tokenization engine.
@@ -332,14 +332,14 @@ export function toWords(str: any): string[] {
 
     const normalized = primitiveStr
         .normalize("NFC")
-        .replace(CONTRACTION_REGEX, "$1");
+        .replace(_CONTRACTION_REGEX, "$1");
 
-    const matches = normalized.match(WORDS_REGEX) || [];
+    const matches = normalized.match(_WORDS_REGEX) || [];
 
     const safeTokens: string[] = [];
     for (let i = 0; i < matches.length; i++) {
         const token = matches[i];
-        if (!DANGEROUS_PROPERTIES.has(token)) {
+        if (!_DANGEROUS_PROPERTIES.has(token)) {
             safeTokens.push(token);
         }
     }

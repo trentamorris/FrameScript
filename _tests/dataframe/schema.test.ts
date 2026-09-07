@@ -108,6 +108,17 @@ try {
     if (listTypedArraySchema.nested_lists.name !== "Array") throw new Error(`Expected nested_lists schema to be Array, got ${listTypedArraySchema.nested_lists.name}`);
     if ((listTypedArraySchema.nested_lists as any).innerType.name !== "Int32") throw new Error(`Expected nested array inner type to be Int32, got ${(listTypedArraySchema.nested_lists as any).innerType.name}`);
 
+    // 6. Test NaN column type inference (numbers + NaN must infer as Float64)
+    const nanNumDf = $df.data({
+        vals: [10, NaN, 20],
+        only_nan: [NaN, NaN, NaN],
+        nan_and_null: [NaN, null, 1.5]
+    });
+    const nanSchema = nanNumDf.schema;
+    if (nanSchema.vals.name !== "Float64") throw new Error(`Expected vals with NaN to infer as Float64, got ${nanSchema.vals.name}`);
+    if (nanSchema.only_nan.name !== "Float64") throw new Error(`Expected only_nan to infer as Float64, got ${nanSchema.only_nan.name}`);
+    if (nanSchema.nan_and_null.name !== "Float64") throw new Error(`Expected nan_and_null to infer as Float64, got ${nanSchema.nan_and_null.name}`);
+
     console.log("\n🎉 ALL SCHEMA AND DATATYPE TESTS PASSED!");
 } catch (e) {
     console.error("\n❌ SCHEMA TESTS FAILED:", e);

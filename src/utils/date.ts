@@ -75,7 +75,7 @@ export function createUTCDate(
     return d;
 }
 
-export function _getDateTimeParts(d: Date, timeZone?: string): DateTimeParts {
+function _getDateTimeParts(d: Date, timeZone?: string): DateTimeParts {
     const tz = _resolveTimeZone(timeZone);
 
     if (tz.toUpperCase() === "UTC") {

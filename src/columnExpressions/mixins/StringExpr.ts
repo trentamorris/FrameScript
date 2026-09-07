@@ -51,15 +51,15 @@ import {
  * @syntax $df.col(<column_name>).str.{symbol}(...)
  */
 export class StringExprNamespace {
-    constructor(public expr: any) { }
+    constructor(public _expr: any) { }
 
     _deriveString(fn: (v: string) => any) {
-        return this.expr._deriveUnary((v: any) => fn(String(v)));
+        return this._expr._deriveUnary((v: any) => fn(String(v)));
     }
 
     _patternGuard(pattern: any, fn: () => any) {
         if (pattern == null) {
-            return this.expr._derive((vArray: any[]) => new Array(vArray.length).fill(null));
+            return this._expr._derive((vArray: any[]) => new Array(vArray.length).fill(null));
         }
         return fn();
     }
@@ -90,7 +90,7 @@ export class StringExprNamespace {
      * └──────────┴───────────┘
      */
     concat(other: string | IExpr) {
-        return this.expr._deriveBinary(other, (v: any, o: any) => String(v) + String(o));
+        return this._expr._deriveBinary(other, (v: any, o: any) => String(v) + String(o));
     }
 
     /**
@@ -488,7 +488,7 @@ export class StringExprNamespace {
      * └────────────┴────────┘
      */
     join(delimiter: string = "", options: JoinArrayOptions = {}) {
-        return this.expr._deriveUnary((v: any) => {
+        return this._expr._deriveUnary((v: any) => {
             const arr = toValidArray(v);
             if (arr == null) return null;
             return joinArray(arr, delimiter, options);

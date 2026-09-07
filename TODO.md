@@ -183,37 +183,33 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
     * **Concise Error Messages**: Prune verbose multi-line error strings while preserving clear, informative diagnostics.
     * **Eliminate Redundant Convenience Wrappers**: Removed redundant aliases and convenience wrappers (`df.vstack()` and `df.hstack()`) in favor of canonical, options-based `df.concat()` and `$df.concat()`, cleaning up legacy clutter per Developer Guidelines.
     * **Shared Calculation Primitives**: Consolidate repetitive scalar validation, null-guards, and loop accumulator setups into shared utilities across statistics and math functions.
-- [ ] **Primitive Fast-Path Row Hashing**:
-  * Optimize `computeRowHash` and `toCanonicalString` to use numeric hashing algorithms (e.g., FNV-1a or 64-bit integer mixing) when keys consist strictly of primitive types (integers, strings, booleans), bypassing string allocations during large `DataFrame.join()` and `.groupBy()` operations.
-- [ ] **Apache Arrow & IPC Interoperability**:
-  * Provide lightweight serialization adapters for Apache Arrow IPC memory format, facilitating zero-copy data exchange with Python Polars, PyArrow, and browser WebAssembly runtimes.
 
 ### 🧹 Strict NaN vs. Null Semantics Audit
-- [ ] **Core NaN Semantics & Behavior Verification**:
-  * Verify consistent behavior across all aggregations (`.sum()`, `.mean()`, `.std()`, `.min()`, `.max()`) and comparison operators: ensure floating-point `NaN` propagates or ignores according to IEEE 754 / Polars standards (distinguishing `NaN` from missing `null`, and handling `NaN == NaN` consistently in join/group hashing vs. boolean comparisons).
-  * Check type inference: ensure numeric columns containing only numbers and `NaN` infer as `Float64` rather than generic `Any` or `Null`.
+- [x] **Core NaN Semantics & Behavior Verification**:
+  * [x] Verify consistent behavior across all aggregations (`.sum()`, `.mean()`, `.std()`, `.min()`, `.max()`) and comparison operators: ensure floating-point `NaN` propagates or ignores according to IEEE 754 / Polars standards (distinguishing `NaN` from missing `null`, and handling `NaN == NaN` consistently in join/group hashing vs. boolean comparisons).
+  * [x] Check type inference: ensure numeric columns containing only numbers and `NaN` infer as `Float64` rather than generic `Any` or `Null`.
 
-### ⏰ Advanced Temporal Extensions & Storage Infrastructure
-- [ ] **`replace_time_zone(timeZone)` Method**:
-  * Implement `.dt.replace_time_zone(timeZone: string | null)` to re-interpret local wall-clock values in a new timezone (shifting the underlying UTC instant/epoch time) or unset timezone awareness (`timeZone = null`), distinct from `.convert_time_zone(tz)` which preserves the UTC instant.
+
+## 🔮 Future / Backlog Scope (V2.1.0+)
+
+### 🏹 Interoperability & High-Precision Storage
+- [ ] **Lightweight Zero-Dependency Binary Serialization (`serialize` / `deserialize`)**:
+  * Implement compact binary buffer serialization (`ArrayBuffer`) for fast, zero-copy DataFrame caching in browser IndexedDB, Web Workers, or local storage without heavy external format dependencies.
+- [ ] **Apache Arrow & IPC Interoperability**:
+  * Provide lightweight serialization adapters for Apache Arrow IPC memory format, facilitating zero-copy data exchange with Python Polars, PyArrow, and browser WebAssembly runtimes.
 - [ ] **High-Precision Sub-Millisecond Datetime & Duration Storage (`us`, `ns`)**:
   * Transition from standard JS `Date` objects (which are limited to millisecond resolution) to raw 64-bit integer / `BigInt` array representations for true sub-millisecond (`us` microsecond and `ns` nanosecond) datetime storage, duration storage, and `.dt.total_*()` unscaling.
-- [ ] **Evaluation-Time Timezone Guard Checks**:
-  * Add evaluation-time schema verification in DataFrame operations (`with_columns`/`select`) to enforce that `convert_time_zone()` is only called on timezone-aware input columns even when expressions are built stand-alone without explicit `.cast_time_unit()` chains.
-- [ ] **Row-Dynamic Timezone Conversions (`convert_time_zone(col("tz"))`)**:
-  * Allow `.dt.convert_time_zone()` and timezone extraction methods to accept an expression parameter (`IExpr` / column reference) as the timezone argument, enabling per-row dynamic timezone conversions.
-- [ ] **Dedicated Primitive `TimeType` & `DateType` Storage**:
-  * Introduce dedicated low-level `TimeType` (nanoseconds/milliseconds since midnight) and 32-bit integer `DateType` (days since epoch) to match Polars native primitive types beyond combined JS `Date` objects.
-
-
-## 🔮 Future / Backlog Scope (V2.0+)
+- [ ] **First-Class 1D `Series` Data Structure**:
+  * Introduce a dedicated 1D `Series` container (`$df.Series(name, values, dtype)`) providing direct columnar operations, element-wise math/string/temporal expressions, and seamless conversions (`df.to_series()`, `df.drop_in_place()`) without wrapping into single-column DataFrames.
+- [ ] **Optional Multi-Threaded / Web Worker Chunk Parallelization**:
+  * Evaluate optional multi-threaded expression chunking via Worker Threads / Web Workers and `SharedArrayBuffer` for heavy background numeric operations without disrupting synchronous, single-threaded browser DX.
 
 ### 🐻 Complete Polars Functionality Parity & Migration Backlog
 The following list tracks the complete surface of Polars functionality to achieve 100% parity where applicable to JS/TS.
 
-- [ ] `/allHorizontal`
+- [x] `/allHorizontal`            (`$df.horizontal(<cols>).all()`)
 - [ ] `/any`
-- [ ] `/anyHorizontal`
+- [x] `/anyHorizontal`            (`$df.horizontal(<cols>).any()`)
 - [ ] `/approxNUnique`
 - [ ] `/arange`
 - [ ] `/arctan2`
@@ -230,74 +226,74 @@ The following list tracks the complete surface of Polars functionality to achiev
 - [ ] `/cumFold`
 - [ ] `/cumReduce`
 - [ ] `/cumSum`
-- [ ] `/cumSumHorizontal`
-- [ ] `/DataFrame.__getitem__`
-- [ ] `/DataFrame.__setitem__`
-- [ ] `/DataFrame.bottom_k`
+- [x] `/cumSumHorizontal`           (`$df.horizontal(<cols>).arr.cumSum()`)
+- [ ] `/DataFrame.__getitem__`      (Deferred: requires standalone `Series` type)
+- [ ] `/DataFrame.__setitem__`      (Deferred: requires standalone `Series` type)
+- [x] `/DataFrame/bottom_k`         (`$df.data(...).sort({ by: <col>, descending: false }).head(k)`)
 - [ ] `/DataFrame.cast`
-- [ ] `/DataFrame.clear`
-- [ ] `/DataFrame/collect_schema`
+- [x] `/DataFrame/clear`            (`$df.data(...).slice(0, 0)`)
+- [x] `/DataFrame/collect_schema`   (`$df.data(...).schema`)
 - [ ] `/DataFrame/corr`
-- [ ] `/DataFrame/count`
-- [ ] `/DataFrame/deserialize`
-- [ ] `/DataFrame/drop_in_place`
-- [ ] `/DataFrame/drop_nans`
-- [ ] `/DataFrame/drop_nulls`
+- [x] `/DataFrame/count`            (`$df.data(...).height` [total rows] or `$df.data(...).select($df.all().count())` [non-null per column])
+- [ ] `/DataFrame/deserialize`      (JSON format available via `$df.readJson()`; binary buffer format tracked in Future Scope)
+- [ ] `/DataFrame/drop_in_place`    (Deferred: requires standalone `Series` type)
+- [x] `/DataFrame/drop_nans`        (`$df.data(...).filter($df.all().isNotNan())`)
+- [x] `/DataFrame/drop_nulls`       (`$df.data(...).dropNulls(<subset>)`)
 - [ ] `/DataFrame/equals`
-- [ ] `/DataFrame/extend`
-- [ ] `/DataFrame/fill_nan` ?filter under the hood
-- [ ] `/DataFrame/flags`
+- [x] `/DataFrame/extend`           (`$df.concat([df1, df2], { how: "vertical" })` — in Polars this is in-place Arrow chunk reallocation; DFScript's immutable vertical concat already builds contiguous arrays directly)
+- [ ] `/DataFrame/fill_nan`
+- [ ] `/DataFrame/flags`            (Polars internal engine metadata exposing chunk-level optimization flags like SORTED_ASC / FAST_EXPLODE)
 - [ ] `/DataFrame/fold`
-- [ ] `/DataFrame/gather`
-- [ ] `/DataFrame/gather_every`
-- [ ] `/DataFrame/get_column`
-- [ ] `/DataFrame/get_column_index`
-- [ ] `/DataFrame/get_columns`
-- [ ] `/DataFrame/group_by_dynamic`
-- [ ] `/DataFrame/hash_rows`
+- [x] `/DataFrame/gather`
+- [x] `/DataFrame/gather_every`
+- [ ] `/DataFrame/get_column`       (Deferred: requires standalone `Series` type)
+- [x] `/DataFrame/get_column_index` (`$df.data(...).columns.indexOf(<col>)`)
+- [ ] `/DataFrame/get_columns`      (Deferred: requires standalone `Series` type; currently `$df.data(...).toDict()`)
+- [x] `/DataFrame/group_by_dynamic` (`$df.data(...).groupByDynamic(<index_col>, { every, period, ... })`)
+- [ ] `/DataFrame/hash_rows`        (Deferred: requires standalone `Series` type; internal row hashing used in groupBy/join)
 - [ ] `/DataFrame/interpolate`
 - [ ] `/DataFrame/iter_slices`
-- [x] `/DataFrame/join_where`
+- [x] `/DataFrame/join_where`       (`$df.data(...).joinWhere(other, $df.col("a").gt($df.col("b")), { how: "inner" })`)
 - [ ] `/DataFrame/map_columns`
 - [ ] `/DataFrame/map_rows`
 - [ ] `/DataFrame/match_to_schema`
-- [ ] `/DataFrame/max`
-- [ ] `/DataFrame/max_horizontal`
-- [ ] `/DataFrame/mean`
-- [ ] `/DataFrame/mean_horizontal`
-- [ ] `/DataFrame/median`
+- [x] `/DataFrame/max`              (`$df.data(...).select($df.all().max())`)
+- [x] `/DataFrame/max_horizontal`   (`$df.data(...).select($df.horizontal(<cols>).max())`)
+- [x] `/DataFrame/mean`             (`$df.data(...).select($df.all().mean())`)
+- [x] `/DataFrame/mean_horizontal`  (`$df.data(...).select($df.horizontal(<cols>).mean())`)
+- [x] `/DataFrame/median`           (`$df.data(...).select($df.all().median())`)
 - [ ] `/DataFrame/merge_sorted`
-- [ ] `/DataFrame/min`
-- [ ] `/DataFrame/min_horizontal`
+- [x] `/DataFrame/min`              (`$df.data(...).select($df.all().min())`)
+- [x] `/DataFrame/min_horizontal`   (`$df.data(...).select($df.horizontal(<cols>).min())`)
 - [ ] `/DataFrame/partition_by`
 - [ ] `/DataFrame/pipe`
-- [ ] `/DataFrame/product`
-- [ ] `/DataFrame/quantile`
+- [x] `/DataFrame/product`          (`$df.data(...).select($df.all().product())`)
+- [x] `/DataFrame/quantile`         (`$df.data(...).select($df.all().quantile(q))`)
 - [ ] `/DataFrame/rechunk`
-- [ ] `/DataFrame/remove`
-- [ ] `/DataFrame/replace_column`
+- [x] `/DataFrame/remove`           (`$df.data(...).filter(<predicate>.not())`)
+- [ ] `/DataFrame/replace_column`   (Deferred: requires standalone `Series` type; currently `$df.data(...).withColumns(...)`)
 - [ ] `/DataFrame/rolling`
 - [ ] `/DataFrame/row`
 - [ ] `/DataFrame/rows`
 - [ ] `/DataFrame/rows_by_key`
 - [ ] `/DataFrame/sample`
-- [ ] `/DataFrame/select_seq`
-- [ ] `/DataFrame/serialize`
-- [ ] `/DataFrame/set_sorted`
-- [ ] `/DataFrame/shift`
-- [ ] `/DataFrame/shrink_to_fit`
-- [ ] `/DataFrame/sql`
-- [ ] `/DataFrame/std`
-- [ ] `/DataFrame/sum`
-- [ ] `/DataFrame/sum_horizontal`
+- [x] `/DataFrame/select_seq`       (`$df.data(...).select(...)` — in Polars this executes sequentially rather than multi-threaded; in JS/TS the event loop engine is already strictly sequential and deterministic by default)
+- [ ] `/DataFrame/serialize`        (JSON format available via `$df.data(...).writeJson()`; binary buffer format tracked in Future Scope)
+- [ ] `/DataFrame/set_sorted`       (Future candidate: internal metadata flag asserting pre-sorted column order to bypass sorting checks)
+- [x] `/DataFrame/shift`            (`$df.data(...).shift(n, { fillValue })`)
+- [ ] `/DataFrame/shrink_to_fit`    (N/A in JS: Rust/Arrow uses this to release excess heap `capacity` down to `len`; in JS/V8, array backing stores and memory compaction are handled automatically by the engine GC)
+- [ ] `/DataFrame/sql`              (Planned as tree-shakeable standalone function or separate subpath plugin `df-script/sql` to avoid bloating the core bundle with SQL parser/grammar overhead. Use a separate parser / plugin for now)
+- [x] `/DataFrame/std`              (`$df.data(...).select($df.all().std())`)
+- [x] `/DataFrame/sum`              (`$df.data(...).select($df.all().sum())`)
+- [x] `/DataFrame/sum_horizontal`   (`$df.data(...).select($df.horizontal(<cols>).sum())`)
 - [ ] `/DataFrame/to_dummies`
 - [ ] `/DataFrame/to_series`
-- [ ] `/DataFrame/top_k`
+- [x] `/DataFrame/top_k`            (`$df.data(...).sort({ by: <col>, descending: true }).head(k)`)
 - [ ] `/DataFrame/unnest`
-- [ ] `/DataFrame/unstack`
+- [x] `/DataFrame/unstack`          (`$df.data(...).unstack(<cols>, { step, how, fillValues })`)
 - [ ] `/DataFrame/update`
 - [ ] `/DataFrame/upsample`
-- [ ] `/DataFrame/var`
+- [x] `/DataFrame/var`              (`$df.data(...).select($df.all().variance())`)
 - [ ] `/date`
 - [ ] `/dateRange`
 - [ ] `/dateRanges`
@@ -317,7 +313,7 @@ The following list tracks the complete surface of Polars functionality to achiev
 - [ ] `/Expr/argTrue`
 - [ ] `/Expr/argUnique`
 - [ ] `/Expr/arr/dot`
-- [x] `/Expr/backwardFill` (`.fillNull({ strategy: "backward" })`)
+- [x] `/Expr/backwardFill`          (`.fillNull({ strategy: "backward" })`)
 - [ ] `/Expr/bin/contains`
 - [ ] `/Expr/bin/decode`
 - [ ] `/Expr/bin/encode`
@@ -334,7 +330,7 @@ The following list tracks the complete surface of Polars functionality to achiev
 - [ ] `/Expr/bitwiseLeadingZeros`
 - [ ] `/Expr/bitwiseTrailingOnes`
 - [ ] `/Expr/bitwiseTrailingZeros`
-- [x] `/Expr/bottomK` (`.sort({ descending: false }).slice(0, k)`)
+- [x] `/Expr/bottomK`               (`.sort({ descending: false }).slice(0, k)`)
 - [x] `/Expr/bottomKBy` (`.sortBy(by, { descending: false }).slice(0, k)`)
 - [x] `/Expr/cot`
 - [ ] `/Expr/CumulativeEval`
@@ -414,7 +410,7 @@ The following list tracks the complete surface of Polars functionality to achiev
 - [ ] `/Expr/sample`
 - [ ] `/Expr/searchSorted`
 - [ ] `/Expr/setSorted`
-- [x] `/Expr/shift` (`n >= 0 ? .lag(n) : .lead(-n)`)
+- [x] `/Expr/shift`                (`.shift(n, { fillValue })`)
 - [ ] `/Expr/shuffle`
 - [ ] `/Expr/slice`
 - [ ] `/Expr/sort`
@@ -452,12 +448,12 @@ The following list tracks the complete surface of Polars functionality to achiev
 - [x] `/mapBatches` (`df.select(...)` / `derive(...)`)
 - [x] `/mapGroups` (`df.groupBy(...)...`)
 - [x] `/max` (`$df.col(...).max()`)
-- [ ] `/maxHorizontal`
+- [x] `/maxHorizontal` (`$df.horizontal(<cols>).max()`)
 - [x] `/mean` (`$df.col(...).mean()`)
-- [ ] `/meanHorizontal`
+- [x] `/meanHorizontal` (`$df.horizontal(<cols>).mean()`)
 - [x] `/median` (`$df.col(...).median()`)
 - [x] `/min` (`$df.col(...).min()`)
-- [ ] `/minHorizontal`
+- [x] `/minHorizontal` (`$df.horizontal(<cols>).min()`)
 - [x] `/nth` (`$df.col(...).get(n)`)
 - [x] `/nUnique` (`$df.col(...).nUnique()`)
 - [x] `/ones` (`$df.lit(1)`)
@@ -471,7 +467,7 @@ The following list tracks the complete surface of Polars functionality to achiev
 - [x] `/std` (`$df.col(...).std()`)
 - [x] `/struct` (`$df.struct(...)`)
 - [x] `/sum` (`$df.col(...).sum()`)
-- [ ] `/sumHorizontal`
+- [x] `/sumHorizontal` (`$df.horizontal(<cols>).sum()`)
 - [x] `/tail` (`df.tail(n)` / `$df.col(...).slice(-n, n)`)
 - [x] `/time` (`$df.datetime(...)` / `$df.time(...)`)
 - [x] `/timeRange` (`$df.seqRange(...)`)

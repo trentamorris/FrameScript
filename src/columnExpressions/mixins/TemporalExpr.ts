@@ -35,22 +35,22 @@ import {
  * at expression-build time requires schema-level checks in DataFrame operations.
  */
 export class DateTimeExprNamespace {
-    constructor(public expr: any) { }
+    constructor(public _expr: any) { }
 
     /** Returns the column's schema timezone from a prior convertTimeZone call, or null. */
     _colTz(): string | null {
-        const ct = this.expr._castType;
+        const ct = this._expr._castType;
         return (ct instanceof DatetimeType) ? ct.timeZone : null;
     }
 
     /** Returns the column's schema time unit from a prior castTimeUnit call, or null. */
     _colTu(): DatetimeTimeUnit | null {
-        const ct = this.expr._castType;
+        const ct = this._expr._castType;
         return (ct instanceof DatetimeType) ? ct.timeUnit : null;
     }
 
     _deriveDate(fn: (d: Date) => any) {
-        return this.expr._deriveUnary((v: any) => {
+        return this._expr._deriveUnary((v: any) => {
             const d = toValidDate(v);
             return d ? fn(d) : null;
         });
@@ -73,7 +73,7 @@ export class DateTimeExprNamespace {
      * └──────────────────────────┴──────────────────────────┘
      */
     castTimeUnit(unit: DatetimeTimeUnit) {
-        return this.expr.cast(new DatetimeType(unit, this._colTz()));
+        return this._expr.cast(new DatetimeType(unit, this._colTz()));
     }
 
     /**
@@ -115,13 +115,13 @@ export class DateTimeExprNamespace {
      */
     convertTimeZone(timeZone: string) {
         const colTz = this._colTz();
-        if (this.expr._castType instanceof DatetimeType && colTz === null) {
+        if (this._expr._castType instanceof DatetimeType && colTz === null) {
             throw new InvalidArgumentError(
                 `convertTimeZone() requires a timezone-aware Datetime column. ` +
                 `Use .dt.replace({ timeZone: "..." }) to assign a timezone first.`
             );
         }
-        return this.expr.cast(new DatetimeType(this._colTu() ?? "ms", timeZone));
+        return this._expr.cast(new DatetimeType(this._colTu() ?? "ms", timeZone));
     }
 
     /**
@@ -447,13 +447,13 @@ export class DateTimeExprNamespace {
     offsetDay(n: number | any, options: DayOffsetOptions = {}) {
         const hasExclusionOptions = options?.excludeWeekdays?.length || options?.holidays || options?.roll;
         const normalizedDays = hasExclusionOptions
-            ? this.expr._deriveBinary(n, (v: any, nVal: any) => {
+            ? this._expr._deriveBinary(n, (v: any, nVal: any) => {
                 const d = toValidDate(v);
                 return d ? offsetDay(d, nVal, options) : null;
             })
             : n;
         const { duration: createDuration } = require("../functions/duration");
-        return this.expr.add(createDuration({ days: normalizedDays }));
+        return this._expr.add(createDuration({ days: normalizedDays }));
     }
 
     /**
@@ -660,7 +660,7 @@ export class DateTimeExprNamespace {
      * └────────────┴─────┴───────────┘
      */
     totalMilliseconds() {
-        return this.expr;
+        return this._expr;
     }
 
     /**

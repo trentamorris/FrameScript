@@ -41,6 +41,7 @@ import "./toDicts.test";
 import "./transpose.test";
 import "./unique.test";
 import "./unpivot.test";
+import "./unstack.test";
 import "./width.test";
 import "./withColumns.test";
 import "./withRowIndex.test";

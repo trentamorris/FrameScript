@@ -840,7 +840,7 @@ export function computeMode(values: ArrayLike<any>): any[] | null {
     return sortArray(modes);
 }
 
-export function shiftArray(arr: any[] | AnyTypedArray, n: number): any[] {
+export function shiftArray(arr: any[] | AnyTypedArray, n: number, fillValue: any = null): any[] {
     const len = arr.length;
     if (len === 0) return [];
 
@@ -850,23 +850,14 @@ export function shiftArray(arr: any[] | AnyTypedArray, n: number): any[] {
     }
 
     const absN = Math.abs(shiftCount);
-    if (absN >= len) return new Array(len).fill(null);
+    if (absN >= len) return new Array(len).fill(fillValue);
 
-    const result = new Array(len);
+    const result = new Array(len).fill(fillValue);
+    const start = Math.max(0, shiftCount);
+    const end = Math.min(len, len + shiftCount);
 
-    if (shiftCount > 0) {
-        result.fill(null, 0, shiftCount);
-        for (let i = shiftCount; i < len; i++) {
-            const val = arr[i - shiftCount];
-            result[i] = val ?? null;
-        }
-    } else {
-        const limit = len - absN;
-        for (let i = 0; i < limit; i++) {
-            const val = arr[i + absN];
-            result[i] = val ?? null;
-        }
-        result.fill(null, limit, len);
+    for (let i = start; i < end; i++) {
+        result[i] = arr[i - shiftCount] ?? fillValue;
     }
 
     return result;

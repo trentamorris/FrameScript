@@ -13,6 +13,7 @@ import "./columnExpressions/functions/coalesce.test";
 import "./columnExpressions/functions/duration.test";
 import "./columnExpressions/functions/element.test";
 import "./columnExpressions/functions/exclude.test";
+import "./columnExpressions/functions/horizontal.test";
 import "./columnExpressions/functions/implode.test";
 import "./columnExpressions/functions/lit.test";
 import "./columnExpressions/functions/seqRange.test";

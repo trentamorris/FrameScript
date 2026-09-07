@@ -17,7 +17,7 @@ function _toColExpr(col: any): any {
  * @syntax $df.col(<column_name>).struct.{symbol}(...)
  */
 export class StructExprNamespace {
-    constructor(public expr: any) {
+    constructor(public _expr: any) {
         return new Proxy(this, {
             get(target, prop, receiver) {
                 if (prop in target) {
@@ -46,7 +46,7 @@ export class StructExprNamespace {
      * └───────────────────────────┴───────────┘
      */
     field(name: string) {
-        const derived = this.expr._derive((vArray: any[]) => {
+        const derived = this._expr._derive((vArray: any[]) => {
             const height = vArray.length;
             const result = new Array(height);
             for (let i = 0; i < height; i++) {
@@ -55,7 +55,7 @@ export class StructExprNamespace {
             }
             return result;
         });
-        derived._baseExpr = this.expr;
+        derived._baseExpr = this._expr;
         derived._fieldName = name;
         return derived.alias(name);
     }
@@ -75,7 +75,7 @@ export class StructExprNamespace {
      * └───────────────────────────┴────────────────────────────────┘
      */
     renameFields(mapping: Record<string, string>) {
-        return this.expr._derive((vArray: any[]) => {
+        return this._expr._derive((vArray: any[]) => {
             const height = vArray.length;
             const result = new Array(height);
             const keys = Object.keys(mapping);
@@ -126,7 +126,7 @@ export class StructExprNamespace {
      * └──────────────────────────────┴───────────────────────────────────────────┘
      */
     withFields(fields: IntoExpr[] | Record<string, IntoExpr>) {
-        return this.expr._derive((vArray: any[], columns: any) => {
+        return this._expr._derive((vArray: any[], columns: any) => {
             const height = vArray.length;
             const result = new Array(height);
 
@@ -196,9 +196,9 @@ export class StructExprNamespace {
      * └───────┴─────┘
      */
     unnest() {
-        const newInst = this.expr._derive();
+        const newInst = this._expr._derive();
         newInst._isUnnest = true;
-        newInst._baseExpr = this.expr;
+        newInst._baseExpr = this._expr;
         return newInst;
     }
 }

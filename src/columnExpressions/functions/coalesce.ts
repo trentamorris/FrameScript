@@ -1,6 +1,6 @@
 import { ColumnExpr } from "../ColumnExpr";
 import type { IExpr, ValidScalarTypes } from "../../types";
-import { evaluateArg, isEvaluatedColumn } from "../utils";
+import { evaluateArgsMatrix } from "../utils";
 import { COALESCE_MARKER } from "../constants";
 
 /**
@@ -32,15 +32,7 @@ export function coalesce(...exprs: (IExpr | ValidScalarTypes | (IExpr | ValidSca
     expr._ops.push((_, columns) => {
         const height = _.length;
         const exprCount = rawArgs.length;
-        const evaluatedArrays = new Array(exprCount);
-        const isCol = new Array(exprCount);
-
-        for (let j = 0; j < exprCount; j++) {
-            const raw = rawArgs[j];
-            const evaluated = evaluateArg(raw, columns, height);
-            evaluatedArrays[j] = evaluated;
-            isCol[j] = isEvaluatedColumn(raw, evaluated, columns, height);
-        }
+        const { evaluatedArrays, isCol } = evaluateArgsMatrix(rawArgs, columns, height);
 
         const result = new Array(height);
 

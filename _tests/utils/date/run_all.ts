@@ -1,5 +1,4 @@
 import "./createUTCDate.test";
-import "./_getDateTimeParts.test";
 import "./toValidDate.test";
 import "./toValidTime.test";
 import "./toEpoch.test";
