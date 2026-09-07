@@ -20,6 +20,7 @@ import {
     unboxPrimitiveObj,
     typedArrayTagGetter
 } from "../utils";
+import { isExpr } from "./ExprBase";
 
 const TYPED_ARRAY_MAP: Record<string, RegisteredDataType> = {
     Int8Array: DataTypeRegistry.Int8,
@@ -45,8 +46,8 @@ export function resolveOperandType(
     if (operand == null) return undefined;
     if (operand instanceof DataType) return operand as RegisteredDataType;
 
-    if (typeof operand === "object" && ("_ops" in operand || "_literalValue" in operand || "_targetType" in operand)) {
-        return resolveExprOutputType(operand as IExpr, schema);
+    if (isExpr(operand)) {
+        return resolveExprOutputType(operand, schema);
     }
 
     const unboxed = unboxPrimitiveObj(operand);
@@ -146,9 +147,7 @@ export function deduceBinaryType(
             const len = colSample.length;
             for (let i = 0; i < len; i++) {
                 const v = colSample[i];
-                if (isValidNumber(v) && !isValidInt(v, range)) {
-                    return DataTypeRegistry.Float64;
-                }
+                if (isValidNumber(v) && !isValidInt(v, range)) return DataTypeRegistry.Float64;
             }
         }
 

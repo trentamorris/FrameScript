@@ -194,7 +194,7 @@ export function parseDurationString(str: string, options: ParseDurationStringOpt
 
     const interval = parseDurationInterval(str);
     if (interval.isCalendar && interval.months !== 0) {
-        throw new Error(`Cannot convert calendar duration containing months/years to a fixed duration without an anchor date: "${str}"`);
+        throw new Error(`Cannot convert calendar duration without anchor date: "${str}"`);
     }
 
     if (interval.isIndex) {

@@ -20,12 +20,7 @@ export class ColumnExpr<T> extends ExprBase {
     _patterns?: RegExp[];
 
     static isColExpr(v: unknown): v is ColumnExpr<any> {
-        if (!isObj(v)) return false;
-        try {
-            return "evaluate" in v && typeof (v as any).evaluate === "function";
-        } catch {
-            return false;
-        }
+        return v instanceof ColumnExpr || (isObj(v) && typeof (v as any).evaluate === "function");
     }
 
     static toColExpr(col: IntoExpr | IntoExpr[]): ColumnExpr<any> {
@@ -89,16 +84,10 @@ export interface ColumnExpr<T> extends
     StructExpr { }
 
 function _applyMixins(derivedCtor: any, constructors: any[]) {
-    for (const baseCtor of constructors) {
-        for (const name of Object.getOwnPropertyNames(baseCtor.prototype)) {
-            if (name !== 'constructor') {
-                Object.defineProperty(
-                    derivedCtor.prototype,
-                    name,
-                    Object.getOwnPropertyDescriptor(baseCtor.prototype, name) || Object.create(null)
-                );
-            }
-        }
+    for (const ctor of constructors) {
+        const desc = Object.getOwnPropertyDescriptors(ctor.prototype);
+        delete (desc as any).constructor;
+        Object.defineProperties(derivedCtor.prototype, desc);
     }
 }
 
@@ -121,13 +110,8 @@ function _getTargetKeys(
     excludeSet: Set<string>,
     schema?: DataFrameSchema
 ): string[] | null {
-    if (expr instanceof ColumnExpr && expr._colNames?.length) {
-        return expr._colNames;
-    }
-
-    if (!(expr instanceof ColumnExpr) && (!isObj(expr) || !("evaluate" in expr) || expr._colName)) {
-        return null;
-    }
+    if (expr instanceof ColumnExpr && expr._colNames?.length) return expr._colNames;
+    if (!(expr instanceof ColumnExpr) && (!isObj(expr) || !("evaluate" in expr) || expr._colName)) return null;
 
     let predicate: (key: string) => boolean;
 
@@ -189,8 +173,9 @@ export function resolveColumnSelectors(
 ): IExpr[] {
     const expanded: IExpr[] = [];
     const excludeSet = keysToExcludeFromAll ? new Set(keysToExcludeFromAll) : new Set<string>();
+    const len = exprs.length;
 
-    for (let i = 0; i < exprs.length; i++) {
+    for (let i = 0; i < len; i++) {
         const expr = exprs[i];
 
         if (typeof expr === "string") {
@@ -233,16 +218,15 @@ export function resolveColumnSelectors(
 
         const targets = _getTargetKeys(expr, allKeys, excludeSet, schema);
         if (targets !== null) {
-            for (let j = 0; j < targets.length; j++) {
+            const tLen = targets.length;
+            for (let j = 0; j < tLen; j++) {
                 const concrete = new ColumnExpr(targets[j]);
-                concrete._ops = [...(expr._ops || [])];
+                concrete._ops = expr._ops ? [...expr._ops] : [];
                 concrete._aggFn = expr._aggFn;
                 concrete._partitionOpsIndex = expr._partitionOpsIndex;
                 concrete._groupingOpsIndex = expr._groupingOpsIndex;
                 concrete._partitionBy = expr._partitionBy;
-                if (expr._evaluateWindow) {
-                    concrete._evaluateWindow = expr._evaluateWindow;
-                }
+                if (expr._evaluateWindow) concrete._evaluateWindow = expr._evaluateWindow;
                 if (expr._outputName && expr._outputName !== ALL_COLUMNS_MARKER) {
                     concrete._outputName = expr._outputName;
                 }
@@ -255,4 +239,3 @@ export function resolveColumnSelectors(
 
     return expanded;
 }
-

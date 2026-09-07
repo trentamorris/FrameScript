@@ -8,8 +8,8 @@ import type {
     RollingOptions
 } from "../../types"
 import type { RandomOptions, NumericArg, IsCloseOptions } from "../types"
-import { ExprBase, derive } from "../ExprBase"
-import { kleeneUnary, kleeneBinary, computeIsIn, compareMissing, computeRank, evaluateExpression } from "../utils"
+import { ExprBase } from "../ExprBase"
+import { computeIsIn, compareMissing, computeRank, evaluateExpression } from "../utils"
 import { ComputeError, InvalidArgumentError } from "../../exceptions"
 import {
     clamp,
@@ -66,7 +66,7 @@ export class StandardExpr extends ExprBase {
     }
 
     _deriveAgg(fn: AggFn<any>) {
-        const newInst = derive(this);
+        const newInst = this._derive();
         newInst._aggFn = fn;
         newInst._groupingOpsIndex = this._ops.length;
         newInst._partitionOpsIndex = this._ops.length;
@@ -74,7 +74,7 @@ export class StandardExpr extends ExprBase {
     }
 
     _deriveAggBinary(other: any, fn: AggFn<[any, any]>) {
-        const result = derive(this, kleeneBinary(this, other, (x, y) => [x, y]))._deriveAgg(fn);
+        const result = (this._deriveBinary(other, (x, y) => [x, y]) as any)._deriveAgg(fn);
         result._binaryMeta = undefined;
         return result;
     }
@@ -84,7 +84,7 @@ export class StandardExpr extends ExprBase {
     }
 
     _window(evaluateWindow: (this: IExpr, groupPreValues: any[], partitionIndices: number[], currentIndex: number) => any) {
-        const newInst = derive(this);
+        const newInst = this._derive();
         newInst._partitionOpsIndex = this._ops.length;
         newInst._groupingOpsIndex = this._ops.length;
         newInst._evaluateWindow = evaluateWindow;
@@ -107,7 +107,7 @@ export class StandardExpr extends ExprBase {
      * └───┴───────┘
      */
     abs() {
-        return derive(this, kleeneUnary(Math.abs));
+        return this._deriveUnary(Math.abs);
     }
 
     /**
@@ -127,7 +127,7 @@ export class StandardExpr extends ExprBase {
      * └───┴───────┘
      */
     add(val: NumericArg) {
-        return derive(this, kleeneBinary(this, val, (v, r) => v + r));
+        return this._deriveBinary(val, (v, r) => v + r);
     }
 
     /**
@@ -182,7 +182,7 @@ export class StandardExpr extends ExprBase {
      * └───────┴───────┴─────────┘
      */
     and(other: any) {
-        return derive(this, (vArray, columns) => {
+        return this._derive((vArray, columns) => {
             const height = vArray.length;
             const otherVal = this._resolve(other, columns, height);
             const isOtherArray = isArrayOrTypedArray(otherVal);
@@ -248,7 +248,7 @@ export class StandardExpr extends ExprBase {
      * └───┴──────────┘
      */
     arccos() {
-        return derive(this, kleeneUnary((v) => (v < -1 || v > 1) ? null : Math.acos(v)));
+        return this._deriveUnary((v) => (v < -1 || v > 1) ? null : Math.acos(v));
     }
 
     /**
@@ -267,7 +267,7 @@ export class StandardExpr extends ExprBase {
      * └───┴───────────┘
      */
     arccosh() {
-        return derive(this, kleeneUnary((v) => v < 1 ? null : Math.acosh(v)));
+        return this._deriveUnary((v) => v < 1 ? null : Math.acosh(v));
     }
 
     /**
@@ -286,7 +286,7 @@ export class StandardExpr extends ExprBase {
      * └───┴──────────┘
      */
     arcsin() {
-        return derive(this, kleeneUnary((v) => (v < -1 || v > 1) ? null : Math.asin(v)));
+        return this._deriveUnary((v) => (v < -1 || v > 1) ? null : Math.asin(v));
     }
 
     /**
@@ -305,7 +305,7 @@ export class StandardExpr extends ExprBase {
      * └───┴───────────┘
      */
     arcsinh() {
-        return derive(this, kleeneUnary(Math.asinh));
+        return this._deriveUnary(Math.asinh);
     }
 
     /**
@@ -324,7 +324,7 @@ export class StandardExpr extends ExprBase {
      * └───┴──────────┘
      */
     arctan() {
-        return derive(this, kleeneUnary(Math.atan));
+        return this._deriveUnary(Math.atan);
     }
 
     /**
@@ -344,7 +344,7 @@ export class StandardExpr extends ExprBase {
      * └───┴────┴───────────┘
      */
     arctan2(val: NumericArg) {
-        return derive(this, kleeneBinary(this, val, Math.atan2));
+        return this._deriveBinary(val, Math.atan2);
     }
 
     /**
@@ -363,7 +363,7 @@ export class StandardExpr extends ExprBase {
      * └───┴───────────┘
      */
     arctanh() {
-        return derive(this, kleeneUnary((v) => (v <= -1 || v >= 1) ? null : Math.atanh(v)));
+        return this._deriveUnary((v) => (v <= -1 || v >= 1) ? null : Math.atanh(v));
     }
 
     /**
@@ -510,7 +510,7 @@ export class StandardExpr extends ExprBase {
      * └───┴──────────┘
      */
     cbrt() {
-        return derive(this, kleeneUnary(Math.cbrt));
+        return this._deriveUnary(Math.cbrt);
     }
 
     /**
@@ -529,7 +529,7 @@ export class StandardExpr extends ExprBase {
      * └───┴────────┘
      */
     ceil() {
-        return derive(this, kleeneUnary(Math.ceil));
+        return this._deriveUnary(Math.ceil);
     }
 
     /**
@@ -550,7 +550,7 @@ export class StandardExpr extends ExprBase {
      * └───┴─────────┘
      */
     clip(lower: number | null = null, upper: number | null = null) {
-        return derive(this, kleeneUnary((v) => clamp(v, { min: lower, max: upper })));
+        return this._deriveUnary((v) => clamp(v, { min: lower, max: upper }));
     }
 
     /**
@@ -570,7 +570,7 @@ export class StandardExpr extends ExprBase {
      * └───┴────┴────────┘
      */
     copysign(val: NumericArg) {
-        return derive(this, kleeneBinary(this, val, (v, r) => Math.abs(v) * (r >= 0 ? 1 : -1)));
+        return this._deriveBinary(val, (v, r) => Math.abs(v) * (r >= 0 ? 1 : -1));
     }
 
     /**
@@ -607,7 +607,7 @@ export class StandardExpr extends ExprBase {
      * └───┴───────────┘
      */
     cos() {
-        return derive(this, kleeneUnary(Math.cos));
+        return this._deriveUnary(Math.cos);
     }
 
     /**
@@ -626,7 +626,7 @@ export class StandardExpr extends ExprBase {
      * └───┴───────────┘
      */
     cosh() {
-        return derive(this, kleeneUnary(Math.cosh));
+        return this._deriveUnary(Math.cosh);
     }
 
     /**
@@ -645,12 +645,12 @@ export class StandardExpr extends ExprBase {
      * └───┴───────────┘
      */
     cot() {
-        return derive(this, kleeneUnary((v) => {
+        return this._deriveUnary((v) => {
             if (Number.isNaN(v)) return NaN;
             if (!isValidNumber(v)) return null;
             const tan = Math.tan(v);
             return tan === 0 ? null : 1 / tan;
-        }));
+        });
     }
 
     /**
@@ -808,7 +808,7 @@ export class StandardExpr extends ExprBase {
      * └───┴────────────┘
      */
     degrees() {
-        return derive(this, kleeneUnary((v) => v * (180 / Math.PI)));
+        return this._deriveUnary((v) => v * (180 / Math.PI));
     }
 
     /**
@@ -846,7 +846,7 @@ export class StandardExpr extends ExprBase {
      * └───┴───────┘
      */
     div(val: NumericArg) {
-        return derive(this, kleeneBinary(this, val, (v, r) => r === 0 ? null : v / r));
+        return this._deriveBinary(val, (v, r) => r === 0 ? null : v / r);
     }
 
     /**
@@ -902,7 +902,7 @@ export class StandardExpr extends ExprBase {
      * └───┴────────┘
      */
     eq(val: any) {
-        return derive(this, kleeneBinary(this, val, (v, r) => v === r));
+        return this._deriveBinary(val, (v, r) => v === r);
     }
 
     /**
@@ -922,7 +922,7 @@ export class StandardExpr extends ExprBase {
      * └──────┴────────────┘
      */
     eqMissing(val: any) {
-        return derive(this, (vArray, columns) => {
+        return this._derive((vArray, columns) => {
             const rResolved = this._resolve(val, columns, vArray.length);
             return compareMissing(vArray, rResolved);
         });
@@ -944,7 +944,7 @@ export class StandardExpr extends ExprBase {
      * └───┴───────────┘
      */
     exp() {
-        return derive(this, kleeneUnary(Math.exp));
+        return this._deriveUnary(Math.exp);
     }
 
     /**
@@ -963,7 +963,7 @@ export class StandardExpr extends ExprBase {
      * └───┴───────────┘
      */
     expm1() {
-        return derive(this, kleeneUnary(Math.expm1));
+        return this._deriveUnary(Math.expm1);
     }
 
     /**
@@ -990,7 +990,7 @@ export class StandardExpr extends ExprBase {
         if (strategy === "zero") value = 0;
         else if (strategy === "one") value = 1;
 
-        return derive(this, (vArray, columns) => {
+        return this._derive((vArray, columns) => {
             const height = vArray.length;
             const result = Array.from(vArray);
 
@@ -1056,7 +1056,7 @@ export class StandardExpr extends ExprBase {
      * └──────────┘
      */
     filter(predicate: IExpr) {
-        return derive(this, (vArray, columns) => {
+        return this._derive((vArray, columns) => {
             const mask = evaluateExpression(predicate, columns, vArray.length);
             return filterByMask(vArray, mask, { nullify: true });
         });
@@ -1096,7 +1096,7 @@ export class StandardExpr extends ExprBase {
      * └───┴─────────┘
      */
     floor() {
-        return derive(this, kleeneUnary(Math.floor));
+        return this._deriveUnary(Math.floor);
     }
 
     /**
@@ -1116,7 +1116,7 @@ export class StandardExpr extends ExprBase {
      * └───┴──────┘
      */
     floordiv(val: NumericArg) {
-        return derive(this, kleeneBinary(this, val, (v, r) => r === 0 ? null : Math.floor(v / r)));
+        return this._deriveBinary(val, (v, r) => r === 0 ? null : Math.floor(v / r));
     }
 
     /**
@@ -1136,7 +1136,7 @@ export class StandardExpr extends ExprBase {
      * └───┴────────┘
      */
     ge(val: any) {
-        return derive(this, kleeneBinary(this, val, (v, r) => v >= r));
+        return this._deriveBinary(val, (v, r) => v >= r);
     }
 
     /**
@@ -1156,7 +1156,7 @@ export class StandardExpr extends ExprBase {
      * └───┴────────┘
      */
     gt(val: any) {
-        return derive(this, kleeneBinary(this, val, (v, r) => v > r));
+        return this._deriveBinary(val, (v, r) => v > r);
     }
 
     /**
@@ -1193,7 +1193,7 @@ export class StandardExpr extends ExprBase {
      * └───┴────┴───────────┘
      */
     hypot(val: NumericArg) {
-        return derive(this, kleeneBinary(this, val, Math.hypot));
+        return this._deriveBinary(val, Math.hypot);
     }
 
     /**
@@ -1239,7 +1239,7 @@ export class StandardExpr extends ExprBase {
             nansEqual = false
         }: IsCloseOptions = {}
     ) {
-        return derive(this, kleeneBinary(this, other, (v, o) => {
+        return this._deriveBinary(other, (v, o) => {
             if (isValidNumber(v) && isValidNumber(o)) {
                 const absDiff = Math.abs(v - o);
                 const threshold = Math.max(relTol * Math.max(Math.abs(v), Math.abs(o)), absTol);
@@ -1247,7 +1247,7 @@ export class StandardExpr extends ExprBase {
             }
             if (Number.isNaN(v) && Number.isNaN(o)) return nansEqual;
             return v === o;
-        }));
+        });
     }
 
     /**
@@ -1266,7 +1266,7 @@ export class StandardExpr extends ExprBase {
      * └───┴───────┘
      */
     isDuplicated() {
-        return derive(this, (vArray) => {
+        return this._derive((vArray) => {
             const { frequencies } = getUniqueArrayStats(vArray, { strict: true });
             const height = vArray.length;
             const result = new Array(height);
@@ -1294,7 +1294,7 @@ export class StandardExpr extends ExprBase {
      * └───┴────────┘
      */
     isFinite() {
-        return derive(this, kleeneUnary(Number.isFinite));
+        return this._deriveUnary(Number.isFinite);
     }
 
     /**
@@ -1314,7 +1314,7 @@ export class StandardExpr extends ExprBase {
      * └──────────┴─────────┘
      */
     isIn(values: any[] | any) {
-        return derive(this, (vArray, columns) => computeIsIn(vArray, columns, values));
+        return this._derive((vArray, columns) => computeIsIn(vArray, columns, values));
     }
 
     /**
@@ -1333,7 +1333,7 @@ export class StandardExpr extends ExprBase {
      * └───┴───────┘
      */
     isInfinite() {
-        return derive(this, kleeneUnary((v) => v === Infinity || v === -Infinity));
+        return this._deriveUnary((v) => v === Infinity || v === -Infinity);
     }
 
     /**
@@ -1352,7 +1352,7 @@ export class StandardExpr extends ExprBase {
      * └───┴───────┘
      */
     isNan() {
-        return derive(this, kleeneUnary(Number.isNaN));
+        return this._deriveUnary(Number.isNaN);
     }
 
     /**
@@ -1373,7 +1373,7 @@ export class StandardExpr extends ExprBase {
      * └───┴────┴──────────┘
      */
     isNDistinct(index: number, nullOnOob: boolean = true) {
-        return derive(this, (vArray, columns) => {
+        return this._derive((vArray, columns) => {
             const { values } = getUniqueArrayStats(vArray, { strict: true });
             const targetVal = getArrayElement(values, index, nullOnOob);
             return this.eq(targetVal).evaluate(columns, vArray.length);
@@ -1536,7 +1536,7 @@ export class StandardExpr extends ExprBase {
      * └───┴────────┘
      */
     le(val: any) {
-        return derive(this, kleeneBinary(this, val, (v, r) => v <= r));
+        return this._deriveBinary(val, (v, r) => v <= r);
     }
 
     /**
@@ -1583,7 +1583,7 @@ export class StandardExpr extends ExprBase {
      * └───┴──────────┘
      */
     log(base: number = Math.E) {
-        return derive(this, kleeneUnary((v) => v <= 0 ? null : (base === Math.E ? Math.log(v) : Math.log(v) / Math.log(base))));
+        return this._deriveUnary((v) => v <= 0 ? null : (base === Math.E ? Math.log(v) : Math.log(v) / Math.log(base)));
     }
 
     /**
@@ -1602,7 +1602,7 @@ export class StandardExpr extends ExprBase {
      * └───┴──────────┘
      */
     log1p() {
-        return derive(this, kleeneUnary((v) => v <= -1 ? null : Math.log1p(v)));
+        return this._deriveUnary((v) => v <= -1 ? null : Math.log1p(v));
     }
 
     /**
@@ -1622,7 +1622,7 @@ export class StandardExpr extends ExprBase {
      * └───┴────────┘
      */
     lt(val: any) {
-        return derive(this, kleeneBinary(this, val, (v, r) => v < r));
+        return this._deriveBinary(val, (v, r) => v < r);
     }
 
     /**
@@ -1750,7 +1750,7 @@ export class StandardExpr extends ExprBase {
      * └───┴───────┘
      */
     mod(val: NumericArg) {
-        return derive(this, kleeneBinary(this, val, (v, r) => r === 0 ? null : v % r));
+        return this._deriveBinary(val, (v, r) => r === 0 ? null : v % r);
     }
 
     /**
@@ -1787,7 +1787,7 @@ export class StandardExpr extends ExprBase {
      * └───┴────────────┘
      */
     mul(val: NumericArg) {
-        return derive(this, kleeneBinary(this, val, (v, r) => v * r));
+        return this._deriveBinary(val, (v, r) => v * r);
     }
 
     /**
@@ -1860,7 +1860,7 @@ export class StandardExpr extends ExprBase {
      * └───┴─────────┘
      */
     negate() {
-        return derive(this, kleeneUnary((v) => -v));
+        return this._deriveUnary((v) => -v);
     }
 
     /**
@@ -1900,7 +1900,7 @@ export class StandardExpr extends ExprBase {
      * └───────┴───────┴───────┘
      */
     not() {
-        return derive(this, kleeneUnary((v) => !v));
+        return this._deriveUnary((v) => !v);
     }
 
     /**
@@ -1976,7 +1976,7 @@ export class StandardExpr extends ExprBase {
      * └───────┴───────┴────────┘
      */
     or(other: any) {
-        return derive(this, (vArray, columns) => {
+        return this._derive((vArray, columns) => {
             const height = vArray.length;
             const otherVal = this._resolve(other, columns, height);
             const isOtherArray = isArrayOrTypedArray(otherVal);
@@ -2009,7 +2009,7 @@ export class StandardExpr extends ExprBase {
      * └───────┴─────┴─────────┘
      */
     over(columns: string | IExpr | (string | IExpr)[]) {
-        const newInst = derive(this);
+        const newInst = this._derive();
         const cols = Array.isArray(columns) ? columns : [columns];
         newInst._partitionBy = cols;
         return newInst;
@@ -2032,7 +2032,7 @@ export class StandardExpr extends ExprBase {
      * └───┴───────┘
      */
     pow(val: NumericArg) {
-        return derive(this, kleeneBinary(this, val, Math.pow));
+        return this._deriveBinary(val, Math.pow);
     }
 
     /**
@@ -2088,7 +2088,7 @@ export class StandardExpr extends ExprBase {
      * └───┴──────────┘
      */
     radians() {
-        return derive(this, kleeneUnary((v) => v * (Math.PI / 180)));
+        return this._deriveUnary((v) => v * (Math.PI / 180));
     }
 
     /**
@@ -2109,7 +2109,7 @@ export class StandardExpr extends ExprBase {
      * └───┴────────┘
      */
     rand(seed?: number, { min = 0, max = 1, integer = false }: RandomOptions = {}) {
-        return derive(this, (vArray) => {
+        return this._derive((vArray) => {
             const len = vArray.length;
             const out = new Float64Array(len);
             const rnd = seed !== undefined ? mulberry32(seed) : Math.random;
@@ -2159,7 +2159,7 @@ export class StandardExpr extends ExprBase {
      * └───┴──────────┘
      */
     reverse(): this {
-        return derive(this, (vArray) => (vArray as any[]).slice().reverse()) as this;
+        return this._derive((vArray) => (vArray as any[]).slice().reverse()) as this;
     }
 
     /**
@@ -2387,7 +2387,7 @@ export class StandardExpr extends ExprBase {
      * └───┴─────────┘
      */
     round(decimals: number = 0) {
-        return derive(this, kleeneUnary((v) => roundToScale(v, decimals)));
+        return this._deriveUnary((v) => roundToScale(v, decimals));
     }
 
     /**
@@ -2407,7 +2407,7 @@ export class StandardExpr extends ExprBase {
      * └───┴──────────┘
      */
     roundSigFigs(sigFigs: number) {
-        return derive(this, kleeneUnary((v) => isValidNumber(v) ? Number(v.toPrecision(sigFigs)) : v));
+        return this._deriveUnary((v) => isValidNumber(v) ? Number(v.toPrecision(sigFigs)) : v);
     }
 
     /**
@@ -2449,7 +2449,7 @@ export class StandardExpr extends ExprBase {
      * └───┴────────┘
      */
     sign() {
-        return derive(this, kleeneUnary(Math.sign));
+        return this._deriveUnary(Math.sign);
     }
 
     /**
@@ -2468,7 +2468,7 @@ export class StandardExpr extends ExprBase {
      * └───┴──────────┘
      */
     sin() {
-        return derive(this, kleeneUnary(Math.sin));
+        return this._deriveUnary(Math.sin);
     }
 
     /**
@@ -2487,7 +2487,7 @@ export class StandardExpr extends ExprBase {
      * └───┴───────────┘
      */
     sinh() {
-        return derive(this, kleeneUnary(Math.sinh));
+        return this._deriveUnary(Math.sinh);
     }
 
     /**
@@ -2542,7 +2542,7 @@ export class StandardExpr extends ExprBase {
      * └───┴──────────┘
      */
     sqrt() {
-        return derive(this, kleeneUnary((v) => v < 0 ? null : Math.sqrt(v)));
+        return this._deriveUnary((v) => v < 0 ? null : Math.sqrt(v));
     }
 
     /**
@@ -2579,7 +2579,7 @@ export class StandardExpr extends ExprBase {
      * └───┴───────┘
      */
     sub(val: NumericArg) {
-        return derive(this, kleeneBinary(this, val, (v, r) => v - r));
+        return this._deriveBinary(val, (v, r) => v - r);
     }
 
     /**
@@ -2616,7 +2616,7 @@ export class StandardExpr extends ExprBase {
      * └───┴───────────┘
      */
     tan() {
-        return derive(this, kleeneUnary(Math.tan));
+        return this._deriveUnary(Math.tan);
     }
 
     /**
@@ -2635,7 +2635,7 @@ export class StandardExpr extends ExprBase {
      * └───┴──────────┘
      */
     tanh() {
-        return derive(this, kleeneUnary(Math.tanh));
+        return this._deriveUnary(Math.tanh);
     }
 
     /**
@@ -2654,7 +2654,7 @@ export class StandardExpr extends ExprBase {
      * └───┴─────────┘
      */
     trunc() {
-        return derive(this, kleeneUnary(Math.trunc));
+        return this._deriveUnary(Math.trunc);
     }
 
     /**
@@ -2710,6 +2710,6 @@ export class StandardExpr extends ExprBase {
      * └───────┴───────┴─────────┘
      */
     xor(other: any) {
-        return derive(this, kleeneBinary(this, other, (v, w) => !!v !== !!w));
+        return this._deriveBinary(other, (v, w) => !!v !== !!w);
     }
 }

@@ -88,17 +88,17 @@ export function seqRange(
 
         if (strict) {
             if (specifiedHeight !== targetHeight) {
-                throw new ShapeError(`Column height mismatch: seqRange length ${specifiedHeight} does not match DataFrame height ${targetHeight}`);
+                throw new ShapeError(`Column height mismatch: ${specifiedHeight} !== ${targetHeight}`);
             }
         } else {
             const pad = opts.pad ?? false;
             const truncate = opts.truncate ?? false;
 
             if (pad && !truncate && specifiedHeight > sliceWidth) {
-                throw new ShapeError(`Cannot pad seqRange output: specified length ${specifiedHeight} starting at index ${safeStart} exceeds slice width ${sliceWidth} (requires truncation).`);
+                throw new ShapeError(`Cannot pad seqRange: length ${specifiedHeight} exceeds slice width ${sliceWidth}`);
             }
             if (truncate && !pad && specifiedHeight < sliceWidth) {
-                throw new ShapeError(`Cannot truncate seqRange output: specified length ${specifiedHeight} starting at index ${safeStart} is less than slice width ${sliceWidth} (requires padding).`);
+                throw new ShapeError(`Cannot truncate seqRange: length ${specifiedHeight} is less than slice width ${sliceWidth}`);
             }
         }
 

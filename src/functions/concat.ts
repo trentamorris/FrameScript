@@ -173,17 +173,17 @@ export function concat<U extends RowRecord = any>(
 
                 const keys = Object.keys(df._columns);
                 if (firstKeys.length !== keys.length) {
-                    throw new DataFrameError(`[Strict Vertical] Column count mismatch at index ${i}.`);
+                    throw new DataFrameError(`[Strict Vertical] Column count mismatch at index ${i}`);
                 }
                 for (let j = 0; j < firstKeys.length; j++) {
                     const key = firstKeys[j];
                     if (key !== keys[j]) {
-                        throw new DataFrameError(`[Strict Vertical] Schema mismatch at position ${j} in DF ${i}. Expected column "${key}", but found "${keys[j]}".`);
+                        throw new DataFrameError(`[Strict Vertical] Schema mismatch at ${j} in DF ${i}: expected "${key}", found "${keys[j]}"`);
                     }
                     const typeA = firstDF.schema[key];
                     const typeB = df.schema[key];
                     if (typeA && typeB && !typeA.equals(typeB)) {
-                        throw new SchemaError(`[Strict Type Check] Schema type mismatch for column "${key}": expected ${typeA.name}, found ${typeB.name}.`);
+                        throw new SchemaError(`Schema type mismatch for column "${key}": expected ${typeA.name}, found ${typeB.name}`);
                     }
                 }
             }
@@ -206,7 +206,7 @@ export function concat<U extends RowRecord = any>(
                 const df = items[i];
                 const h = df.height;
                 if (strict && h !== maxHeight) {
-                    throw new ShapeError(`[Horizontal] Row count mismatch at index ${i}. Expected ${maxHeight}, got ${h}. Set strict=false to allow padding.`);
+                    throw new ShapeError(`[Horizontal] Row count mismatch at index ${i}: expected ${maxHeight}, got ${h}`);
                 }
                 Object.assign(outSchema, df.schema);
 
@@ -214,7 +214,7 @@ export function concat<U extends RowRecord = any>(
                 for (let k = 0; k < keys.length; k++) {
                     const key = keys[k];
                     if (allColNames.has(key)) {
-                        throw new DataFrameError(`[Horizontal] Duplicate column name "${key}" detected. Horizontal concat requires unique names.`);
+                        throw new DataFrameError(`[Horizontal] Duplicate column name "${key}"`);
                     }
                     allColNames.add(key);
 
@@ -254,7 +254,7 @@ export function concat<U extends RowRecord = any>(
                         if (colType === null) {
                             colType = itemType;
                         } else if (!colType.equals(itemType)) {
-                            throw new SchemaError(`[Strict Type Check] Schema type mismatch for column "${key}": expected ${colType.name}, found ${itemType.name}.`);
+                            throw new SchemaError(`Schema type mismatch for column "${key}": expected ${colType.name}, found ${itemType.name}`);
                         }
                     }
                 }

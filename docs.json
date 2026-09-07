@@ -6,8 +6,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).alias(...)",
       "signature": "$df.col(<column_name>).alias(\n  name: string\n): this",
-      "lineStart": 84,
-      "lineEnd": 88
+      "lineStart": 98,
+      "lineEnd": 102
     },
     "cast": {
       "desc": "Coerces the column data type to another type.",
@@ -15,8 +15,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).cast(...)",
       "signature": "$df.col(<column_name>).cast(\n  dataType: RegisteredDataType\n): this",
-      "lineStart": 93,
-      "lineEnd": 97
+      "lineStart": 107,
+      "lineEnd": 111
     },
     "debug": {
       "desc": "Prints the current evaluation intermediate array to console for debugging.",
@@ -24,8 +24,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).debug(...)",
       "signature": "$df.col(<column_name>).debug(\n  label?: string\n): this",
-      "lineStart": 102,
-      "lineEnd": 107
+      "lineStart": 116,
+      "lineEnd": 121
     }
   },
   "columnExpressions/functions/all.ts": {
@@ -293,8 +293,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.when(...)",
       "signature": "$df.when(\n  predicate: WhenArg\n): WhenThenChain",
-      "lineStart": 116,
-      "lineEnd": 118
+      "lineStart": 112,
+      "lineEnd": 114
     }
   },
   "columnExpressions/mixins/ArrayExpr.ts": {
@@ -314,8 +314,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.agg(...)",
       "signature": "$df.col(<column_name>).arr.agg(\n  expr: IExpr\n)",
-      "lineStart": 62,
-      "lineEnd": 80
+      "lineStart": 84,
+      "lineEnd": 86
     },
     "all": {
       "desc": "Returns true if all items in nested list cells are truthy.",
@@ -327,8 +327,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.all(...)",
       "signature": "$df.col(<column_name>).arr.all()",
-      "lineStart": 96,
-      "lineEnd": 98
+      "lineStart": 102,
+      "lineEnd": 104
     },
     "any": {
       "desc": "Returns true if any item in nested list cells is truthy.",
@@ -340,8 +340,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.any(...)",
       "signature": "$df.col(<column_name>).arr.any()",
-      "lineStart": 114,
-      "lineEnd": 116
+      "lineStart": 120,
+      "lineEnd": 122
     },
     "argMax": {
       "desc": "Finds the index of the maximum value in each array.",
@@ -353,8 +353,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.argMax(...)",
       "signature": "$df.col(<column_name>).arr.argMax()",
-      "lineStart": 132,
-      "lineEnd": 134
+      "lineStart": 138,
+      "lineEnd": 140
     },
     "argMin": {
       "desc": "Finds the index of the minimum value in each array.",
@@ -366,8 +366,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.argMin(...)",
       "signature": "$df.col(<column_name>).arr.argMin()",
-      "lineStart": 150,
-      "lineEnd": 152
+      "lineStart": 156,
+      "lineEnd": 158
     },
     "contains": {
       "desc": "Checks if nested lists contain item.",
@@ -385,8 +385,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.contains(...)",
       "signature": "$df.col(<column_name>).arr.contains(\n  item: any\n)",
-      "lineStart": 169,
-      "lineEnd": 171
+      "lineStart": 175,
+      "lineEnd": 177
     },
     "containsAll": {
       "desc": "Checks if nested lists contain all elements in items.",
@@ -404,8 +404,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.containsAll(...)",
       "signature": "$df.col(<column_name>).arr.containsAll(\n  items: ArrayLike<any>\n)",
-      "lineStart": 188,
-      "lineEnd": 190
+      "lineStart": 194,
+      "lineEnd": 196
     },
     "containsAny": {
       "desc": "Checks if nested lists contain any element in items.",
@@ -423,8 +423,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.containsAny(...)",
       "signature": "$df.col(<column_name>).arr.containsAny(\n  items: ArrayLike<any>\n)",
-      "lineStart": 207,
-      "lineEnd": 209
+      "lineStart": 213,
+      "lineEnd": 215
     },
     "countMatches": {
       "desc": "Counts occurrence frequency of item inside nested lists.",
@@ -446,8 +446,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.countMatches(...)",
       "signature": "$df.col(<column_name>).arr.countMatches(\n  item: any,\n  options: UniqueArrayStatsOptions = {}\n)",
-      "lineStart": 227,
-      "lineEnd": 229
+      "lineStart": 233,
+      "lineEnd": 235
     },
     "filter": {
       "desc": "Filters elements of list columns matching a boolean sub-expression.",
@@ -465,8 +465,27 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.filter(...)",
       "signature": "$df.col(<column_name>).arr.filter(\n  expr: IExpr\n)",
-      "lineStart": 246,
-      "lineEnd": 264
+      "lineStart": 252,
+      "lineEnd": 254
+    },
+    "eval": {
+      "desc": "Evaluates subExpr element-wise across array lists.",
+      "examples": [
+        ">>> const df = $df.data({ a: [[1, 2, 3], [4, 5]] })\n>>> df\nshape: (2, 1)\n┌───────────┐\n│ a         │\n├───────────┤\n│ [1, 2, 3] │\n│ [4, 5]    │\n└───────────┘\n>>> df.withColumns($df.col(\"a\").arr.eval($df.element().mul(10)).alias(\"multiplied\"))\r\nshape: (2, 2)\r\n┌────────┬────────────┐\r\n│ a      │ multiplied │\r\n├────────┼────────────┤\r\n│ [1, 2] │ [10, 20]   │\r\n│ [3, 4] │ [30, 40]   │\r\n└────────┴────────────┘"
+      ],
+      "params": [
+        {
+          "name": "expr",
+          "desc": "The sub-expression to evaluate inside each nested list."
+        }
+      ],
+      "returns": "ColumnExpression",
+      "namespace": "$df.col.arr",
+      "category": "ColumnExpression",
+      "syntax": "$df.col(<column_name>).arr.eval(...)",
+      "signature": "$df.col(<column_name>).arr.eval(\n  expr: IExpr\n)",
+      "lineStart": 271,
+      "lineEnd": 282
     },
     "explode": {
       "desc": "Expands lists into row-wise elements and produces an index mapping for DataFrame unnesting.",
@@ -484,8 +503,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.explode(...)",
       "signature": "$df.col(<column_name>).arr.explode(\n  {\n    emptyAsNull = true,\n    keepNulls = true\n  }: ExplodeOptions = {}\n)",
-      "lineStart": 281,
-      "lineEnd": 337
+      "lineStart": 299,
+      "lineEnd": 355
     },
     "first": {
       "desc": "Returns the first element of each list.",
@@ -503,8 +522,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.first(...)",
       "signature": "$df.col(<column_name>).arr.first(\n  nullOnOob: boolean = true\n)",
-      "lineStart": 354,
-      "lineEnd": 356
+      "lineStart": 372,
+      "lineEnd": 374
     },
     "gather": {
       "desc": "Gathers specific indices from each nested list.",
@@ -526,8 +545,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.gather(...)",
       "signature": "$df.col(<column_name>).arr.gather(\n  indices: number | ArrayLike<number>,\n  nullOnOob: boolean = true\n)",
-      "lineStart": 374,
-      "lineEnd": 387
+      "lineStart": 392,
+      "lineEnd": 405
     },
     "gatherEvery": {
       "desc": "Gather element slices with custom steps.",
@@ -545,8 +564,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.gatherEvery(...)",
       "signature": "$df.col(<column_name>).arr.gatherEvery(\n  options: StepSliceArrayOptions = {}\n)",
-      "lineStart": 404,
-      "lineEnd": 406
+      "lineStart": 422,
+      "lineEnd": 424
     },
     "get": {
       "desc": "Extracts a single list element by its index position.",
@@ -568,8 +587,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.get(...)",
       "signature": "$df.col(<column_name>).arr.get get(\n  index: number,\n  nullOnOob: boolean = true\n)",
-      "lineStart": 424,
-      "lineEnd": 426
+      "lineStart": 442,
+      "lineEnd": 444
     },
     "join": {
       "desc": "Joins elements of list columns into a single string column.",
@@ -591,8 +610,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.join(...)",
       "signature": "$df.col(<column_name>).arr.join(\n  separator: string = \",\n  \",\n  options: JoinArrayOptions = {}\n)",
-      "lineStart": 444,
-      "lineEnd": 446
+      "lineStart": 462,
+      "lineEnd": 464
     },
     "last": {
       "desc": "Returns the last element of each list.",
@@ -610,8 +629,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.last(...)",
       "signature": "$df.col(<column_name>).arr.last(\n  nullOnOob: boolean = true\n)",
-      "lineStart": 463,
-      "lineEnd": 465
+      "lineStart": 481,
+      "lineEnd": 483
     },
     "len": {
       "desc": "Returns the length of each list inside the column cell.",
@@ -619,8 +638,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.len(...)",
       "signature": "$df.col(<column_name>).arr.len()",
-      "lineStart": 470,
-      "lineEnd": 472
+      "lineStart": 488,
+      "lineEnd": 490
     },
     "lengths": {
       "desc": "Returns the length of each list inside the column cell.",
@@ -632,8 +651,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.lengths(...)",
       "signature": "$df.col(<column_name>).arr.lengths()",
-      "lineStart": 488,
-      "lineEnd": 490
+      "lineStart": 506,
+      "lineEnd": 508
     },
     "max": {
       "desc": "Returns the maximum value of elements inside each list.",
@@ -645,8 +664,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.max(...)",
       "signature": "$df.col(<column_name>).arr.max()",
-      "lineStart": 506,
-      "lineEnd": 508
+      "lineStart": 524,
+      "lineEnd": 526
     },
     "mean": {
       "desc": "Returns average of elements inside each list.",
@@ -658,8 +677,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.mean(...)",
       "signature": "$df.col(<column_name>).arr.mean()",
-      "lineStart": 524,
-      "lineEnd": 526
+      "lineStart": 542,
+      "lineEnd": 544
     },
     "median": {
       "desc": "Returns statistical median inside each list.",
@@ -671,8 +690,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.median(...)",
       "signature": "$df.col(<column_name>).arr.median()",
-      "lineStart": 542,
-      "lineEnd": 544
+      "lineStart": 560,
+      "lineEnd": 562
     },
     "min": {
       "desc": "Returns minimum of elements inside each list.",
@@ -684,8 +703,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.min(...)",
       "signature": "$df.col(<column_name>).arr.min()",
-      "lineStart": 560,
-      "lineEnd": 562
+      "lineStart": 578,
+      "lineEnd": 580
     },
     "mode": {
       "desc": "Returns the mode value inside each list.",
@@ -697,8 +716,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.mode(...)",
       "signature": "$df.col(<column_name>).arr.mode()",
-      "lineStart": 578,
-      "lineEnd": 580
+      "lineStart": 596,
+      "lineEnd": 598
     },
     "nUnique": {
       "desc": "Returns the unique count of elements inside each list.",
@@ -716,8 +735,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.nUnique(...)",
       "signature": "$df.col(<column_name>).arr.nUnique(\n  options: UniqueArrayStatsOptions = {}\n)",
-      "lineStart": 597,
-      "lineEnd": 599
+      "lineStart": 615,
+      "lineEnd": 617
     },
     "reverse": {
       "desc": "Reverses elements of list columns.",
@@ -729,8 +748,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.reverse(...)",
       "signature": "$df.col(<column_name>).arr.reverse()",
-      "lineStart": 615,
-      "lineEnd": 617
+      "lineStart": 633,
+      "lineEnd": 635
     },
     "shift": {
       "desc": "Shifts elements of list columns by N offsets.",
@@ -748,8 +767,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.shift(...)",
       "signature": "$df.col(<column_name>).arr.shift(\n  n: number = 1\n)",
-      "lineStart": 634,
-      "lineEnd": 636
+      "lineStart": 652,
+      "lineEnd": 654
     },
     "slice": {
       "desc": "Slices nested list arrays.",
@@ -771,8 +790,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.slice(...)",
       "signature": "$df.col(<column_name>).arr.slice(\n  start?: number,\n  end?: number\n)",
-      "lineStart": 654,
-      "lineEnd": 656
+      "lineStart": 672,
+      "lineEnd": 674
     },
     "splice": {
       "desc": "Splices elements in list cells.",
@@ -798,8 +817,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.splice(...)",
       "signature": "$df.col(<column_name>).arr.splice(\n  start: number,\n  deleteCount?: number,\n  ...items: any[]\n)",
-      "lineStart": 675,
-      "lineEnd": 681
+      "lineStart": 693,
+      "lineEnd": 699
     },
     "sort": {
       "desc": "Sorts elements inside each list.",
@@ -817,8 +836,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.sort(...)",
       "signature": "$df.col(<column_name>).arr.sort(\n  options?: SortArrayOptions\n)",
-      "lineStart": 698,
-      "lineEnd": 700
+      "lineStart": 716,
+      "lineEnd": 718
     },
     "std": {
       "desc": "Returns sample standard deviation of elements inside each list.",
@@ -830,8 +849,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.std(...)",
       "signature": "$df.col(<column_name>).arr.std()",
-      "lineStart": 716,
-      "lineEnd": 718
+      "lineStart": 734,
+      "lineEnd": 736
     },
     "sum": {
       "desc": "Returns sum of elements inside each list.",
@@ -843,8 +862,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.sum(...)",
       "signature": "$df.col(<column_name>).arr.sum()",
-      "lineStart": 734,
-      "lineEnd": 736
+      "lineStart": 752,
+      "lineEnd": 754
     },
     "toStruct": {
       "desc": "Converts list column elements to struct columns.",
@@ -862,8 +881,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.toStruct(...)",
       "signature": "$df.col(<column_name>).arr.toStruct(\n  {\n    upperBound,\n    fields\n  }: ToStructOptions = {}\n)",
-      "lineStart": 753,
-      "lineEnd": 799
+      "lineStart": 771,
+      "lineEnd": 817
     },
     "unique": {
       "desc": "Fills each list with unique elements only.",
@@ -881,8 +900,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.unique(...)",
       "signature": "$df.col(<column_name>).arr.unique(\n  options: UniqueArrayStatsOptions = {}\n)",
-      "lineStart": 816,
-      "lineEnd": 818
+      "lineStart": 834,
+      "lineEnd": 836
     },
     "variance": {
       "desc": "Returns sample variance of elements inside each list.",
@@ -894,27 +913,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr.variance(...)",
       "signature": "$df.col(<column_name>).arr.variance()",
-      "lineStart": 834,
-      "lineEnd": 836
-    },
-    "eval": {
-      "desc": "Evaluates subExpr element-wise across array lists.",
-      "examples": [
-        ">>> const df = $df.data({ a: [[1, 2, 3], [4, 5]] })\n>>> df\nshape: (2, 1)\n┌───────────┐\n│ a         │\n├───────────┤\n│ [1, 2, 3] │\n│ [4, 5]    │\n└───────────┘\n>>> df.withColumns($df.col(\"a\").arr.eval($df.element().mul(10)).alias(\"multiplied\"))\r\nshape: (2, 2)\r\n┌────────┬────────────┐\r\n│ a      │ multiplied │\r\n├────────┼────────────┤\r\n│ [1, 2] │ [10, 20]   │\r\n│ [3, 4] │ [30, 40]   │\r\n└────────┴────────────┘"
-      ],
-      "params": [
-        {
-          "name": "expr",
-          "desc": "The sub-expression to evaluate inside each nested list."
-        }
-      ],
-      "returns": "ColumnExpression",
-      "namespace": "$df.col.arr",
-      "category": "ColumnExpression",
-      "syntax": "$df.col(<column_name>).arr.eval(...)",
-      "signature": "$df.col(<column_name>).arr.eval(\n  expr: IExpr\n)",
-      "lineStart": 853,
-      "lineEnd": 878
+      "lineStart": 852,
+      "lineEnd": 854
     },
     "arr": {
       "desc": "Array namespace accessor for list-based column operations.",
@@ -926,8 +926,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).arr",
       "signature": "$df.col(<column_name>).get arr()",
-      "lineStart": 899,
-      "lineEnd": 901
+      "lineStart": 875,
+      "lineEnd": 877
     }
   },
   "columnExpressions/mixins/StandardExpr.ts": {
@@ -3031,8 +3031,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.concat(...)",
       "signature": "$df.col(<column_name>).str.concat(\n  other: string | IExpr\n)",
-      "lineStart": 93,
-      "lineEnd": 95
+      "lineStart": 92,
+      "lineEnd": 94
     },
     "contains": {
       "desc": "Checks if a string contains the search substring pattern (supports Regex).",
@@ -3050,8 +3050,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.contains(...)",
       "signature": "$df.col(<column_name>).str.contains(\n  pattern: string | RegExp\n)",
-      "lineStart": 112,
-      "lineEnd": 116
+      "lineStart": 111,
+      "lineEnd": 115
     },
     "containsAny": {
       "desc": "Checks if a string contains any of the search patterns.",
@@ -3069,8 +3069,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.containsAny(...)",
       "signature": "$df.col(<column_name>).str.containsAny(\n  patterns: (string | RegExp)[]\n)",
-      "lineStart": 133,
-      "lineEnd": 144
+      "lineStart": 132,
+      "lineEnd": 143
     },
     "countMatches": {
       "desc": "Counts occurrences of a substring or regular expression match in each string element.",
@@ -3088,8 +3088,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.countMatches(...)",
       "signature": "$df.col(<column_name>).str.countMatches(\n  pattern: string | RegExp | any,\n  options: { literal?: boolean } | boolean = {}\n)",
-      "lineStart": 162,
-      "lineEnd": 175
+      "lineStart": 161,
+      "lineEnd": 174
     },
     "escapeRegex": {
       "desc": "Escapes special regular expression characters in string elements.",
@@ -3101,8 +3101,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.escapeRegex(...)",
       "signature": "$df.col(<column_name>).str.escapeRegex(\n  options: EscapeRegexOptions = {}\n)",
-      "lineStart": 192,
-      "lineEnd": 194
+      "lineStart": 191,
+      "lineEnd": 193
     },
     "decode": {
       "desc": "Decodes hex or base64 encoded string column values into string.",
@@ -3123,8 +3123,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.decode(...)",
       "signature": "$df.col(<column_name>).str.decode(\n  options: StringDecodeOptions\n)",
-      "lineStart": 214,
-      "lineEnd": 216
+      "lineStart": 213,
+      "lineEnd": 215
     },
     "encode": {
       "desc": "Encodes string column values into hex or base64.",
@@ -3145,8 +3145,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.encode(...)",
       "signature": "$df.col(<column_name>).str.encode(\n  options: StringEncodeOptions\n)",
-      "lineStart": 236,
-      "lineEnd": 238
+      "lineStart": 235,
+      "lineEnd": 237
     },
     "decodeUriComponent": {
       "desc": "Decodes Uniform Resource Identifier (URI) components.",
@@ -3158,8 +3158,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.decodeUriComponent(...)",
       "signature": "$df.col(<column_name>).str.decodeUriComponent()",
-      "lineStart": 254,
-      "lineEnd": 258
+      "lineStart": 253,
+      "lineEnd": 257
     },
     "encodeUriComponent": {
       "desc": "Encodes Uniform Resource Identifier (URI) components.",
@@ -3171,8 +3171,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.encodeUriComponent(...)",
       "signature": "$df.col(<column_name>).str.encodeUriComponent()",
-      "lineStart": 274,
-      "lineEnd": 278
+      "lineStart": 273,
+      "lineEnd": 277
     },
     "endsWith": {
       "desc": "Checks if string ends with a suffix.",
@@ -3190,8 +3190,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.endsWith(...)",
       "signature": "$df.col(<column_name>).str.endsWith(\n  suffix: string\n)",
-      "lineStart": 295,
-      "lineEnd": 297
+      "lineStart": 294,
+      "lineEnd": 296
     },
     "explode": {
       "desc": "Splits strings into lists of single characters.",
@@ -3203,8 +3203,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.explode(...)",
       "signature": "$df.col(<column_name>).str.explode()",
-      "lineStart": 314,
-      "lineEnd": 316
+      "lineStart": 313,
+      "lineEnd": 315
     },
     "extract": {
       "desc": "Extracts a captured group from the first regex match.",
@@ -3226,8 +3226,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.extract(...)",
       "signature": "$df.col(<column_name>).str.extract(\n  pattern: RegExp | string,\n  options?: ExtractRegexEngineOptions\n)",
-      "lineStart": 334,
-      "lineEnd": 338
+      "lineStart": 333,
+      "lineEnd": 337
     },
     "extractAll": {
       "desc": "Extracts all occurrences matching a regular expression pattern.",
@@ -3249,8 +3249,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.extractAll(...)",
       "signature": "$df.col(<column_name>).str.extractAll(\n  pattern: string | RegExp,\n  options?: ExtractRegexEngineOptions\n)",
-      "lineStart": 357,
-      "lineEnd": 361
+      "lineStart": 356,
+      "lineEnd": 360
     },
     "extractGroups": {
       "desc": "Extracts all captured groups from the first regex match into a structured object (struct).",
@@ -3268,8 +3268,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.extractGroups(...)",
       "signature": "$df.col(<column_name>).str.extractGroups(\n  pattern: string | RegExp,\n  options: ExtractManyOptions = {}\n)",
-      "lineStart": 378,
-      "lineEnd": 382
+      "lineStart": 377,
+      "lineEnd": 381
     },
     "extractMany": {
       "desc": "Extracts the first regex match for each pattern in a list of patterns.",
@@ -3291,8 +3291,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.extractMany(...)",
       "signature": "$df.col(<column_name>).str.extractMany(\n  patterns: (string | RegExp)[],\n  options: ExtractManyOptions = {}\n)",
-      "lineStart": 401,
-      "lineEnd": 405
+      "lineStart": 400,
+      "lineEnd": 404
     },
     "find": {
       "desc": "Return the byte offset of the first substring matching a pattern. Returns null if pattern is not found.",
@@ -3314,8 +3314,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.find(...)",
       "signature": "$df.col(<column_name>).str.find(\n  value: string | RegExp,\n  options: FindOptions = {}\n)",
-      "lineStart": 425,
-      "lineEnd": 429
+      "lineStart": 424,
+      "lineEnd": 428
     },
     "findMany": {
       "desc": "Return the starting byte offset of each match for multiple patterns.",
@@ -3337,8 +3337,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.findMany(...)",
       "signature": "$df.col(<column_name>).str.findMany(\n  patterns: (string | RegExp)[],\n  options: FindManyOptions = {}\n)",
-      "lineStart": 448,
-      "lineEnd": 452
+      "lineStart": 447,
+      "lineEnd": 451
     },
     "head": {
       "desc": "Extracts the first n characters of each string element.",
@@ -3356,8 +3356,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.head(...)",
       "signature": "$df.col(<column_name>).str.head(\n  n: number = 1\n)",
-      "lineStart": 470,
-      "lineEnd": 472
+      "lineStart": 469,
+      "lineEnd": 471
     },
     "join": {
       "desc": "Joins a list of string elements into a single string using a delimiter. Accepts `JoinArrayOptions` (`{ ignoreNulls, nullValue, prefix, suffix, limit, truncationMarker, valueFormatter }`).",
@@ -3379,8 +3379,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.join(...)",
       "signature": "$df.col(<column_name>).str.join(\n  delimiter: string = \"\",\n  options: JoinArrayOptions = {}\n)",
-      "lineStart": 491,
-      "lineEnd": 497
+      "lineStart": 490,
+      "lineEnd": 496
     },
     "jsonDecode": {
       "desc": "Decodes JSON string elements into parsed objects or arrays. Reuses safeJsonParse utility.",
@@ -3398,8 +3398,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.jsonDecode(...)",
       "signature": "$df.col(<column_name>).str.jsonDecode(\n  options: SafeJsonParseOptions = {}\n)",
-      "lineStart": 515,
-      "lineEnd": 517
+      "lineStart": 514,
+      "lineEnd": 516
     },
     "jsonPathMatch": {
       "desc": "Extracts fields or array elements from JSON strings using JSONPath syntax.",
@@ -3417,8 +3417,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.jsonPathMatch(...)",
       "signature": "$df.col(<column_name>).str.jsonPathMatch(\n  jsonPath: string\n)",
-      "lineStart": 534,
-      "lineEnd": 536
+      "lineStart": 533,
+      "lineEnd": 535
     },
     "len": {
       "desc": "Returns string length in UTF-16 code units. Alias for lenChars.",
@@ -3430,8 +3430,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.len(...)",
       "signature": "$df.col(<column_name>).str.len()",
-      "lineStart": 553,
-      "lineEnd": 555
+      "lineStart": 552,
+      "lineEnd": 554
     },
     "lenBytes": {
       "desc": "Returns string length in UTF-8 encoded bytes.",
@@ -3443,8 +3443,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.lenBytes(...)",
       "signature": "$df.col(<column_name>).str.lenBytes()",
-      "lineStart": 572,
-      "lineEnd": 574
+      "lineStart": 571,
+      "lineEnd": 573
     },
     "lenChars": {
       "desc": "Returns string length in character count.",
@@ -3456,8 +3456,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.lenChars(...)",
       "signature": "$df.col(<column_name>).str.lenChars()",
-      "lineStart": 591,
-      "lineEnd": 593
+      "lineStart": 590,
+      "lineEnd": 592
     },
     "lower": {
       "desc": "Converts strings to lowercase.",
@@ -3469,8 +3469,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.lower(...)",
       "signature": "$df.col(<column_name>).str.lower()",
-      "lineStart": 610,
-      "lineEnd": 612
+      "lineStart": 609,
+      "lineEnd": 611
     },
     "lpad": {
       "desc": "Pads start of strings to specified width.",
@@ -3492,8 +3492,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.lpad(...)",
       "signature": "$df.col(<column_name>).str.lpad(\n  width: number,\n  fill: string = \" \"\n)",
-      "lineStart": 631,
-      "lineEnd": 633
+      "lineStart": 630,
+      "lineEnd": 632
     },
     "normalize": {
       "desc": "Normalizes Unicode strings using standard normalization forms (NFC, NFD, NFKC, NFKD).",
@@ -3511,8 +3511,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.normalize(...)",
       "signature": "$df.col(<column_name>).str.normalize(\n  form?: Parameters<typeof String.prototype.normalize>[0]\n)",
-      "lineStart": 652,
-      "lineEnd": 654
+      "lineStart": 651,
+      "lineEnd": 653
     },
     "padEnd": {
       "desc": "Pads end of strings to specified width. Alias for rpad.",
@@ -3534,8 +3534,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.padEnd(...)",
       "signature": "$df.col(<column_name>).str.padEnd(\n  width: number,\n  fill: string = \" \"\n)",
-      "lineStart": 673,
-      "lineEnd": 675
+      "lineStart": 672,
+      "lineEnd": 674
     },
     "padStart": {
       "desc": "Pads start of strings to specified width. Alias for lpad.",
@@ -3557,8 +3557,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.padStart(...)",
       "signature": "$df.col(<column_name>).str.padStart(\n  width: number,\n  fill: string = \" \"\n)",
-      "lineStart": 694,
-      "lineEnd": 696
+      "lineStart": 693,
+      "lineEnd": 695
     },
     "replace": {
       "desc": "Replaces the first occurrence matching a string pattern.",
@@ -3584,8 +3584,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.replace(...)",
       "signature": "$df.col(<column_name>).str.replace(\n  pattern: string | RegExp,\n  replacement: string | ((match: string, ...args: any[]) => string),\n  options?: ReplaceOptions\n)",
-      "lineStart": 715,
-      "lineEnd": 723
+      "lineStart": 714,
+      "lineEnd": 722
     },
     "replaceAll": {
       "desc": "Replaces all occurrences matching a string pattern or global regular expression.",
@@ -3611,8 +3611,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.replaceAll(...)",
       "signature": "$df.col(<column_name>).str.replaceAll(\n  pattern: string | RegExp,\n  replacement: string | ((match: string, ...args: any[]) => string),\n  options?: Omit<ReplaceOptions, \"n\">\n)",
-      "lineStart": 743,
-      "lineEnd": 751
+      "lineStart": 742,
+      "lineEnd": 750
     },
     "replaceMany": {
       "desc": "Replaces multiple string patterns simultaneously or sequentially with their respective replacements. Matches Polars `.str.replaceMany()` behavior, accepting pattern/replacement arrays or a pattern-to-replacement map dictionary.",
@@ -3638,8 +3638,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.replaceMany(...)",
       "signature": "$df.col(<column_name>).str.replaceMany(\n  patterns: (string | RegExp)[] | Record<string, string>,\n  replacements?: (string | ((match: string, ...args: any[]) => string))[],\n  options?: ReplaceManyOptions\n)",
-      "lineStart": 772,
-      "lineEnd": 780
+      "lineStart": 771,
+      "lineEnd": 779
     },
     "reverse": {
       "desc": "Reverses characters in each string element.",
@@ -3651,8 +3651,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.reverse(...)",
       "signature": "$df.col(<column_name>).str.reverse()",
-      "lineStart": 797,
-      "lineEnd": 799
+      "lineStart": 796,
+      "lineEnd": 798
     },
     "rpad": {
       "desc": "Pads end of strings to specified width.",
@@ -3674,8 +3674,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.rpad(...)",
       "signature": "$df.col(<column_name>).str.rpad(\n  width: number,\n  fill: string = \" \"\n)",
-      "lineStart": 818,
-      "lineEnd": 820
+      "lineStart": 817,
+      "lineEnd": 819
     },
     "slice": {
       "desc": "Extracts a substring slice using start offset and length.",
@@ -3697,8 +3697,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.slice(...)",
       "signature": "$df.col(<column_name>).str.slice(\n  offset: number,\n  length?: number\n)",
-      "lineStart": 839,
-      "lineEnd": 845
+      "lineStart": 838,
+      "lineEnd": 844
     },
     "split": {
       "desc": "Splits strings into lists by delimiter with optional limit and exact padding.",
@@ -3720,8 +3720,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.split(...)",
       "signature": "$df.col(<column_name>).str.split(\n  delimiter: string,\n  options?: SplitOptions\n)",
-      "lineStart": 863,
-      "lineEnd": 865
+      "lineStart": 862,
+      "lineEnd": 864
     },
     "startsWith": {
       "desc": "Checks if string starts with a prefix.",
@@ -3739,8 +3739,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.startsWith(...)",
       "signature": "$df.col(<column_name>).str.startsWith(\n  prefix: string\n)",
-      "lineStart": 883,
-      "lineEnd": 885
+      "lineStart": 882,
+      "lineEnd": 884
     },
     "stripChars": {
       "desc": "Strips matching characters from start and end of string.",
@@ -3762,8 +3762,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.stripChars(...)",
       "signature": "$df.col(<column_name>).str.stripChars(\n  characters?: string | RegExp,\n  options?: StripCharsOptions\n)",
-      "lineStart": 903,
-      "lineEnd": 905
+      "lineStart": 902,
+      "lineEnd": 904
     },
     "stripCharsEnd": {
       "desc": "Strips matching characters from end of string.",
@@ -3785,8 +3785,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.stripCharsEnd(...)",
       "signature": "$df.col(<column_name>).str.stripCharsEnd(\n  characters?: string | RegExp,\n  options?: StripCharsOptions\n)",
-      "lineStart": 923,
-      "lineEnd": 925
+      "lineStart": 922,
+      "lineEnd": 924
     },
     "stripCharsStart": {
       "desc": "Strips matching characters from start of string.",
@@ -3808,8 +3808,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.stripCharsStart(...)",
       "signature": "$df.col(<column_name>).str.stripCharsStart(\n  characters?: string | RegExp,\n  options?: StripCharsOptions\n)",
-      "lineStart": 943,
-      "lineEnd": 945
+      "lineStart": 942,
+      "lineEnd": 944
     },
     "stripPrefix": {
       "desc": "Strips matching prefix substring from start of string.",
@@ -3827,8 +3827,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.stripPrefix(...)",
       "signature": "$df.col(<column_name>).str.stripPrefix(\n  prefix: string\n)",
-      "lineStart": 963,
-      "lineEnd": 973
+      "lineStart": 962,
+      "lineEnd": 972
     },
     "stripSuffix": {
       "desc": "Strips matching suffix substring from end of string.",
@@ -3846,8 +3846,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.stripSuffix(...)",
       "signature": "$df.col(<column_name>).str.stripSuffix(\n  suffix: string\n)",
-      "lineStart": 990,
-      "lineEnd": 1000
+      "lineStart": 989,
+      "lineEnd": 999
     },
     "tail": {
       "desc": "Extracts the last n characters of each string element.",
@@ -3865,8 +3865,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.tail(...)",
       "signature": "$df.col(<column_name>).str.tail(\n  n: number = 1\n)",
-      "lineStart": 1018,
-      "lineEnd": 1020
+      "lineStart": 1017,
+      "lineEnd": 1019
     },
     "strptime": {
       "desc": "Parses date/time string into Datetime.",
@@ -3887,8 +3887,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.strptime(...)",
       "signature": "$df.col(<column_name>).str.strptime(\n  options: StrptimeOptions\n)",
-      "lineStart": 1038,
-      "lineEnd": 1040
+      "lineStart": 1037,
+      "lineEnd": 1039
     },
     "toCamelCase": {
       "desc": "Converts string casing to camelCase.",
@@ -3900,8 +3900,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.toCamelCase(...)",
       "signature": "$df.col(<column_name>).str.toCamelCase()",
-      "lineStart": 1057,
-      "lineEnd": 1059
+      "lineStart": 1056,
+      "lineEnd": 1058
     },
     "toDate": {
       "desc": "Parses string into Date object.",
@@ -3913,8 +3913,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.toDate(...)",
       "signature": "$df.col(<column_name>).str.toDate()",
-      "lineStart": 1074,
-      "lineEnd": 1076
+      "lineStart": 1073,
+      "lineEnd": 1075
     },
     "toDatetime": {
       "desc": "Parses string into Datetime value.",
@@ -3926,8 +3926,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.toDatetime(...)",
       "signature": "$df.col(<column_name>).str.toDatetime()",
-      "lineStart": 1091,
-      "lineEnd": 1093
+      "lineStart": 1090,
+      "lineEnd": 1092
     },
     "toDecimal": {
       "desc": "Converts string into numeric decimal representation.",
@@ -3949,8 +3949,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.toDecimal(...)",
       "signature": "$df.col(<column_name>).str.toDecimal(\n  precision?: number,\n  scale?: number\n)",
-      "lineStart": 1112,
-      "lineEnd": 1114
+      "lineStart": 1111,
+      "lineEnd": 1113
     },
     "toInteger": {
       "desc": "Parses string into integer number.",
@@ -3962,8 +3962,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.toInteger(...)",
       "signature": "$df.col(<column_name>).str.toInteger()",
-      "lineStart": 1131,
-      "lineEnd": 1133
+      "lineStart": 1130,
+      "lineEnd": 1132
     },
     "toKebabCase": {
       "desc": "Converts string casing to kebab-case.",
@@ -3975,8 +3975,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.toKebabCase(...)",
       "signature": "$df.col(<column_name>).str.toKebabCase()",
-      "lineStart": 1150,
-      "lineEnd": 1152
+      "lineStart": 1149,
+      "lineEnd": 1151
     },
     "toLowerCase": {
       "desc": "Converts all string elements in the column to lowercase.",
@@ -3988,8 +3988,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.toLowerCase(...)",
       "signature": "$df.col(<column_name>).str.toLowerCase()",
-      "lineStart": 1169,
-      "lineEnd": 1171
+      "lineStart": 1168,
+      "lineEnd": 1170
     },
     "toPascalCase": {
       "desc": "Converts string casing to PascalCase.",
@@ -4001,8 +4001,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.toPascalCase(...)",
       "signature": "$df.col(<column_name>).str.toPascalCase()",
-      "lineStart": 1188,
-      "lineEnd": 1190
+      "lineStart": 1187,
+      "lineEnd": 1189
     },
     "toSnakeCase": {
       "desc": "Converts string casing to snake_case.",
@@ -4014,8 +4014,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.toSnakeCase(...)",
       "signature": "$df.col(<column_name>).str.toSnakeCase()",
-      "lineStart": 1207,
-      "lineEnd": 1209
+      "lineStart": 1206,
+      "lineEnd": 1208
     },
     "toTime": {
       "desc": "Parses string into time component representation.",
@@ -4027,8 +4027,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.toTime(...)",
       "signature": "$df.col(<column_name>).str.toTime()",
-      "lineStart": 1226,
-      "lineEnd": 1228
+      "lineStart": 1225,
+      "lineEnd": 1227
     },
     "toTitleCase": {
       "desc": "Converts string casing to Title Case.",
@@ -4040,8 +4040,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.toTitleCase(...)",
       "signature": "$df.col(<column_name>).str.toTitleCase()",
-      "lineStart": 1245,
-      "lineEnd": 1247
+      "lineStart": 1244,
+      "lineEnd": 1246
     },
     "toUpperCase": {
       "desc": "Converts all string elements in the column to uppercase.",
@@ -4053,8 +4053,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.toUpperCase(...)",
       "signature": "$df.col(<column_name>).str.toUpperCase()",
-      "lineStart": 1264,
-      "lineEnd": 1266
+      "lineStart": 1263,
+      "lineEnd": 1265
     },
     "trim": {
       "desc": "Trims leading and trailing whitespace characters from each string element.",
@@ -4066,8 +4066,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.trim(...)",
       "signature": "$df.col(<column_name>).str.trim()",
-      "lineStart": 1282,
-      "lineEnd": 1284
+      "lineStart": 1281,
+      "lineEnd": 1283
     },
     "trimEnd": {
       "desc": "Trims trailing whitespace characters from each string element.",
@@ -4079,8 +4079,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.trimEnd(...)",
       "signature": "$df.col(<column_name>).str.trimEnd()",
-      "lineStart": 1300,
-      "lineEnd": 1302
+      "lineStart": 1299,
+      "lineEnd": 1301
     },
     "trimStart": {
       "desc": "Trims leading whitespace characters from each string element.",
@@ -4092,8 +4092,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.trimStart(...)",
       "signature": "$df.col(<column_name>).str.trimStart()",
-      "lineStart": 1318,
-      "lineEnd": 1320
+      "lineStart": 1317,
+      "lineEnd": 1319
     },
     "upper": {
       "desc": "Converts string to uppercase.",
@@ -4105,8 +4105,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.upper(...)",
       "signature": "$df.col(<column_name>).str.upper()",
-      "lineStart": 1337,
-      "lineEnd": 1339
+      "lineStart": 1336,
+      "lineEnd": 1338
     },
     "zfill": {
       "desc": "Pads start of string with zeros to target width.",
@@ -4124,8 +4124,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str.zfill(...)",
       "signature": "$df.col(<column_name>).str.zfill(\n  width: number\n)",
-      "lineStart": 1357,
-      "lineEnd": 1359
+      "lineStart": 1356,
+      "lineEnd": 1358
     },
     "str": {
       "desc": "String namespace accessor for text operations.",
@@ -4137,8 +4137,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).str",
       "signature": "$df.col(<column_name>).get str()",
-      "lineStart": 1381,
-      "lineEnd": 1383
+      "lineStart": 1380,
+      "lineEnd": 1382
     }
   },
   "columnExpressions/mixins/StructExpr.ts": {
@@ -4233,8 +4233,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.DateTimeExprNamespace(...)",
       "signature": "$df.col(<column_name>).dt.DateTimeExprNamespace",
-      "lineStart": 38,
-      "lineEnd": 38
+      "lineStart": 37,
+      "lineEnd": 37
     },
     "castTimeUnit": {
       "desc": "Casts the schema time unit of a Datetime column (`\"ms\"`, `\"us\"`, `\"ns\"`). This is a metadata-only operation — underlying millisecond Date timestamps are preserved.",
@@ -4252,8 +4252,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.castTimeUnit(...)",
       "signature": "$df.col(<column_name>).dt.castTimeUnit(\n  unit: DatetimeTimeUnit\n)",
-      "lineStart": 76,
-      "lineEnd": 78
+      "lineStart": 75,
+      "lineEnd": 77
     },
     "century": {
       "desc": "Extracts the 1-indexed century component (e.g. 21 for 2026) from a Datetime column.",
@@ -4265,8 +4265,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.century(...)",
       "signature": "$df.col(<column_name>).dt.century(\n  timeZone?: string\n)",
-      "lineStart": 93,
-      "lineEnd": 95
+      "lineStart": 92,
+      "lineEnd": 94
     },
     "convertTimeZone": {
       "desc": "Converts a Datetime column to a different IANA timezone. Preserves the exact UTC epoch instant while changing the timezone label, affecting how local wall-clock component extractors (`hour()`, `day()`, etc.) and `strftime` interpret values. Requires the column to already be timezone-aware; use `replace({ timeZone })` to assign a timezone to a naive column first.",
@@ -4287,8 +4287,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.convertTimeZone(...)",
       "signature": "$df.col(<column_name>).dt.convertTimeZone(\n  timeZone: string\n)",
-      "lineStart": 117,
-      "lineEnd": 126
+      "lineStart": 116,
+      "lineEnd": 125
     },
     "date": {
       "desc": "Extracts the Date object component from a Datetime column, truncating time to 00:00:00.000 UTC.",
@@ -4300,8 +4300,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.date(...)",
       "signature": "$df.col(<column_name>).dt.date()",
-      "lineStart": 141,
-      "lineEnd": 143
+      "lineStart": 140,
+      "lineEnd": 142
     },
     "day": {
       "desc": "Extracts the calendar day component (1-31) from a Datetime column.",
@@ -4319,8 +4319,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.day(...)",
       "signature": "$df.col(<column_name>).dt.day(\n  timeZone?: string\n)",
-      "lineStart": 159,
-      "lineEnd": 161
+      "lineStart": 158,
+      "lineEnd": 160
     },
     "daysInMonth": {
       "desc": "Extracts the total number of days in the month (28-31) for each Datetime value.",
@@ -4338,8 +4338,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.daysInMonth(...)",
       "signature": "$df.col(<column_name>).dt.daysInMonth(\n  timeZone?: string\n)",
-      "lineStart": 177,
-      "lineEnd": 179
+      "lineStart": 176,
+      "lineEnd": 178
     },
     "epoch": {
       "desc": "Returns the epoch duration timestamp offset in the specified time resolution unit.",
@@ -4357,8 +4357,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.epoch(...)",
       "signature": "$df.col(<column_name>).dt.epoch(\n  unit: TimeUnit = \"ms\"\n)",
-      "lineStart": 195,
-      "lineEnd": 197
+      "lineStart": 194,
+      "lineEnd": 196
     },
     "hour": {
       "desc": "Extracts the local hour component (0-23) from a Datetime column.",
@@ -4376,8 +4376,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.hour(...)",
       "signature": "$df.col(<column_name>).dt.hour(\n  timeZone?: string\n)",
-      "lineStart": 213,
-      "lineEnd": 215
+      "lineStart": 212,
+      "lineEnd": 214
     },
     "isBusinessDay": {
       "desc": "Evaluates whether each Datetime value falls on a business day. Supports custom weekend day definitions and holiday arrays or timestamp sets.",
@@ -4395,8 +4395,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.isBusinessDay(...)",
       "signature": "$df.col(<column_name>).dt.isBusinessDay(\n  options: IsBusinessDayOptions = {}\n)",
-      "lineStart": 232,
-      "lineEnd": 234
+      "lineStart": 231,
+      "lineEnd": 233
     },
     "isLeapYear": {
       "desc": "Checks if the calendar year of a Datetime value is a leap year (366 days).",
@@ -4414,8 +4414,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.isLeapYear(...)",
       "signature": "$df.col(<column_name>).dt.isLeapYear(\n  timeZone?: string\n)",
-      "lineStart": 250,
-      "lineEnd": 253
+      "lineStart": 249,
+      "lineEnd": 252
     },
     "isoWeek": {
       "desc": "Extracts the ISO 8601 week number (1-53) from a Datetime column.",
@@ -4433,8 +4433,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.isoWeek(...)",
       "signature": "$df.col(<column_name>).dt.isoWeek(\n  timeZone?: string\n)",
-      "lineStart": 269,
-      "lineEnd": 271
+      "lineStart": 268,
+      "lineEnd": 270
     },
     "isoYear": {
       "desc": "Extracts the ISO 8601 week-numbering year from a Datetime column.",
@@ -4452,8 +4452,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.isoYear(...)",
       "signature": "$df.col(<column_name>).dt.isoYear(\n  timeZone?: string\n)",
-      "lineStart": 287,
-      "lineEnd": 289
+      "lineStart": 286,
+      "lineEnd": 288
     },
     "microsecond": {
       "desc": "Extracts the microsecond component (0-999,000) scaled from Datetime millisecond precision.",
@@ -4471,8 +4471,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.microsecond(...)",
       "signature": "$df.col(<column_name>).dt.microsecond(\n  timeZone?: string\n)",
-      "lineStart": 305,
-      "lineEnd": 307
+      "lineStart": 304,
+      "lineEnd": 306
     },
     "millennium": {
       "desc": "Extracts the 1-indexed millennium component index (e.g. 3 for the year 2026) from a Datetime column.",
@@ -4484,8 +4484,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.millennium(...)",
       "signature": "$df.col(<column_name>).dt.millennium(\n  timeZone?: string\n)",
-      "lineStart": 322,
-      "lineEnd": 324
+      "lineStart": 321,
+      "lineEnd": 323
     },
     "millisecond": {
       "desc": "Extracts the millisecond component (0-999) from a Datetime column.",
@@ -4503,8 +4503,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.millisecond(...)",
       "signature": "$df.col(<column_name>).dt.millisecond(\n  timeZone?: string\n)",
-      "lineStart": 340,
-      "lineEnd": 342
+      "lineStart": 339,
+      "lineEnd": 341
     },
     "minute": {
       "desc": "Extracts the minute component (0-59) from a Datetime column.",
@@ -4522,8 +4522,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.minute(...)",
       "signature": "$df.col(<column_name>).dt.minute(\n  timeZone?: string\n)",
-      "lineStart": 358,
-      "lineEnd": 360
+      "lineStart": 357,
+      "lineEnd": 359
     },
     "month": {
       "desc": "Extracts the calendar month component (1-12) from a Datetime column.",
@@ -4541,8 +4541,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.month(...)",
       "signature": "$df.col(<column_name>).dt.month(\n  timeZone?: string\n)",
-      "lineStart": 376,
-      "lineEnd": 378
+      "lineStart": 375,
+      "lineEnd": 377
     },
     "monthEnd": {
       "desc": "Returns a Datetime column shifted to the last calendar day of the month at 00:00:00.000 UTC.",
@@ -4554,8 +4554,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.monthEnd(...)",
       "signature": "$df.col(<column_name>).dt.monthEnd()",
-      "lineStart": 393,
-      "lineEnd": 395
+      "lineStart": 392,
+      "lineEnd": 394
     },
     "monthStart": {
       "desc": "Returns a Datetime column shifted to the first calendar day of the month at 00:00:00.000 UTC.",
@@ -4567,8 +4567,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.monthStart(...)",
       "signature": "$df.col(<column_name>).dt.monthStart()",
-      "lineStart": 410,
-      "lineEnd": 412
+      "lineStart": 409,
+      "lineEnd": 411
     },
     "nanosecond": {
       "desc": "Extracts the nanosecond component (0-999,000,000) scaled from Datetime millisecond precision.",
@@ -4586,8 +4586,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.nanosecond(...)",
       "signature": "$df.col(<column_name>).dt.nanosecond(\n  timeZone?: string\n)",
-      "lineStart": 428,
-      "lineEnd": 430
+      "lineStart": 427,
+      "lineEnd": 429
     },
     "offsetDay": {
       "desc": "Offsets a Datetime column by N calendar days (numeric constant, column reference, or expression). Reuses $df.duration({ days: n }) and expression addition math under the hood.",
@@ -4609,8 +4609,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.offsetDay(...)",
       "signature": "$df.col(<column_name>).dt.offsetDay(\n  n: number | any,\n  options: DayOffsetOptions = {}\n)",
-      "lineStart": 448,
-      "lineEnd": 458
+      "lineStart": 447,
+      "lineEnd": 457
     },
     "ordinalDay": {
       "desc": "Extracts the day of the year (1-366) from a Datetime column.",
@@ -4628,8 +4628,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.ordinalDay(...)",
       "signature": "$df.col(<column_name>).dt.ordinalDay(\n  timeZone?: string\n)",
-      "lineStart": 474,
-      "lineEnd": 476
+      "lineStart": 473,
+      "lineEnd": 475
     },
     "quarter": {
       "desc": "Extracts the calendar quarter of the year (1-4) from a Datetime column.",
@@ -4647,8 +4647,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.quarter(...)",
       "signature": "$df.col(<column_name>).dt.quarter(\n  timeZone?: string\n)",
-      "lineStart": 492,
-      "lineEnd": 494
+      "lineStart": 491,
+      "lineEnd": 493
     },
     "replace": {
       "desc": "Replaces specific date and time components (`year`, `month`, `day`, `hour`, `minute`, `second`, `ms`, `timeZone`) of a Datetime column. Unspecified components are preserved from the original value. When `timeZone` is provided in options, components are interpreted in that timezone. Note: `month` is 1-indexed (1 = January, 12 = December); `day` is 1-indexed (1-31).",
@@ -4666,8 +4666,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.replace(...)",
       "signature": "$df.col(<column_name>).dt.replace(\n  options: ReplaceDateOptions\n)",
-      "lineStart": 513,
-      "lineEnd": 518
+      "lineStart": 512,
+      "lineEnd": 514
     },
     "second": {
       "desc": "Extracts the second component (0-59) from a Datetime column.",
@@ -4679,8 +4679,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.second(...)",
       "signature": "$df.col(<column_name>).dt.second()",
-      "lineStart": 533,
-      "lineEnd": 535
+      "lineStart": 529,
+      "lineEnd": 531
     },
     "strftime": {
       "desc": "Formats Datetime values into custom formatted strings using strftime directive pattern tokens. Automatically applies the column's assigned timezone unless explicitly overridden in options.",
@@ -4701,8 +4701,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.strftime(...)",
       "signature": "$df.col(<column_name>).dt.strftime(\n  options: StrftimeOptions\n)",
-      "lineStart": 554,
-      "lineEnd": 560
+      "lineStart": 550,
+      "lineEnd": 556
     },
     "time": {
       "desc": "Extracts the time component formatted string (`\"HH:MM:SS.mmm\"`) from a Datetime column.",
@@ -4714,8 +4714,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.time(...)",
       "signature": "$df.col(<column_name>).dt.time()",
-      "lineStart": 575,
-      "lineEnd": 577
+      "lineStart": 571,
+      "lineEnd": 573
     },
     "timestamp": {
       "desc": "Returns numeric timestamp relative to Epoch. Alias for epoch.",
@@ -4733,8 +4733,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.timestamp(...)",
       "signature": "$df.col(<column_name>).dt.timestamp(\n  unit: TimeUnit = \"ms\"\n)",
-      "lineStart": 593,
-      "lineEnd": 595
+      "lineStart": 589,
+      "lineEnd": 591
     },
     "totalDays": {
       "desc": "Converts a Duration value (in milliseconds) to total days count.",
@@ -4746,8 +4746,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.totalDays(...)",
       "signature": "$df.col(<column_name>).dt.totalDays()",
-      "lineStart": 612,
-      "lineEnd": 614
+      "lineStart": 608,
+      "lineEnd": 610
     },
     "totalHours": {
       "desc": "Converts a Duration value (in milliseconds) to total hours count.",
@@ -4759,8 +4759,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.totalHours(...)",
       "signature": "$df.col(<column_name>).dt.totalHours()",
-      "lineStart": 630,
-      "lineEnd": 632
+      "lineStart": 626,
+      "lineEnd": 628
     },
     "totalMicroseconds": {
       "desc": "Converts Duration to microsecond count.",
@@ -4772,8 +4772,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.totalMicroseconds(...)",
       "signature": "$df.col(<column_name>).dt.totalMicroseconds()",
-      "lineStart": 648,
-      "lineEnd": 650
+      "lineStart": 644,
+      "lineEnd": 646
     },
     "totalMilliseconds": {
       "desc": "Converts Duration to millisecond count.",
@@ -4785,8 +4785,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.totalMilliseconds(...)",
       "signature": "$df.col(<column_name>).dt.totalMilliseconds()",
-      "lineStart": 666,
-      "lineEnd": 668
+      "lineStart": 662,
+      "lineEnd": 664
     },
     "totalMinutes": {
       "desc": "Converts Duration to floating point minutes.",
@@ -4798,8 +4798,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.totalMinutes(...)",
       "signature": "$df.col(<column_name>).dt.totalMinutes()",
-      "lineStart": 684,
-      "lineEnd": 686
+      "lineStart": 680,
+      "lineEnd": 682
     },
     "totalNanoseconds": {
       "desc": "Converts Duration to nanosecond count.",
@@ -4811,8 +4811,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.totalNanoseconds(...)",
       "signature": "$df.col(<column_name>).dt.totalNanoseconds()",
-      "lineStart": 702,
-      "lineEnd": 704
+      "lineStart": 698,
+      "lineEnd": 700
     },
     "totalSeconds": {
       "desc": "Converts Duration to floating point seconds.",
@@ -4824,8 +4824,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.totalSeconds(...)",
       "signature": "$df.col(<column_name>).dt.totalSeconds()",
-      "lineStart": 720,
-      "lineEnd": 722
+      "lineStart": 716,
+      "lineEnd": 718
     },
     "utcOffset": {
       "desc": "Returns the UTC offset of a timezone for a given Datetime value. Supports returning the total offset, the standard (base) offset, or just the daylight saving time component, in multiple output formats. (`\"total\"` | `\"standardTime\"` | `\"daylightSavingTime\"`), and `format` controls the output unit (`\"milliseconds\"` | `\"minutes\"` | `\"hours\"` | `\"iso\"` | `\"basic\"`).",
@@ -4847,8 +4847,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.utcOffset(...)",
       "signature": "$df.col(<column_name>).dt.utcOffset(\n  timeZone?: string,\n  options: UtcOffsetOptions = {}\n)",
-      "lineStart": 743,
-      "lineEnd": 748
+      "lineStart": 739,
+      "lineEnd": 741
     },
     "week": {
       "desc": "Extracts ISO week index. Alias for isoWeek.",
@@ -4866,8 +4866,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.week(...)",
       "signature": "$df.col(<column_name>).dt.week(\n  timeZone?: string\n)",
-      "lineStart": 764,
-      "lineEnd": 766
+      "lineStart": 757,
+      "lineEnd": 759
     },
     "weekday": {
       "desc": "Extracts weekday component (1=Monday, 7=Sunday).",
@@ -4885,8 +4885,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.weekday(...)",
       "signature": "$df.col(<column_name>).dt.weekday(\n  timeZone?: string\n)",
-      "lineStart": 782,
-      "lineEnd": 784
+      "lineStart": 775,
+      "lineEnd": 777
     },
     "year": {
       "desc": "Extracts the year component from a Datetime column.",
@@ -4904,8 +4904,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt.year(...)",
       "signature": "$df.col(<column_name>).dt.year(\n  timeZone?: string\n)",
-      "lineStart": 800,
-      "lineEnd": 802
+      "lineStart": 793,
+      "lineEnd": 795
     },
     "dt": {
       "desc": "Datetime namespace accessor for date, time, and duration operations.",
@@ -4917,8 +4917,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).dt",
       "signature": "$df.col(<column_name>).get dt()",
-      "lineStart": 822,
-      "lineEnd": 824
+      "lineStart": 815,
+      "lineEnd": 817
     }
   },
   "columnExpressions/typeInference.ts": {
@@ -4927,24 +4927,24 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).resolveOperandType(...)",
       "signature": "$df.col(<column_name>).resolveOperandType(\n  operand: unknown,\n  schema: DataFrameSchema\n): RegisteredDataType | undefined",
-      "lineStart": 41,
-      "lineEnd": 87
+      "lineStart": 42,
+      "lineEnd": 88
     },
     "deduceBinaryType": {
       "desc": "Deduces the output DataType of a binary arithmetic operation between two DataTypes.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).deduceBinaryType(...)",
       "signature": "$df.col(<column_name>).deduceBinaryType(\n  leftType: RegisteredDataType | undefined,\n  rightType: RegisteredDataType | undefined,\n  colSample?: ColumnData | any[]\n): RegisteredDataType | undefined",
-      "lineStart": 92,
-      "lineEnd": 167
+      "lineStart": 93,
+      "lineEnd": 166
     },
     "resolveExprOutputType": {
       "desc": "Resolves the output DataType of an expression given the input DataFrame schema and evaluated column.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).resolveExprOutputType(...)",
       "signature": "$df.col(<column_name>).resolveExprOutputType(\n  expr: IExpr,\n  schema: DataFrameSchema,\n  colSample?: ColumnData | any[]\n): RegisteredDataType | undefined",
-      "lineStart": 172,
-      "lineEnd": 234
+      "lineStart": 171,
+      "lineEnd": 233
     }
   },
   "columnExpressions/utils.ts": {
@@ -4953,32 +4953,32 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).evalUnaryOp(...)",
       "signature": "$df.col(<column_name>).evalUnaryOp(\n  v: any,\n  fn: (a: any) => any\n): any",
-      "lineStart": 10,
-      "lineEnd": 14
+      "lineStart": 11,
+      "lineEnd": 15
     },
     "evalBinaryOp": {
       "desc": "Normalizes binary values (coercing Date instances to getTime if valid) and executes the operation callback.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).evalBinaryOp(...)",
       "signature": "$df.col(<column_name>).evalBinaryOp(\n  v: any,\n  r: any,\n  fn: (a: any, b: any) => any\n): any",
-      "lineStart": 20,
-      "lineEnd": 25
+      "lineStart": 21,
+      "lineEnd": 26
     },
     "evaluateArg": {
       "desc": "Evaluates a column expression, column string lookup, or returns a scalar literal value.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).evaluateArg(...)",
       "signature": "$df.col(<column_name>).evaluateArg(\n  arg: unknown,\n  columns: ColumnDict | null | undefined,\n  height: number\n): any",
-      "lineStart": 67,
-      "lineEnd": 79
+      "lineStart": 68,
+      "lineEnd": 80
     },
     "isEvaluatedColumn": {
       "desc": "Determines whether an evaluated argument is an actual DataFrame column array rather than a scalar or literal array/buffer cell value.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).isEvaluatedColumn(...)",
       "signature": "$df.col(<column_name>).isEvaluatedColumn(\n  arg: unknown,\n  evaluatedVal: unknown,\n  columns: ColumnDict | null | undefined,\n  height: number\n): boolean",
-      "lineStart": 85,
-      "lineEnd": 101
+      "lineStart": 86,
+      "lineEnd": 102
     }
   },
   "constants.ts": {
@@ -4999,7 +4999,7 @@
       "syntax": "df.DataFrame(...)",
       "signature": "df.DataFrame<T extends RowRecord = any>",
       "lineStart": 31,
-      "lineEnd": 2070
+      "lineEnd": 2017
     },
     "clone": {
       "desc": "Creates a deep copy of the current DataFrame instance, duplicating all underlying column data arrays and schema metadata. Modifying columns or values in the cloned DataFrame will not mutate the original.",
@@ -5282,36 +5282,6 @@
       "lineStart": 728,
       "lineEnd": 730
     },
-    "hstack": {
-      "desc": "Concatenates columns horizontally to the current DataFrame.",
-      "examples": [
-        ">>> const df1 = $df.data({ a: [1, 2] })\n>>> const df2 = $df.data({ b: [10, 20] })\n>>> df1\nshape: (2, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n└───┘\n>>> df2\nshape: (2, 1)\n┌────┐\n│ b  │\n├────┤\n│ 10 │\n│ 20 │\n└────┘\n>>> df1.hstack(df2)\r\nshape: (2, 2)\r\n┌───┬────┐\r\n│ a │ b  │\r\n├───┼────┤\r\n│ 1 │ 10 │\r\n│ 2 │ 20 │\r\n└───┴────┘"
-      ],
-      "params": [
-        {
-          "name": "other",
-          "type": "ConcatItem | ConcatItem[]",
-          "desc": "DataFrame or array of DataFrames to append side-by-side."
-        },
-        {
-          "name": "[options]",
-          "type": "HorizontalConcatOptions",
-          "desc": "Horizontal concat configuration options."
-        },
-        {
-          "name": "[options.strict]",
-          "type": "boolean",
-          "desc": "When `true` (default), throws an error if row counts mismatch. Set `false` to allow null padding."
-        }
-      ],
-      "returns": "{DataFrame}",
-      "namespace": "df",
-      "category": "DataFrame",
-      "syntax": "df.hstack(...)",
-      "signature": "df.hstack<U extends RowRecord = any>(\n  other: ConcatItem | ConcatItem[],\n  options?: {\n    strict?: boolean\n  }\n): DataFrame<U>",
-      "lineStart": 749,
-      "lineEnd": 754
-    },
     "insertColumn": {
       "desc": "Inserts a new column at a specific ordinal index position.",
       "examples": [
@@ -5339,8 +5309,8 @@
       "category": "DataFrame",
       "syntax": "df.insertColumn(...)",
       "signature": "df.insertColumn(\n  index: number,\n  name: string,\n  expr: IntoExpr\n): DataFrame<any>",
-      "lineStart": 773,
-      "lineEnd": 790
+      "lineStart": 749,
+      "lineEnd": 766
     },
     "item": {
       "desc": "Retrieves a single scalar cell value by row and column position or name.",
@@ -5364,8 +5334,8 @@
       "category": "DataFrame",
       "syntax": "df.item(...)",
       "signature": "df.item(\n  row?: number,\n  column?: number | string\n): any",
-      "lineStart": 804,
-      "lineEnd": 833
+      "lineStart": 780,
+      "lineEnd": 809
     },
     "iterColumns": {
       "desc": "Yields a generator iterating over raw column arrays.",
@@ -5377,8 +5347,8 @@
       "category": "DataFrame",
       "syntax": "df.iterColumns(...)",
       "signature": "df.iterColumns(): Generator<ColumnData>",
-      "lineStart": 843,
-      "lineEnd": 849
+      "lineStart": 819,
+      "lineEnd": 825
     },
     "iterRows": {
       "desc": "Yields a generator iterating over rows as tuples or named objects.",
@@ -5400,8 +5370,8 @@
       "category": "DataFrame",
       "syntax": "df.iterRows(...)",
       "signature": "df.iterRows(\n  { named = false }: { named?: boolean } = {}\n): Generator<any[] | Record<string, any>>",
-      "lineStart": 861,
-      "lineEnd": 883
+      "lineStart": 837,
+      "lineEnd": 859
     },
     "join": {
       "desc": "Joins two DataFrames on key columns using a specified join strategy. - `\"inner\"` — Only rows with matching keys in both DataFrames. - `\"left\"` — All left rows; unmatched right values are `null`. - `\"right\"` — All right rows; unmatched left values are `null`. - `\"outer\"` — All rows from both sides; unmatched values are `null`. - `\"semi\"` — Left rows that have a match in the right DataFrame (only left columns retained). - `\"anti\"` — Left rows that have **no** match in the right DataFrame (only left columns retained). - `\"cross\"` — Cartesian product pairing every left row with every right row (keyless). non-key column names (default `[\"\", \"_right\"]`). Ignored for `\"semi\"` and `\"anti\"` joins. across DataFrames. Default `false` (SQL-standard: `NULL != NULL`). - `\"none\"` (or `false`) — No specific ordering is desired. - `\"left\"` (or `true`) — Preserves the order of the left DataFrame. - `\"right\"` — Preserves the order of the right DataFrame. - `\"left_right\"` — Preserves the order of the left DataFrame first, then the right. - `\"right_left\"` — Preserves the order of the right DataFrame first, then the left.",
@@ -5460,8 +5430,8 @@
       "category": "DataFrame",
       "syntax": "df.join(...)",
       "signature": "df.join<U extends RowRecord = any, R extends RowRecord = any>(\n  other: DataFrame<U>,\n  options?: {\n    on?: string | string[],\n    leftOn?: string | string[],\n    rightOn?: string | string[],\n    how?: JoinType,\n    suffixes?: [string, string],\n    joinNulls?: boolean,\n    coalesce?: boolean,\n    maintainOrder?: JoinMaintainOrder | boolean\n  }\n): DataFrame<R>",
-      "lineStart": 923,
-      "lineEnd": 1018
+      "lineStart": 899,
+      "lineEnd": 994
     },
     "joinAsof": {
       "desc": "Performs an asof (as-of) join for inexact matching on ordered numeric or temporal key columns.\n\nSimilar to a left join, but instead of exact key equality, matches the nearest key row from the right DataFrame according to the selected `strategy` (\"backward\", \"forward\", or \"nearest\") and optional `tolerance`. Both DataFrames must be sorted in ascending order on their respective `on` / `leftOn` / `rightOn` join keys.\n\n- `\"backward\"` — Matches the latest right row where `rightKey <= leftKey`. - `\"forward\"` — Matches the earliest right row where `rightKey >= leftKey`. - `\"nearest\"` — Matches the right row with the absolute nearest key value to `leftKey`.",
@@ -5545,8 +5515,8 @@
       "category": "DataFrame",
       "syntax": "df.joinAsof(...)",
       "signature": "df.joinAsof<U extends RowRecord = any, R extends RowRecord = any>(\n  other: DataFrame<U>,\n  options: {\n    on?: string,\n    leftOn?: string,\n    rightOn?: string,\n    by?: string | string[],\n    leftBy?: string | string[],\n    rightBy?: string | string[],\n    strategy?: JoinAsofStrategy,\n    tolerance?: number | string,\n    allowExactMatches?: boolean,\n    suffixes?: [string, string],\n    coalesce?: boolean,\n    checkSorted?: boolean\n  }\n): DataFrame<R>",
-      "lineStart": 1057,
-      "lineEnd": 1136
+      "lineStart": 1033,
+      "lineEnd": 1112
     },
     "joinWhere": {
       "desc": "Joins two DataFrames based on arbitrary expression predicates (non-equi joins).\n\nEvaluates one or more boolean expressions across combined rows from both DataFrames. When column names collide between the two DataFrames, columns are suffixed according to `options.suffixes` (default `[\"\", \"_right\"]`).\n\nand an optional configuration options object (`{ how, suffixes }`).",
@@ -5570,8 +5540,8 @@
       "category": "DataFrame",
       "syntax": "df.joinWhere(...)",
       "signature": "df.joinWhere<U extends RowRecord = any, R extends RowRecord = any>(\n  other: DataFrame<U>,\n  ...args: (IntoExpr | IntoExpr[] | JoinWhereOptions)[]\n): DataFrame<R>",
-      "lineStart": 1167,
-      "lineEnd": 1220
+      "lineStart": 1143,
+      "lineEnd": 1196
     },
     "limit": {
       "desc": "Limits the output to N rows starting from offset.",
@@ -5605,8 +5575,8 @@
       "category": "DataFrame",
       "syntax": "df.limit(...)",
       "signature": "df.limit(\n  n: number,\n  {\n    offset = 0,\n    from = \"start\"\n  }: LimitOptions = {}\n): DataFrame<T>",
-      "lineStart": 1240,
-      "lineEnd": 1264
+      "lineStart": 1216,
+      "lineEnd": 1240
     },
     "pivot": {
       "desc": "Pivots columns from long format to a wide datagrid structure.",
@@ -5644,8 +5614,8 @@
       "category": "DataFrame",
       "syntax": "df.pivot(...)",
       "signature": "df.pivot<U extends RowRecord = any>(\n  config: {\n    index: string | string[],\n    columns: string,\n    values: string,\n    agg?: AggFn | string\n  }\n): DataFrame<U>",
-      "lineStart": 1285,
-      "lineEnd": 1346
+      "lineStart": 1261,
+      "lineEnd": 1322
     },
     "rename": {
       "desc": "Renames columns based on a key-value mapping dictionary.",
@@ -5664,8 +5634,8 @@
       "category": "DataFrame",
       "syntax": "df.rename(...)",
       "signature": "df.rename(\n  mapping: Partial<Record<keyof T, string>> = {}\n): DataFrame<any>",
-      "lineStart": 1363,
-      "lineEnd": 1375
+      "lineStart": 1339,
+      "lineEnd": 1351
     },
     "reverse": {
       "desc": "Reverses the row ordering of the DataFrame.",
@@ -5677,8 +5647,8 @@
       "category": "DataFrame",
       "syntax": "df.reverse(...)",
       "signature": "df.reverse(): DataFrame<T>",
-      "lineStart": 1391,
-      "lineEnd": 1393
+      "lineStart": 1367,
+      "lineEnd": 1369
     },
     "schema": {
       "desc": "Gets current DataFrameSchema dictionary mapping column names to DataType.",
@@ -5690,8 +5660,8 @@
       "category": "DataFrame",
       "syntax": "df.schema(...)",
       "signature": "df.get schema(): DataFrameSchema",
-      "lineStart": 1403,
-      "lineEnd": 1405
+      "lineStart": 1379,
+      "lineEnd": 1381
     },
     "select": {
       "desc": "Selects specific columns or evaluates column expressions.",
@@ -5710,8 +5680,8 @@
       "category": "DataFrame",
       "syntax": "df.select(...)",
       "signature": "df.select<U extends RowRecord = any>(\n  ...args: (string | IExpr | Record<string, any> | (string | IExpr | Record<string, any>)[])[]\n): DataFrame<U>",
-      "lineStart": 1422,
-      "lineEnd": 1519
+      "lineStart": 1398,
+      "lineEnd": 1495
     },
     "shape": {
       "desc": "Gets DataFrame dimensions as [height, width] tuple.",
@@ -5723,8 +5693,8 @@
       "category": "DataFrame",
       "syntax": "df.shape(...)",
       "signature": "df.get shape(): [number, number]",
-      "lineStart": 1529,
-      "lineEnd": 1531
+      "lineStart": 1505,
+      "lineEnd": 1507
     },
     "slice": {
       "desc": "Slices a subset range of rows between start and end index.",
@@ -5748,8 +5718,8 @@
       "category": "DataFrame",
       "syntax": "df.slice(...)",
       "signature": "df.slice(\n  start: number,\n  end?: number\n): DataFrame<T>",
-      "lineStart": 1549,
-      "lineEnd": 1558
+      "lineStart": 1525,
+      "lineEnd": 1534
     },
     "sort": {
       "desc": "Sorts DataFrame rows by one or more column expressions or custom sorters.",
@@ -5788,8 +5758,8 @@
       "category": "DataFrame",
       "syntax": "df.sort(...)",
       "signature": "df.sort(\n  config?: {\n    by: keyof T | (keyof T)[] | IExpr | IExpr[],\n    descending?: boolean | boolean[],\n    nullsLast?: boolean,\n    custom?: Partial<Record<keyof T, (a: any, b: any) => number>>\n  }\n): DataFrame<T>",
-      "lineStart": 1580,
-      "lineEnd": 1614
+      "lineStart": 1556,
+      "lineEnd": 1590
     },
     "tail": {
       "desc": "Returns the last N rows as a new DataFrame.",
@@ -5807,8 +5777,8 @@
       "category": "DataFrame",
       "syntax": "df.tail(...)",
       "signature": "df.tail(\n  n: number = 10\n): DataFrame<T>",
-      "lineStart": 1631,
-      "lineEnd": 1633
+      "lineStart": 1607,
+      "lineEnd": 1609
     },
     "toArray": {
       "desc": "Evaluates a column expression or retrieves column values as a raw JavaScript array.",
@@ -5827,8 +5797,8 @@
       "category": "DataFrame",
       "syntax": "df.toArray(...)",
       "signature": "df.toArray<K extends keyof T>(\n  nameOrExpr: K | IExpr\n): any[]",
-      "lineStart": 1644,
-      "lineEnd": 1646
+      "lineStart": 1620,
+      "lineEnd": 1622
     },
     "toDict": {
       "desc": "Converts columns into a JavaScript dictionary mapping column keys to raw arrays.",
@@ -5840,8 +5810,8 @@
       "category": "DataFrame",
       "syntax": "df.toDict(...)",
       "signature": "df.toDict(): DataFrameColumns<T>",
-      "lineStart": 1656,
-      "lineEnd": 1658
+      "lineStart": 1632,
+      "lineEnd": 1634
     },
     "toDicts": {
       "desc": "Converts rows into an array of JavaScript objects.",
@@ -5853,8 +5823,8 @@
       "category": "DataFrame",
       "syntax": "df.toDicts(...)",
       "signature": "df.toDicts(): T[]",
-      "lineStart": 1668,
-      "lineEnd": 1670
+      "lineStart": 1644,
+      "lineEnd": 1646
     },
     "transpose": {
       "desc": "Transposes rows into columns and columns into rows.",
@@ -5887,9 +5857,9 @@
       "namespace": "df",
       "category": "DataFrame",
       "syntax": "df.transpose(...)",
-      "signature": "df.transpose(\n  {\n    includeHeader: includeHeader = false,\n    headerName: headerName = \"column\",\n    columnNames: colNamesOpt\n  }: TransposeOptions = {}\n): DataFrame<any>",
-      "lineStart": 1690,
-      "lineEnd": 1753
+      "signature": "df.transpose(\n  {\n    includeHeader = false,\n    headerName = \"column\",\n    columnNames: colNamesOpt\n  }: TransposeOptions = {}\n): DataFrame<any>",
+      "lineStart": 1666,
+      "lineEnd": 1723
     },
     "unique": {
       "desc": "Filters distinct unique rows matching target key columns.",
@@ -5908,8 +5878,8 @@
       "category": "DataFrame",
       "syntax": "df.unique(...)",
       "signature": "df.unique<K extends keyof T>(\n  columns?: K | K[]\n): DataFrame<T>",
-      "lineStart": 1770,
-      "lineEnd": 1773
+      "lineStart": 1740,
+      "lineEnd": 1743
     },
     "unpivot": {
       "desc": "Unpivots a wide DataFrame into a long format structure.",
@@ -5948,28 +5918,8 @@
       "category": "DataFrame",
       "syntax": "df.unpivot(...)",
       "signature": "df.unpivot<U extends RowRecord = any>(\n  config: {\n    idVars: keyof T | (keyof T)[],\n    valueVars: keyof T | (keyof T)[],\n    varName?: string,\n    valueName?: string\n  }\n): DataFrame<U>",
-      "lineStart": 1796,
-      "lineEnd": 1843
-    },
-    "vstack": {
-      "desc": "Concatenates DataFrames vertically. Alias for concat({ how: \"vertical\" }).",
-      "examples": [
-        ">>> const df1 = $df.data({ a: [1, 2] })\n>>> const df2 = $df.data({ b: [10, 20] })\n>>> df1\nshape: (2, 1)\n┌───┐\n│ a │\n├───┤\n│ 1 │\n│ 2 │\n└───┘\n>>> df2\nshape: (2, 1)\n┌────┐\n│ b  │\n├────┤\n│ 10 │\n│ 20 │\n└────┘\n>>> df1.vstack(df2)\r\nshape: (4, 1)\r\n┌──────┐\r\n│ a    │\r\n├──────┤\r\n│ 1    │\r\n│ 2    │\r\n│ null │\r\n│ null │\r\n└──────┘"
-      ],
-      "params": [
-        {
-          "name": "other",
-          "type": "ConcatItem | ConcatItem[]",
-          "desc": "Single DataFrame or array of DataFrames to append vertically."
-        }
-      ],
-      "returns": "{DataFrame}",
-      "namespace": "df",
-      "category": "DataFrame",
-      "syntax": "df.vstack(...)",
-      "signature": "df.vstack<U extends RowRecord = any>(\n  other: ConcatItem | ConcatItem[]\n): DataFrame<U>",
-      "lineStart": 1862,
-      "lineEnd": 1866
+      "lineStart": 1766,
+      "lineEnd": 1813
     },
     "width": {
       "desc": "Gets width (total column count) of the DataFrame.",
@@ -5981,8 +5931,8 @@
       "category": "DataFrame",
       "syntax": "df.width(...)",
       "signature": "df.get width(): number",
-      "lineStart": 1876,
-      "lineEnd": 1878
+      "lineStart": 1823,
+      "lineEnd": 1825
     },
     "withColumns": {
       "desc": "Adds new columns or updates existing ones using column expressions.",
@@ -6001,8 +5951,8 @@
       "category": "DataFrame",
       "syntax": "df.withColumns(...)",
       "signature": "df.withColumns(\n  ...args: (string | IExpr | Record<string, any> | (string | IExpr | Record<string, any>)[])[]\n): DataFrame<any>",
-      "lineStart": 1895,
-      "lineEnd": 1926
+      "lineStart": 1842,
+      "lineEnd": 1873
     },
     "withRowIndex": {
       "desc": "Appends an incremental index column.",
@@ -6026,8 +5976,8 @@
       "category": "DataFrame",
       "syntax": "df.withRowIndex(...)",
       "signature": "df.withRowIndex(\n  name: string = \"index\",\n  offset: number = 0\n): DataFrame<any>",
-      "lineStart": 1944,
-      "lineEnd": 1954
+      "lineStart": 1891,
+      "lineEnd": 1901
     },
     "writeCsv": {
       "desc": "Writes DataFrame to CSV format string or file/stream target.",
@@ -6069,8 +6019,8 @@
       "category": "DataFrame",
       "syntax": "df.writeCsv(...)",
       "signature": "df.writeCsv(\n  file?: string | { write: (str: string) => void },\n  options?: {\n    delimiter?: string,\n    header?: boolean,\n    quoteChar?: string\n  }\n): string",
-      "lineStart": 1971,
-      "lineEnd": 2006
+      "lineStart": 1918,
+      "lineEnd": 1953
     },
     "writeJson": {
       "desc": "Writes DataFrame rows to JSON format string or file/stream target.",
@@ -6207,8 +6157,8 @@
       "category": "DataFrame",
       "syntax": "df.writeJson(...)",
       "signature": "df.writeJson(\n  file?: string | { write: (str: string) => void },\n  {\n    format = \"json\",\n    replacerOptions\n  }: WriteJSONOptions = {}\n): string",
-      "lineStart": 2042,
-      "lineEnd": 2069
+      "lineStart": 1989,
+      "lineEnd": 2016
     }
   },
   "dataframe/grouped.ts": {
@@ -6575,7 +6525,7 @@
       "syntax": "$df.readCsv(...)",
       "signature": "$df.readCsv<T extends RowRecord = any>(\n  content: string,\n  options?: {\n    hasHeader?,\n    schema?,\n    inferSchema?\n  }\n): DataFrame<T>",
       "lineStart": 29,
-      "lineEnd": 86
+      "lineEnd": 62
     }
   },
   "functions/readJson.ts": {

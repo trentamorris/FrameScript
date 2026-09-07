@@ -7,8 +7,8 @@ type WhenArg = IExpr | ValidScalarTypes | any[] | Record<string, any>;
 
 export class WhenThenChain {
     constructor(
-        private _predicates: WhenArg[],
-        private _values: WhenArg[] = []
+        public _predicates: WhenArg[],
+        public _values: WhenArg[] = []
     ) { }
 
     then(value: WhenArg): WhenThen {
@@ -19,10 +19,6 @@ export class WhenThenChain {
 export { WhenThenChain as When };
 
 export class WhenThen extends ColumnExpr<any> {
-    get _otherwiseValue(): WhenArg {
-        return this._otherwise;
-    }
-
     get _branchOperands(): WhenArg[] {
         return this._otherwise != null ? [...this._values, this._otherwise] : this._values;
     }

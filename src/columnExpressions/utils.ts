@@ -1,4 +1,5 @@
 import type { IExpr, ColumnData, ColumnDict } from "../types";
+import { isExpr } from "./ExprBase";
 import { isArrayOrTypedArray, sortArray, toCanonicalString } from "../utils";
 import { isValidDateObj } from "../utils/object";
 import { resolveWindowExpr } from "../dataframe/utils";
@@ -69,8 +70,8 @@ export function evaluateArg(
     columns: ColumnDict | null | undefined,
     height: number
 ): any {
-    if (typeof arg === "object" && arg !== null && "_ops" in arg) {
-        return evaluateExpression(arg as IExpr, columns || {}, height);
+    if (isExpr(arg)) {
+        return evaluateExpression(arg, columns || {}, height);
     }
     if (typeof arg === "string" && columns != null && (arg in columns)) {
         return columns[arg];
@@ -91,7 +92,7 @@ export function isEvaluatedColumn(
     if (!isArrayOrTypedArray(evaluatedVal) || evaluatedVal.length !== height) {
         return false;
     }
-    if (typeof arg === "object" && arg !== null && "_ops" in arg) {
+    if (isExpr(arg)) {
         return true;
     }
     if (typeof arg === "string" && columns != null && (arg in columns)) {

@@ -60,44 +60,6 @@ if (collectedHorizPadded[1].val !== null || collectedHorizPadded[1].other !== 20
     throw new Error("Padded horizontal concat row 1 mismatch");
 }
 
-// 5. vstack and hstack wrappers
-const dfV1 = df1.vstack(df2);
-if (dfV1.height !== 2) throw new Error("vstack with DataFrame height mismatch");
-if (dfV1.toDicts()[1].name !== "Bob") throw new Error("vstack with DataFrame value mismatch");
-
-const dfV2 = df1.vstack([df2]);
-if (dfV2.height !== 2) throw new Error("vstack with array of DataFrames height mismatch");
-
-const dfV3 = df1.vstack([{ id: 2, name: "Bob" }]);
-if (dfV3.height !== 2) throw new Error("vstack with raw row objects height mismatch");
-if (dfV3.toDicts()[1].name !== "Bob") throw new Error("vstack with raw row objects value mismatch");
-
-const dfH1 = df1.hstack(df3);
-if (dfH1.height !== 1) throw new Error("hstack with DataFrame height mismatch");
-if ((dfH1.toDicts() as any[])[0].age !== 25) throw new Error("hstack with DataFrame value mismatch");
-
-const dfH2 = df1.hstack({ age: [25] });
-if (dfH2.height !== 1) throw new Error("hstack with columns object height mismatch");
-if ((dfH2.toDicts() as any[])[0].age !== 25) throw new Error("hstack with columns object value mismatch");
-
-// 5b. hstack options test
-let didThrowHStack = false;
-try {
-    dfHorizShort.hstack(dfHorizTall, { strict: true });
-} catch (e: any) {
-    if (e.message.includes("Row count mismatch")) {
-        didThrowHStack = true;
-    }
-}
-if (!didThrowHStack) throw new Error("Expected hstack with strict=true to throw on height mismatch");
-
-const dfH3 = dfHorizShort.hstack(dfHorizTall, { strict: false });
-if (dfH3.height !== 2) throw new Error("Padded hstack should have height of tallest DataFrame");
-const collectedH3 = dfH3.toDicts() as any[];
-if (collectedH3[0].val !== "X" || collectedH3[0].other !== 10) {
-    throw new Error("Padded hstack row 0 mismatch");
-}
-
 // 6. Generalized concat input tests
 const dfGen1 = $df.concat(df1);
 if (dfGen1.height !== 1 || dfGen1.toDicts()[0].name !== "Alice") {

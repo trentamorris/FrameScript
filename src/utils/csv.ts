@@ -84,8 +84,6 @@ export interface WriteCSVOptions extends FormatCSVValueOptions {
     includeBom?: boolean;
 }
 
-// Removed stringifyCsvObject
-
 export function formatCsvValue(options: FormatCSVValueOptions = {}) {
     const nullValue = options.nullValue !== undefined ? options.nullValue : "";
     const formatNum = formatNumber(options.numericFormatOptions);
@@ -129,7 +127,7 @@ export function formatCsvValue(options: FormatCSVValueOptions = {}) {
         }
         if (typeof res === "object") {
             return {
-                str: JSON.stringify(res, createSafeJsonReplacer(mergedReplacerOptions)),
+                str: JSON.stringify(res, replacer),
                 isNumeric: false
             };
         }
@@ -200,11 +198,28 @@ export function stringifyCSV(
     return onRow ? (includeBom ? UTF8_BOM : "") : lines.join(lineTerminator);
 }
 
+const _parseBool = (v: string): boolean | null => {
+    const l = v.toLowerCase();
+    return (l === "true" || l === "1") ? true : (l === "false" || l === "0") ? false : null;
+};
+const _parseInt64 = (v: string) => toValidBigInt(v, { truncate: false });
+const _parseFloat64 = (v: string) => toValidNumber(v, { allowNonFiniteNumbers: true });
+const _parseDatetime = (v: string) => toValidDate(v);
+
+const CSV_CANDIDATES = [
+    { type: BoolType, parse: _parseBool },
+    { type: Int64, parse: _parseInt64 },
+    { type: Float64, parse: _parseFloat64 },
+    { type: Datetime, parse: _parseDatetime }
+] as const;
+
 export function parseCSV(content: string, options: ReadCSVOptions = {}): string[][] {
     const separator = options.separator || ",";
     const quoteChar = options.quoteChar || '"';
 
     const csvContent = stripChars(content, UTF8_BOM, { mode: "start", returnStringOnNull: true }) ?? "";
+    const len = csvContent.length;
+    if (len === 0) return [];
 
     const rows: string[][] = [];
     let currentRow: string[] = [];
@@ -212,20 +227,6 @@ export function parseCSV(content: string, options: ReadCSVOptions = {}): string[
     let inQuotes = false;
     let hasRowData = false;
 
-    const flushCell = () => {
-        currentRow.push(currentCell);
-        currentCell = "";
-    };
-
-    const flushRow = () => {
-        if (!hasRowData && currentRow.length === 0 && currentCell === "") return;
-        flushCell();
-        rows.push(currentRow);
-        currentRow = [];
-        hasRowData = false;
-    };
-
-    const len = csvContent.length;
     for (let i = 0; i < len; i++) {
         const char = csvContent[i];
 
@@ -233,16 +234,12 @@ export function parseCSV(content: string, options: ReadCSVOptions = {}): string[
             hasRowData = true;
             if (char !== quoteChar) {
                 currentCell += char;
-                continue;
-            }
-
-            if (i + 1 < len && csvContent[i + 1] === quoteChar) {
+            } else if (i + 1 < len && csvContent[i + 1] === quoteChar) {
                 currentCell += quoteChar;
-                i++; // Skip escaped quote
-                continue;
+                i++;
+            } else {
+                inQuotes = false;
             }
-
-            inQuotes = false;
             continue;
         }
 
@@ -250,23 +247,30 @@ export function parseCSV(content: string, options: ReadCSVOptions = {}): string[
             hasRowData = true;
             if (currentCell.length === 0) {
                 inQuotes = true;
-                continue;
+            } else {
+                currentCell += quoteChar;
             }
-            currentCell += quoteChar;
             continue;
         }
 
         if (char === separator) {
             hasRowData = true;
-            flushCell();
+            currentRow.push(currentCell);
+            currentCell = "";
             continue;
         }
 
         if (char === CARRIAGE_RETURN || char === NEWLINE) {
             if (char === CARRIAGE_RETURN && i + 1 < len && csvContent[i + 1] === NEWLINE) {
-                i++; // Skip \n in \r\n
+                i++;
             }
-            flushRow();
+            if (hasRowData || currentRow.length > 0 || currentCell.length > 0) {
+                currentRow.push(currentCell);
+                rows.push(currentRow);
+                currentRow = [];
+                currentCell = "";
+                hasRowData = false;
+            }
             continue;
         }
 
@@ -274,7 +278,10 @@ export function parseCSV(content: string, options: ReadCSVOptions = {}): string[
         currentCell += char;
     }
 
-    flushRow();
+    if (hasRowData || currentRow.length > 0 || currentCell.length > 0) {
+        currentRow.push(currentCell);
+        rows.push(currentRow);
+    }
 
     return rows;
 }
@@ -285,65 +292,44 @@ export function inferAndCoerceCSVColumn(
 ): { type: DataType; values: any[] } {
     const nullValues = new Set(options.nullValues ?? ["", "NA", "null", "NaN"]);
     const len = values.length;
+    const trimmedValues = new Array<string>(len);
 
-    const candidates = [
-        {
-            type: BoolType,
-            parse: (v: string): boolean | null => {
-                const l = v.toLowerCase();
-                return (l === "true" || l === "1") ? true : (l === "false" || l === "0") ? false : null;
-            },
-            active: true
-        },
-        {
-            type: Int64,
-            parse: (v: string) => toValidBigInt(v, { truncate: false }),
-            active: true
-        },
-        {
-            type: Float64,
-            parse: (v: string) => toValidNumber(v, { allowNonFiniteNumbers: true }),
-            active: true
-        },
-        {
-            type: Datetime,
-            parse: (v: string) => toValidDate(v),
-            active: true
-        }
-    ];
-
+    let activeMask = 0b1111; // 4 candidate bits
     let hasValidData = false;
 
     for (let i = 0; i < len; i++) {
-        const val = stripChars(values[i], null, { returnStringOnNull: true }) ?? "";
-        if (nullValues.has(val)) continue;
+        const trimmed = stripChars(values[i], null, { returnStringOnNull: true }) ?? "";
+        trimmedValues[i] = trimmed;
+        if (nullValues.has(trimmed)) continue;
 
         hasValidData = true;
-        let anyActive = false;
-
-        for (let c = 0; c < candidates.length; c++) {
-            const cand = candidates[c];
-            if (!cand.active) continue;
-            if (cand.parse(val) === null) {
-                cand.active = false;
-            } else {
-                anyActive = true;
-            }
+        if (activeMask !== 0) {
+            if ((activeMask & 1) && _parseBool(trimmed) === null) activeMask &= ~1;
+            if ((activeMask & 2) && _parseInt64(trimmed) === null) activeMask &= ~2;
+            if ((activeMask & 4) && _parseFloat64(trimmed) === null) activeMask &= ~4;
+            if ((activeMask & 8) && _parseDatetime(trimmed) === null) activeMask &= ~8;
         }
-
-        if (!anyActive) break;
     }
 
-    const match = hasValidData ? candidates.find(c => c.active) : undefined;
-    const type = match?.type ?? Utf8;
-    const parseFn = match?.parse;
+    let matchIdx = -1;
+    if (hasValidData && activeMask !== 0) {
+        for (let bit = 0; bit < 4; bit++) {
+            if (activeMask & (1 << bit)) {
+                matchIdx = bit;
+                break;
+            }
+        }
+    }
+
+    const type = matchIdx >= 0 ? CSV_CANDIDATES[matchIdx].type : Utf8;
+    const parseFn = matchIdx >= 0 ? CSV_CANDIDATES[matchIdx].parse : null;
 
     const out = new Array(len);
     for (let i = 0; i < len; i++) {
-        const raw = values[i];
-        const trimmed = stripChars(raw, null, { returnStringOnNull: true }) ?? "";
-        out[i] = nullValues.has(trimmed) ? null : (parseFn ? parseFn(trimmed) : raw);
+        const trimmed = trimmedValues[i];
+        out[i] = nullValues.has(trimmed) ? null : (parseFn !== null ? parseFn(trimmed) : values[i]);
     }
 
     return { type, values: out };
 }
+

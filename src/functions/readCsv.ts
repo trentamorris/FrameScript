@@ -37,49 +37,25 @@ export function readCsv<T extends RowRecord = any>(
     } = options;
 
     const rows = parseCSV(content, options);
+    const totalRows = rows.length;
+    if (totalRows === 0) return new DataFrame<T>({} as any);
 
-    if (rows.length === 0) {
-        return new DataFrame<T>({} as any);
-    }
-
-    let headers: string[];
-    let dataRows: string[][];
-
-    if (hasHeader) {
-        headers = rows[0];
-        dataRows = rows.slice(1);
-    } else {
-        headers = rows[0].map((_, i) => `column_${i}`);
-        dataRows = rows;
-    }
-
-    const numCols = headers.length;
-    const numRows = dataRows.length;
-
-    const columns: Record<string, string[]> = {};
-    for (let c = 0; c < numCols; c++) {
-        const colName = headers[c];
-        const colData = new Array(numRows);
-        for (let r = 0; r < numRows; r++) {
-            colData[r] = dataRows[r][c] !== undefined ? dataRows[r][c] : "";
-        }
-        columns[colName] = colData;
-    }
+    const startRow = hasHeader ? 1 : 0;
+    const numRows = totalRows - startRow;
+    const firstRow = rows[0];
+    const numCols = firstRow.length;
 
     const coercedColumns: ColumnDict = {};
-
     for (let c = 0; c < numCols; c++) {
-        const colName = headers[c];
-        const rawValues = columns[colName];
-
-        if (schema && schema[colName]) {
-            coercedColumns[colName] = rawValues;
-        } else if (inferSchema) {
-            const { values } = inferAndCoerceCSVColumn(rawValues, options);
-            coercedColumns[colName] = values;
-        } else {
-            coercedColumns[colName] = rawValues;
+        const colName = hasHeader ? firstRow[c] : `column_${c}`;
+        const rawValues = new Array(numRows);
+        for (let r = 0; r < numRows; r++) {
+            const val = rows[r + startRow][c];
+            rawValues[r] = val !== undefined ? val : "";
         }
+        coercedColumns[colName] = (!schema?.[colName] && inferSchema)
+            ? inferAndCoerceCSVColumn(rawValues, options).values
+            : rawValues;
     }
 
     return new DataFrame<T>(coercedColumns as any, schema);

@@ -1,8 +1,7 @@
 import type { TimeUnit, DatetimeTimeUnit, StrftimeOptions, IsBusinessDayOptions, DayOffsetOptions, UtcOffsetOptions, ReplaceDateOptions } from "../../types";
 import { DatetimeType, Int32, BooleanDataType } from "../../datatypes/types";
 import { InvalidArgumentError } from "../../exceptions";
-import { ExprBase, derive } from "../ExprBase";
-import { kleeneUnary, kleeneBinary } from "../utils";
+import { ExprBase } from "../ExprBase";
 import {
     toValidDate,
     toEpoch,
@@ -51,10 +50,10 @@ export class DateTimeExprNamespace {
     }
 
     _deriveDate(fn: (d: Date) => any) {
-        return derive(this.expr, kleeneUnary((v) => {
+        return this.expr._deriveUnary((v: any) => {
             const d = toValidDate(v);
             return d ? fn(d) : null;
-        }));
+        });
     }
 
 
@@ -448,10 +447,10 @@ export class DateTimeExprNamespace {
     offsetDay(n: number | any, options: DayOffsetOptions = {}) {
         const hasExclusionOptions = options?.excludeWeekdays?.length || options?.holidays || options?.roll;
         const normalizedDays = hasExclusionOptions
-            ? derive(this.expr, kleeneBinary(this.expr, n, (v, nVal) => {
+            ? this.expr._deriveBinary(n, (v: any, nVal: any) => {
                 const d = toValidDate(v);
                 return d ? offsetDay(d, nVal, options) : null;
-            }))
+            })
             : n;
         const { duration: createDuration } = require("../functions/duration");
         return this.expr.add(createDuration({ days: normalizedDays }));
@@ -511,10 +510,7 @@ export class DateTimeExprNamespace {
      * └──────────────────────────┴──────────────────────────┘
      */
     replace(options: ReplaceDateOptions) {
-        return derive(this.expr, kleeneUnary((v) => {
-            const d = toValidDate(v);
-            return d ? replaceDateComponents(d, options) : null;
-        }));
+        return this._deriveDate((d) => replaceDateComponents(d, options));
     }
 
     /**
@@ -741,10 +737,7 @@ export class DateTimeExprNamespace {
      * └────────────┴────────┘
      */
     utcOffset(timeZone?: string, options: UtcOffsetOptions = {}) {
-        return derive(this.expr, kleeneUnary((v) => {
-            const d = toValidDate(v);
-            return d ? getTimeZoneOffset(d, timeZone, options) : null;
-        }));
+        return this._deriveDate((d) => getTimeZoneOffset(d, timeZone, options));
     }
 
     /**

@@ -1,5 +1,5 @@
-import { ExprBase, derive } from "../ExprBase";
-import { kleeneUnary, kleeneBinary, evaluateExpression } from "../utils";
+import { ExprBase } from "../ExprBase";
+import { evaluateExpression } from "../utils";
 import {
     isArrayOrTypedArray,
     getArrayStats,
@@ -31,17 +31,39 @@ export class ArrayExprNamespace {
     constructor(public expr: any) { }
 
     _deriveArray(fn: (arr: any[] | AnyTypedArray) => any) {
-        return derive(this.expr, kleeneUnary((v) => {
-            return isArrayOrTypedArray(v) ? fn(v as any) : null;
-        }));
+        return this.expr._deriveUnary((v: any) => isArrayOrTypedArray(v) ? fn(v as any) : null);
     }
 
     _deriveArrayBinary(other: any, fn: (arr: any[] | AnyTypedArray, val: any) => any) {
-        const result = derive(this.expr, kleeneBinary(this.expr, other, (arr, val) => {
+        const result = this.expr._deriveBinary(other, (arr: any, val: any) => {
             return isArrayOrTypedArray(arr) ? fn(arr as any, val) : null;
-        }));
+        });
         result._binaryMeta = undefined;
         return result;
+    }
+
+    _evalSubExpr(
+        expr: IExpr,
+        fn: (val: any[] | AnyTypedArray, evaluated: any) => any,
+        evaluator?: (expr: IExpr, subColumns: any, subHeight: number) => any
+    ) {
+        return this.expr._derive((vArray: any[], columns: any) => {
+            const height = vArray.length;
+            const result = new Array(height);
+            const subColumns = Object.create(columns);
+            for (let i = 0; i < height; i++) {
+                const val = vArray[i];
+                if (!isArrayOrTypedArray(val)) {
+                    result[i] = null;
+                    continue;
+                }
+                const subHeight = val.length;
+                subColumns[ELEMENT_MARKER] = val;
+                const evaluated = evaluator ? evaluator(expr, subColumns, subHeight) : evaluateExpression(expr, subColumns, subHeight);
+                result[i] = fn(val, evaluated);
+            }
+            return result;
+        });
     }
 
     /**
@@ -60,23 +82,7 @@ export class ArrayExprNamespace {
      * └───────────┴───────┘
      */
     agg(expr: IExpr) {
-        return derive(this.expr, (vArray, columns) => {
-            const height = vArray.length;
-            const result = new Array(height);
-            const subColumns = Object.create(columns);
-            for (let i = 0; i < height; i++) {
-                const val = vArray[i];
-                if (!isArrayOrTypedArray(val)) {
-                    result[i] = null;
-                    continue;
-                }
-                const subHeight = val.length;
-                subColumns[ELEMENT_MARKER] = val;
-                const evaluated = evaluateExpression(expr, subColumns, subHeight);
-                result[i] = isArrayOrTypedArray(evaluated) ? evaluated[0] ?? null : evaluated;
-            }
-            return result;
-        });
+        return this._evalSubExpr(expr, (_val, evaluated) => isArrayOrTypedArray(evaluated) ? evaluated[0] ?? null : evaluated);
     }
 
     /**
@@ -244,22 +250,34 @@ export class ArrayExprNamespace {
      * └───────────┴──────────┘
      */
     filter(expr: IExpr) {
-        return derive(this.expr, (vArray, columns) => {
-            const height = vArray.length;
-            const result = new Array(height);
-            const subColumns = Object.create(columns);
-            for (let i = 0; i < height; i++) {
-                const val = vArray[i];
-                if (!isArrayOrTypedArray(val)) {
-                    result[i] = null;
-                    continue;
-                }
-                const subHeight = val.length;
-                subColumns[ELEMENT_MARKER] = val;
-                const mask = evaluateExpression(expr, subColumns, subHeight);
-                result[i] = filterByMask(val, mask);
+        return this._evalSubExpr(expr, (val, mask) => filterByMask(val, mask));
+    }
+
+    /**
+     * Evaluates subExpr element-wise across array lists.
+     * @param expr The sub-expression to evaluate inside each nested list.
+     * @returns ColumnExpression
+     * @example
+     * <!-- doc:base_array_nested_2rows -->
+     * >>> df.withColumns($df.col("a").arr.eval($df.element().mul(10)).alias("multiplied"))
+     * shape: (2, 2)
+     * ┌────────┬────────────┐
+     * │ a      │ multiplied │
+     * ├────────┼────────────┤
+     * │ [1, 2] │ [10, 20]   │
+     * │ [3, 4] │ [30, 40]   │
+     * └────────┴────────────┘
+     */
+    eval(expr: IExpr) {
+        return this._evalSubExpr(expr, (_val, res) => res, (subExpr, subColumns, subHeight) => {
+            const isGlobalAgg = subExpr._aggFn != null && (subExpr._partitionBy == null || subExpr._partitionBy.length === 0);
+            if (isGlobalAgg) {
+                const preOpsIdx = subExpr._groupingOpsIndex !== undefined ? subExpr._groupingOpsIndex : subExpr._ops.length;
+                const preVal = subExpr._evaluatePre(preOpsIdx, subColumns, subHeight);
+                const aggVal = subExpr._aggFn!(Array.from(preVal));
+                return subExpr._evaluatePost(preOpsIdx, [aggVal], subColumns);
             }
-            return result;
+            return evaluateExpression(subExpr, subColumns, subHeight);
         });
     }
 
@@ -279,7 +297,7 @@ export class ArrayExprNamespace {
      * └───────┴────────┘
      */
     explode({ emptyAsNull = true, keepNulls = true }: ExplodeOptions = {}) {
-        return derive(this.expr, (vArray) => {
+        return this.expr._derive((vArray: any[]) => {
             const height = vArray.length;
             let newHeight = 0;
             for (let i = 0; i < height; i++) {
@@ -751,7 +769,7 @@ export class ArrayExprNamespace {
      * └────────┴────────────────┘
      */
     toStruct({ upperBound, fields }: ToStructOptions = {}) {
-        return derive(this.expr, (vArray) => {
+        return this.expr._derive((vArray: any[]) => {
             const height = vArray.length;
             const result = new Array(height);
 
@@ -770,7 +788,7 @@ export class ArrayExprNamespace {
             }
 
             if (width === 0) {
-                throw new ComputeError("toStruct cannot be evaluated: struct width is 0. Provide an upperBound, non-empty fields names, or non-empty lists.");
+                throw new ComputeError("toStruct failed: struct width is 0");
             }
 
             const names = new Array<string>(width);
@@ -833,48 +851,6 @@ export class ArrayExprNamespace {
      */
     variance() {
         return this._deriveArray((arr) => getArrayStats(arr).variance);
-    }
-
-    /**
-     * Evaluates subExpr element-wise across array lists.
-     * @param expr The sub-expression to evaluate inside each nested list.
-     * @returns ColumnExpression
-     * @example
-     * <!-- doc:base_array_nested_2rows -->
-     * >>> df.withColumns($df.col("a").arr.eval($df.element().mul(10)).alias("multiplied"))
-     * shape: (2, 2)
-     * ┌────────┬────────────┐
-     * │ a      │ multiplied │
-     * ├────────┼────────────┤
-     * │ [1, 2] │ [10, 20]   │
-     * │ [3, 4] │ [30, 40]   │
-     * └────────┴────────────┘
-     */
-    eval(expr: IExpr) {
-        return derive(this.expr, (vArray, columns) => {
-            const height = vArray.length;
-            const result = new Array(height);
-            const subColumns = Object.create(columns);
-            for (let i = 0; i < height; i++) {
-                const val = vArray[i];
-                if (!isArrayOrTypedArray(val)) {
-                    result[i] = null;
-                    continue;
-                }
-                const subHeight = val.length;
-                subColumns[ELEMENT_MARKER] = val;
-                const isGlobalAgg = expr._aggFn != null && (expr._partitionBy == null || expr._partitionBy.length === 0);
-                if (isGlobalAgg) {
-                    const preOpsIdx = expr._groupingOpsIndex !== undefined ? expr._groupingOpsIndex : expr._ops.length;
-                    const preVal = expr._evaluatePre(preOpsIdx, subColumns, subHeight);
-                    const aggVal = expr._aggFn!(Array.from(preVal));
-                    result[i] = expr._evaluatePost(preOpsIdx, [aggVal], subColumns);
-                } else {
-                    result[i] = evaluateExpression(expr, subColumns, subHeight);
-                }
-            }
-            return result;
-        });
     }
 }
 

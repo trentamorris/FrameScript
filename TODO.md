@@ -171,13 +171,27 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
 - [x] **Datatype & Pattern Selectors (`$df.col(DataType)` / `$df.col(RegExp)` / `cs.*`)**:
   * [x] Allow selecting columns dynamically by concrete/abstract data types (`$df.Numeric`, `$df.Temporal`, `$df.Float64`, `$df.Struct`, `$df.Array`) in `select()` and `with_columns()`.
   * [x] Allow selecting columns dynamically by RegExp patterns (`df.select(/^prefix_/)`, `$df.col(/_suffix$/)`) with full transformation expression support.
-## 🔮 Future / Backlog Scope (V2.0+)
 
-### ⚡ Performance & Interoperability
+
+## 🚀 v2.1.0 Release Scope
+
+### ⚡ Performance, Bundle Size & Interoperability
+- [ ] **Sub-100kB Minified Bundle Size Target (<100 kB on Bundlephobia)**:
+  * Reduce the minified bundle size from ~130 kB to <100 kB (current gzip is ~44 kB) without cutting public methods:
+    * **Eliminate Inline Boilerplate Duplication**: Factor out repeated expression wrapper closures across `StandardExpr.ts` and `ArrayExpr.ts` into shared higher-order builders.
+    * **Property Mangling Cleanup**: Prefix internal dictionary lookups and private instance caches with `_` so they are fully mangled by esbuild's `--mangle-props=^_`.
+    * **Concise Error Messages**: Prune verbose multi-line error strings while preserving clear, informative diagnostics.
+    * **Eliminate Redundant Convenience Wrappers**: Removed redundant aliases and convenience wrappers (`df.vstack()` and `df.hstack()`) in favor of canonical, options-based `df.concat()` and `$df.concat()`, cleaning up legacy clutter per Developer Guidelines.
+    * **Shared Calculation Primitives**: Consolidate repetitive scalar validation, null-guards, and loop accumulator setups into shared utilities across statistics and math functions.
 - [ ] **Primitive Fast-Path Row Hashing**:
   * Optimize `computeRowHash` and `toCanonicalString` to use numeric hashing algorithms (e.g., FNV-1a or 64-bit integer mixing) when keys consist strictly of primitive types (integers, strings, booleans), bypassing string allocations during large `DataFrame.join()` and `.groupBy()` operations.
 - [ ] **Apache Arrow & IPC Interoperability**:
   * Provide lightweight serialization adapters for Apache Arrow IPC memory format, facilitating zero-copy data exchange with Python Polars, PyArrow, and browser WebAssembly runtimes.
+
+### 🧹 Strict NaN vs. Null Semantics Audit
+- [ ] **Core NaN Semantics & Behavior Verification**:
+  * Verify consistent behavior across all aggregations (`.sum()`, `.mean()`, `.std()`, `.min()`, `.max()`) and comparison operators: ensure floating-point `NaN` propagates or ignores according to IEEE 754 / Polars standards (distinguishing `NaN` from missing `null`, and handling `NaN == NaN` consistently in join/group hashing vs. boolean comparisons).
+  * Check type inference: ensure numeric columns containing only numbers and `NaN` infer as `Float64` rather than generic `Any` or `Null`.
 
 ### ⏰ Advanced Temporal Extensions & Storage Infrastructure
 - [ ] **`replace_time_zone(timeZone)` Method**:
@@ -192,6 +206,7 @@ A prioritized roadmap of upcoming features, improvements, and refactorings.
   * Introduce dedicated low-level `TimeType` (nanoseconds/milliseconds since midnight) and 32-bit integer `DateType` (days since epoch) to match Polars native primitive types beyond combined JS `Date` objects.
 
 
+## 🔮 Future / Backlog Scope (V2.0+)
 
 ### 🐻 Complete Polars Functionality Parity & Migration Backlog
 The following list tracks the complete surface of Polars functionality to achieve 100% parity where applicable to JS/TS.

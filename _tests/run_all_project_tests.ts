@@ -33,15 +33,15 @@ import "./functions/readJson.test";
 import "./datatypes/dataTypes.test";
 
 // 5. Utils
-import "./utils/array.test";
-import "./utils/binary.test";
-import "./utils/csv.test";
-import "./utils/date.test";
-import "./utils/duration.test";
-import "./utils/json.test";
-import "./utils/number.test";
-import "./utils/object.test";
-import "./utils/string.test";
+import "./utils/array/run_all";
+import "./utils/binary/run_all";
+import "./utils/csv/run_all";
+import "./utils/date/run_all";
+import "./utils/duration/run_all";
+import "./utils/json/run_all";
+import "./utils/number/run_all";
+import "./utils/object/run_all";
+import "./utils/string/run_all";
 
 console.log("=========================================");
 console.log("🎉 ALL TESTS IN THE PROJECT PASSED SUCCESSFULLY!");

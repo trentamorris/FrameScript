@@ -507,7 +507,7 @@ export function encodeString(str: string | null | undefined, encoding: StringEnc
     if (str == null) return null;
     const encoder = _ENCODERS[encoding];
     if (!encoder) {
-        throw new Error(`Unsupported encoding: '${encoding}'. Supported encodings are 'hex' and 'base64'.`);
+        throw new Error(`Unsupported encoding: '${encoding}'`);
     }
     return encoder(String(str));
 }
@@ -641,7 +641,7 @@ export function decodeString(
     if (str == null) return null;
     const decoder = _DECODERS[encoding];
     if (!decoder) {
-        throw new Error(`Unsupported encoding: '${encoding}'. Supported encodings are 'hex' and 'base64'.`);
+        throw new Error(`Unsupported encoding: '${encoding}'`);
     }
     const strict = typeof options === "boolean" ? options : (options.strict ?? true);
     return decoder(String(str), strict);

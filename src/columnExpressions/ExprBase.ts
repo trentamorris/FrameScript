@@ -1,9 +1,9 @@
 import type { IExpr, OpFn, AggFn, ColumnData, ColumnDict, RegisteredDataType } from "../types"
 import { ALL_COLUMNS_MARKER } from "./constants"
 import { ColumnNotFoundError } from "../exceptions"
-import { evaluateExpression, kleeneUnary } from "./utils"
+import { evaluateExpression, kleeneUnary, kleeneBinary } from "./utils"
 
-export const derive = <T extends IExpr>(
+const _derive = <T extends IExpr>(
     instance: T,
     nextOp?: OpFn
 ): T => {
@@ -17,6 +17,8 @@ export const derive = <T extends IExpr>(
     }
     return newInst;
 };
+
+export function isExpr(v: unknown): v is IExpr { return v instanceof ExprBase; };
 
 /**
  * @namespace $df.col
@@ -38,6 +40,18 @@ export class ExprBase implements IExpr {
     _baseExpr?: IExpr;
     _fieldName?: string;
     _isUnnest?: boolean;
+
+    _derive(op?: OpFn): this {
+        return _derive(this, op) as this;
+    }
+
+    _deriveBinary(other: any, fn: (v: any, r: any) => any) {
+        return _derive(this, kleeneBinary(this, other, fn));
+    }
+
+    _deriveUnary(fn: (v: any) => any) {
+        return _derive(this, kleeneUnary(fn));
+    }
 
     _evaluatePost(opsIndex: number | undefined, aggregatedArray: any[], columns: ColumnDict): ColumnData {
         const ops = this._ops;
@@ -82,7 +96,7 @@ export class ExprBase implements IExpr {
      * Renames the output expression column key.
      */
     alias(name: string): this {
-        const newInst = derive(this);
+        const newInst = this._derive();
         newInst._outputName = name;
         return newInst;
     }
@@ -91,7 +105,7 @@ export class ExprBase implements IExpr {
      * Coerces the column data type to another type.
      */
     cast(dataType: RegisteredDataType): this {
-        const derivedInst = derive(this, kleeneUnary((val) => dataType.coerce(val)));
+        const derivedInst = this._deriveUnary((val) => dataType.coerce(val));
         derivedInst._castType = dataType;
         return derivedInst as this;
     }
@@ -100,10 +114,10 @@ export class ExprBase implements IExpr {
      * Prints the current evaluation intermediate array to console for debugging.
      */
     debug(label?: string): this {
-        return derive(this, (vArray) => {
+        return this._derive((vArray) => {
             console.log(`[DEBUG] ${label ? label + ': ' : ''}`, vArray);
             return vArray;
-        }) as this;
+        });
     }
 
     evaluate(columns: ColumnDict, height: number): ColumnData {

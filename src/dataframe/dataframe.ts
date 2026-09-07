@@ -2,7 +2,7 @@ import { ColumnExpr, resolveColumnSelectors, ALL_COLUMNS_MARKER, seqRange, all, 
 import { GroupedData } from "./grouped"
 import { NEWLINE, MS_PER_DAY, DAY_OF_WEEK_MAP } from "../constants"
 import { createSafeJsonReplacer } from "../utils/json"
-import type { IExpr, ColumnData, ColumnDict, DataFrameColumns, ConcatOptions, ConcatItem, HorizontalConcatOptions, RowRecord, DataFrameSchema, RegisteredDataType, ExplodeOptions, IntoExpr, FillNullOptions, SortArrayOptions } from "../types"
+import type { IExpr, ColumnData, ColumnDict, DataFrameColumns, ConcatOptions, ConcatItem, RowRecord, DataFrameSchema, RegisteredDataType, ExplodeOptions, IntoExpr, FillNullOptions, SortArrayOptions } from "../types"
 import type { LimitOptions, SortOptions, PivotOptions, JoinOptions, JoinMaintainOrder, JoinAsofOptions, JoinWhereOptions, GroupByDynamicOptions, UnpivotOptions, TransposeOptions, WriteJSONOptions, WriteCSVOptions } from "./types"
 import { DataTypeRegistry, DataType } from "../datatypes"
 import { isArrayOrTypedArray, toValidArray, toArrayOfType, isObj, isArrayOfType, isRegExp, clamp, stringifyCSV, compareScalarValues, filterByMask, toDuration, toValidDate, toValidNumber, isValidNumber, binarySearch, addCalendarDuration, parseDurationInterval, createUTCDate } from "../utils"
@@ -526,16 +526,16 @@ export class DataFrame<T extends RowRecord = any> {
         assertColumnExists(indexColName, this._columns, "Index column");
 
         if (closed !== "left" && closed !== "right" && closed !== "both" && closed !== "none") {
-            throw new InvalidArgumentError(`Invalid "closed" option: "${closed}". Expected "left", "right", "both", or "none"`);
+            throw new InvalidArgumentError(`Invalid "closed" option: "${closed}"`);
         }
         if (label !== "left" && label !== "right" && label !== "datapoint") {
-            throw new InvalidArgumentError(`Invalid "label" option: "${label}". Expected "left", "right", or "datapoint"`);
+            throw new InvalidArgumentError(`Invalid "label" option: "${label}"`);
         }
 
         const startByNorm = typeof startBy === "string" ? startBy.toLowerCase() : "";
         const isDayOfWeek = startByNorm in DAY_OF_WEEK_MAP;
         if (startByNorm !== "window" && startByNorm !== "datapoint" && !isDayOfWeek) {
-            throw new InvalidArgumentError(`Invalid "startBy" option: "${startBy}". Expected "window", "datapoint", or a day of week`);
+            throw new InvalidArgumentError(`Invalid "startBy" option: "${startBy}"`);
         }
 
         const offset = toDuration(rawOffset, { fallback: 0 });
@@ -727,30 +727,6 @@ export class DataFrame<T extends RowRecord = any> {
      */
     get height(): number {
         return this._height;
-    }
-
-    /**
-     * Concatenates columns horizontally to the current DataFrame.
-     * @param {ConcatItem | ConcatItem[]} other DataFrame or array of DataFrames to append side-by-side.
-     * @param {HorizontalConcatOptions} [options] Horizontal concat configuration options.
-     * @param {boolean} [options.strict] When `true` (default), throws an error if row counts mismatch. Set `false` to allow null padding.
-     * @returns {DataFrame}
-     * @example
-     * <!-- doc:base_concat_pair -->
-     * >>> df1.hstack(df2)
-     * shape: (2, 2)
-     * ┌───┬────┐
-     * │ a │ b  │
-     * ├───┼────┤
-     * │ 1 │ 10 │
-     * │ 2 │ 20 │
-     * └───┴────┘
-     */
-    hstack<U extends RowRecord = any>(
-        other: ConcatItem | ConcatItem[],
-        options: HorizontalConcatOptions = {}
-    ): DataFrame<U> {
-        return this.concat<U>(other, { how: "horizontal", horizontal: options });
     }
 
     /**
@@ -1183,7 +1159,7 @@ export class DataFrame<T extends RowRecord = any> {
                 continue;
             }
 
-            if (isObj(arg) && !ColumnExpr.isColExpr(arg) && !("_ops" in (arg as any))) {
+            if (isObj(arg) && !ColumnExpr.isColExpr(arg)) {
                 options = { ...options, ...(arg as JoinWhereOptions) };
                 continue;
             }
@@ -1462,11 +1438,11 @@ export class DataFrame<T extends RowRecord = any> {
 
             const len = rowMap.length;
             if (len !== activeRowMap.length) {
-                throw new ShapeError(`Mismatched explode heights: Column "${targetKey}" has length ${len}, but expected ${activeRowMap.length}`);
+                throw new ShapeError(`Mismatched explode heights for "${targetKey}": ${len} !== ${activeRowMap.length}`);
             }
             for (let j = 0; j < len; j++) {
                 if (rowMap[j] !== activeRowMap[j]) {
-                    throw new ShapeError(`Mismatched explode heights: Column "${targetKey}" has mismatched row lengths`);
+                    throw new ShapeError(`Mismatched explode row map for "${targetKey}"`);
                 }
             }
         }
@@ -1688,8 +1664,8 @@ export class DataFrame<T extends RowRecord = any> {
      * └────────┴──────────┴──────────┘
      */
     transpose({
-        includeHeader: includeHeader = false,
-        headerName: headerName = "column",
+        includeHeader = false,
+        headerName = "column",
         columnNames: colNamesOpt
     }: TransposeOptions = {}): DataFrame<any> {
         if (this._height === 0) {
@@ -1699,54 +1675,48 @@ export class DataFrame<T extends RowRecord = any> {
         }
 
         let dataCols = this.columns;
-        let newColNames: string[];
+        let newColNames: (string | number)[];
 
         if (typeof colNamesOpt === "string") {
             assertColumnExists(colNamesOpt, this._columns, "columnNames");
-            dataCols = dataCols.filter(c => c !== colNamesOpt);
+            const allCols = dataCols;
+            dataCols = [];
+            for (let i = 0, len = allCols.length; i < len; i++) {
+                const c = allCols[i];
+                if (c !== colNamesOpt) dataCols.push(c);
+            }
             const keyCol = this._columns[colNamesOpt];
             newColNames = new Array(this._height);
             for (let i = 0; i < this._height; i++) {
                 const val = keyCol[i];
-                if (val == null) {
-                    throw new DataFrameError(`Transpose columnNames column "${colNamesOpt}" contains null/undefined at index ${i}`);
-                }
+                if (val == null) throw new DataFrameError(`Transpose column "${colNamesOpt}" contains null/undefined at index ${i}`);
                 newColNames[i] = String(val);
             }
         } else if (colNamesOpt != null) {
-            const colNamesArr = Array.from(colNamesOpt as Iterable<any>);
-            if (colNamesArr.length !== this._height) {
-                throw new DataFrameError(`columnNames length (${colNamesArr.length}) must match the height of the DataFrame (${this._height})`);
+            newColNames = Array.from(colNamesOpt as Iterable<any>, String);
+            if (newColNames.length !== this._height) {
+                throw new DataFrameError(`columnNames length (${newColNames.length}) must match the height of the DataFrame (${this._height})`);
             }
-            newColNames = colNamesArr.map(String);
         } else {
-            newColNames = new Array(this._height);
-            for (let i = 0; i < this._height; i++) {
-                newColNames[i] = `column_${i}`;
-            }
+            newColNames = Array.from({ length: this._height }, (_, i) => `column_${i}`);
         }
 
         const numDataCols = dataCols.length;
         const newCols: ColumnDict = {};
         const newSchema: DataFrameSchema = {};
+        const cols = this._columns;
 
         if (includeHeader) {
-            newCols[headerName] = coerceColumn(dataCols, DataTypeRegistry.Utf8, numDataCols);
-            newSchema[headerName] = DataTypeRegistry.Utf8;
+            newCols[headerName] = coerceColumn(dataCols, newSchema[headerName] = DataTypeRegistry.Utf8, numDataCols);
         }
 
         for (let i = 0; i < this._height; i++) {
-            const name = newColNames[i];
-            if (newCols[name] !== undefined) {
-                throw new DataFrameError(`Duplicate column name in transposed DataFrame: "${name}"`);
-            }
+            const name = String(newColNames[i]);
+            if (newCols[name] !== undefined) throw new DataFrameError(`Duplicate column name in transposed DataFrame: "${name}"`);
             const rawVals = new Array(numDataCols);
-            for (let j = 0; j < numDataCols; j++) {
-                rawVals[j] = this._columns[dataCols[j]][i];
-            }
-            const type = inferColumnType(rawVals);
+            for (let j = 0; j < numDataCols; j++) rawVals[j] = cols[dataCols[j]][i];
+            const type = newSchema[name] = inferColumnType(rawVals);
             newCols[name] = coerceColumn(rawVals, type, numDataCols);
-            newSchema[name] = type;
         }
 
         return DataFrame._createDirect(newCols, newSchema, numDataCols);
@@ -1840,29 +1810,6 @@ export class DataFrame<T extends RowRecord = any> {
         outSchema[valueName] = inferColumnType(newColumns[valueName]);
 
         return DataFrame._createDirect<U>(newColumns as any, outSchema, newHeight);
-    }
-
-    /**
-     * Concatenates DataFrames vertically. Alias for concat({ how: "vertical" }).
-     * @param {ConcatItem | ConcatItem[]} other Single DataFrame or array of DataFrames to append vertically.
-     * @returns {DataFrame}
-     * @example
-     * <!-- doc:base_concat_pair -->
-     * >>> df1.vstack(df2)
-     * shape: (4, 1)
-     * ┌──────┐
-     * │ a    │
-     * ├──────┤
-     * │ 1    │
-     * │ 2    │
-     * │ null │
-     * │ null │
-     * └──────┘
-     */
-    vstack<U extends RowRecord = any>(
-        other: ConcatItem | ConcatItem[]
-    ): DataFrame<U> {
-        return this.concat<U>(other, { how: "vertical" });
     }
 
     /**
@@ -1997,7 +1944,7 @@ export class DataFrame<T extends RowRecord = any> {
                     }
                 });
             } else {
-                throw new InvalidArgumentError("Invalid file argument. Expected a file path string or a writable stream/object with a write method.");
+                throw new InvalidArgumentError("Invalid file argument: expected path string or writable stream");
             }
             return "";
         }
@@ -2044,7 +1991,7 @@ export class DataFrame<T extends RowRecord = any> {
         { format = "json", replacerOptions }: WriteJSONOptions = {}
     ): string {
         if (format !== "json" && format !== "ndjson") {
-            throw new InvalidArgumentError(`Unsupported JSON format: "${format}". Expected "json" or "ndjson".`);
+            throw new InvalidArgumentError(`Unsupported JSON format: "${format}"`);
         }
 
         const safeReplacer = replacerOptions?.replacer === null

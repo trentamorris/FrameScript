@@ -12,8 +12,7 @@ import type {
     ReplaceOptions,
     ReplaceManyOptions
 } from "../../types";
-import { ExprBase, derive } from "../ExprBase";
-import { kleeneUnary, kleeneBinary } from "../utils";
+import { ExprBase } from "../ExprBase";
 import { TEXT_ENCODER } from "../../constants";
 import {
     toValidDate,
@@ -55,12 +54,12 @@ export class StringExprNamespace {
     constructor(public expr: any) { }
 
     _deriveString(fn: (v: string) => any) {
-        return derive(this.expr, kleeneUnary((v) => fn(String(v))));
+        return this.expr._deriveUnary((v: any) => fn(String(v)));
     }
 
     _patternGuard(pattern: any, fn: () => any) {
         if (pattern == null) {
-            return derive(this.expr, (vArray) => new Array(vArray.length).fill(null));
+            return this.expr._derive((vArray: any[]) => new Array(vArray.length).fill(null));
         }
         return fn();
     }
@@ -91,7 +90,7 @@ export class StringExprNamespace {
      * └──────────┴───────────┘
      */
     concat(other: string | IExpr) {
-        return derive(this.expr, kleeneBinary(this.expr, other, (v, o) => String(v) + String(o)));
+        return this.expr._deriveBinary(other, (v: any, o: any) => String(v) + String(o));
     }
 
     /**
@@ -489,11 +488,11 @@ export class StringExprNamespace {
      * └────────────┴────────┘
      */
     join(delimiter: string = "", options: JoinArrayOptions = {}) {
-        return derive(this.expr, kleeneUnary((v) => {
+        return this.expr._deriveUnary((v: any) => {
             const arr = toValidArray(v);
             if (arr == null) return null;
             return joinArray(arr, delimiter, options);
-        }));
+        });
     }
 
     /**

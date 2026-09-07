@@ -1,4 +1,4 @@
-import { ExprBase, derive } from "../ExprBase";
+import { ExprBase } from "../ExprBase";
 import type { IntoExpr } from "../../types";
 import { assertNotNull, InvalidArgumentError } from "../../exceptions";
 
@@ -46,7 +46,7 @@ export class StructExprNamespace {
      * └───────────────────────────┴───────────┘
      */
     field(name: string) {
-        const derived = derive(this.expr, (vArray) => {
+        const derived = this.expr._derive((vArray: any[]) => {
             const height = vArray.length;
             const result = new Array(height);
             for (let i = 0; i < height; i++) {
@@ -75,7 +75,7 @@ export class StructExprNamespace {
      * └───────────────────────────┴────────────────────────────────┘
      */
     renameFields(mapping: Record<string, string>) {
-        return derive(this.expr, (vArray) => {
+        return this.expr._derive((vArray: any[]) => {
             const height = vArray.length;
             const result = new Array(height);
             const keys = Object.keys(mapping);
@@ -126,7 +126,7 @@ export class StructExprNamespace {
      * └──────────────────────────────┴───────────────────────────────────────────┘
      */
     withFields(fields: IntoExpr[] | Record<string, IntoExpr>) {
-        return derive(this.expr, (vArray, columns) => {
+        return this.expr._derive((vArray: any[], columns: any) => {
             const height = vArray.length;
             const result = new Array(height);
 
@@ -196,7 +196,7 @@ export class StructExprNamespace {
      * └───────┴─────┘
      */
     unnest() {
-        const newInst = derive(this.expr);
+        const newInst = this.expr._derive();
         newInst._isUnnest = true;
         newInst._baseExpr = this.expr;
         return newInst;

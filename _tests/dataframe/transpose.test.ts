@@ -316,4 +316,83 @@ if (tSpecial.item(0, " col with spaces ") !== 1 || tSpecial.item(1, "🚀 emoji 
     throw new Error("Special character column values mismatch");
 }
 
+// 24. Edge Case: Transposing with Generator / Custom Set Iterable columnNames
+function* nameGen() {
+    yield "alpha";
+    yield "beta";
+}
+const dfGen = new DataFrame({ x: [10, 20], y: [30, 40] });
+const tGen = dfGen.transpose({ columnNames: nameGen() });
+if (tGen.columns[0] !== "alpha" || tGen.columns[1] !== "beta") {
+    throw new Error("Generator columnNames transpose failed");
+}
+if (tGen.item(0, "alpha") !== 10 || tGen.item(1, "beta") !== 40) {
+    throw new Error("Generator columnNames values mismatch");
+}
+
+const tSet = dfGen.transpose({ columnNames: new Set(["first_col", "second_col"]) });
+if (tSet.columns[0] !== "first_col" || tSet.columns[1] !== "second_col") {
+    throw new Error("Set columnNames transpose failed");
+}
+
+// 25. Edge Case: Transposing with numeric keys in columnNames column
+const dfNumericKeys = new DataFrame({
+    year: [2024, 2025, 2026],
+    revenue: [1000, 1500, 2200],
+    profit: [200, 350, 500]
+});
+const tNumericKeys = dfNumericKeys.transpose({ columnNames: "year", includeHeader: true, headerName: "metric" });
+if (tNumericKeys.height !== 2 || tNumericKeys.columns.length !== 4) {
+    throw new Error("Numeric keys transpose shape mismatch");
+}
+// Note: In JavaScript, integer-like object keys are iterated first by Object.keys()
+if (!tNumericKeys.columns.includes("metric") || !tNumericKeys.columns.includes("2024") || !tNumericKeys.columns.includes("2025") || !tNumericKeys.columns.includes("2026")) {
+    throw new Error("Numeric keys column names mismatch");
+}
+if (tNumericKeys.item(0, "metric") !== "revenue" || tNumericKeys.item(1, "metric") !== "profit") {
+    throw new Error("Numeric keys metric column mismatch");
+}
+if (tNumericKeys.item(0, "2024") !== 1000 || tNumericKeys.item(1, "2026") !== 500) {
+    throw new Error("Numeric keys values mismatch");
+}
+
+// 26. Edge Case: Duplicate check with numeric-to-string keys in columnNames column
+const dfDupNumeric = new DataFrame({
+    k: [100, 100],
+    v: [1, 2]
+});
+assertThrows(() => {
+    dfDupNumeric.transpose({ columnNames: "k" });
+}, "Duplicate column name in transposed DataFrame");
+
+// 27. Edge Case: Type promotion across heterogeneous numeric columns (Int -> Float)
+const dfMixedNumbers = new DataFrame({
+    ints: [10, 20],
+    floats: [1.5, 2.5]
+});
+const tMixedNumbers = dfMixedNumbers.transpose();
+if (tMixedNumbers.schema.column_0.name !== "Float64" || tMixedNumbers.schema.column_1.name !== "Float64") {
+    throw new Error("Heterogeneous numeric transpose type promotion failed");
+}
+if (tMixedNumbers.item(0, "column_0") !== 10 || tMixedNumbers.item(1, "column_0") !== 1.5) {
+    throw new Error("Heterogeneous numeric values mismatch");
+}
+
+// 28. Edge Case: Transposing high-cardinality wide to tall DataFrame (1 row, 500 columns)
+const wideObj: Record<string, number[]> = {};
+for (let i = 0; i < 500; i++) {
+    wideObj[`col_${i}`] = [i * 2];
+}
+const dfWide = new DataFrame(wideObj);
+const tWide = dfWide.transpose({ includeHeader: true, headerName: "feat_name" });
+if (tWide.height !== 500 || tWide.columns.length !== 2) {
+    throw new Error("Wide transpose shape mismatch: expected (500, 2), got " + tWide.shape);
+}
+if (tWide.item(0, "feat_name") !== "col_0" || tWide.item(499, "feat_name") !== "col_499") {
+    throw new Error("Wide transpose feature names mismatch");
+}
+if (tWide.item(0, "column_0") !== 0 || tWide.item(499, "column_0") !== 998) {
+    throw new Error("Wide transpose cell values mismatch");
+}
+
 console.log("✓ transpose tests passed!");

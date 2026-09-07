@@ -1,0 +1,37 @@
+console.log("=========================================");
+console.log("STARTING ARRAY UTILS TESTS...");
+console.log("=========================================");
+
+import "./isTypedArray.test";
+import "./isArrayOrTypedArray.test";
+import "./toValidArray.test";
+import "./getArrayElement.test";
+import "./isArrayOfType.test";
+import "./toArrayOfType.test";
+import "./compareScalarValues.test";
+import "./sortArray.test";
+import "./getArrayStats.test";
+import "./getUniqueArrayStats.test";
+import "./stepSliceArray.test";
+import "./joinArray.test";
+import "./fillSequence.test";
+import "./computeQuantile.test";
+import "./computeMode.test";
+import "./shiftArray.test";
+import "./computeStatisticalMatrix.test";
+import "./computeCorrelationOfFlatArrays.test";
+import "./computeSpearmanCorrelation.test";
+import "./computeDotProduct.test";
+import "./computeWeightedAverage.test";
+import "./computeCartesianProduct.test";
+import "./binarySearch.test";
+import "./computeSkewness.test";
+import "./computeKurtosis.test";
+import "./computeEntropy.test";
+import "./reduceBitwise.test";
+import "./computeBy.test";
+import "./filterByMask.test";
+
+console.log("=========================================");
+console.log("🎉 ALL ARRAY UTILS TESTS PASSED SUCCESSFULLY!");
+console.log("=========================================");
