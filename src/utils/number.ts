@@ -370,11 +370,7 @@ export function toValidBigInt(
     { range = "Int64", truncate = false }: toValidBigIntOptions = {}
 ): bigint | null {
     if (v == null || typeof v === "symbol") return null;
-    try {
-        v = unboxPrimitiveObj(v);
-    } catch {
-        return null;
-    }
+    v = unboxPrimitiveObj(v);
 
     let bigintVal: bigint | null = null;
 
@@ -406,7 +402,6 @@ export function toValidBigInt(
                 baseIntStr = mantissaStr.slice(0, dotIdx) + mantissaStr.slice(dotIdx + 1);
             }
 
-            // Strip leading zeros to avoid BigInt("005") SyntaxError
             baseIntStr = baseIntStr.replace(/^0+/, "") || "0";
 
             try {

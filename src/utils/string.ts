@@ -163,7 +163,7 @@ export function stripChars(
             if (skipped > 0 || literal || blockCount === 0) blockCount++;
             if (maxMatches !== null && maxMatches >= 0 && blockCount > maxMatches) break;
 
-            for (let k = m.start; k < m.end; k++) stripped[k] = 1;
+            stripped.fill(1, m.start, m.end);
             hasStripped = true;
             lastPos = isStart ? m.end : m.start;
         }
@@ -179,6 +179,27 @@ export function stripChars(
         if (stripped[i] === 0) result += workStr[i];
     }
     return finish(result);
+}
+
+function _canonicalizeKeyed(
+    keys: unknown[],
+    getValue: (k: unknown) => unknown,
+    nextOpt: { depth: number; maxDepth: number },
+    prefix: string
+): string {
+    const len = keys.length;
+    const parts = new Array(len);
+    for (let i = 0; i < len; i++) {
+        const k = keys[i];
+        let v: unknown;
+        try {
+            v = getValue(k);
+        } catch {
+            v = "v:error";
+        }
+        parts[i] = `${toCanonicalString(k, nextOpt)}${KEY_SEPARATOR}${toCanonicalString(v, nextOpt)}`;
+    }
+    return `${prefix}{${parts.sort().join(KEY_PAIR_SEPARATOR)}}`;
 }
 
 export function toCanonicalString(
@@ -221,22 +242,8 @@ export function toCanonicalString(
     }
 
     if (isMap(val)) {
-        const keys = Array.from(val.keys());
-        const len = keys.length;
-        const parts = new Array(len);
         const nextOpt = { depth: depth + 1, maxDepth };
-        for (let i = 0; i < len; i++) {
-            const k = keys[i];
-            let mapVal: unknown;
-            try {
-                mapVal = val.get(k);
-            } catch {
-                mapVal = "v:error";
-            }
-            parts[i] = `${toCanonicalString(k, nextOpt)}${KEY_SEPARATOR}${toCanonicalString(mapVal, nextOpt)}`;
-        }
-        parts.sort();
-        return `map:{${parts.join(KEY_PAIR_SEPARATOR)}}`;
+        return _canonicalizeKeyed(Array.from(val.keys()), (k) => val.get(k), nextOpt, "map:");
     }
 
     if (typeof val === "object" && typeof val.toJSON === "function") {
@@ -256,21 +263,8 @@ export function toCanonicalString(
     }
 
     if (isPlainObj(val)) {
-        const keys = Object.keys(val).sort();
-        const len = keys.length;
-        const parts = new Array(len);
         const nextOpt = { depth: depth + 1, maxDepth };
-        for (let i = 0; i < len; i++) {
-            const k = keys[i];
-            let propVal: unknown;
-            try {
-                propVal = val[k];
-            } catch {
-                propVal = "v:error";
-            }
-            parts[i] = `${toCanonicalString(k, nextOpt)}${KEY_SEPARATOR}${toCanonicalString(propVal, nextOpt)}`;
-        }
-        return `o:{${parts.join(KEY_PAIR_SEPARATOR)}}`;
+        return _canonicalizeKeyed(Object.keys(val).sort(), (k) => val[k as string], nextOpt, "o:");
     }
 
     if (typeof val === "function") {
@@ -361,32 +355,28 @@ export function changeCase(str: any, options: ChangeCaseOptions): string {
     if (len === 0) return "";
 
     const { format } = options ?? {};
+    if (!format) return words.join(" ");
 
-    if (format === "camel" || format === "pascal" || format === "title") {
-        const joinChar = format === "title" ? " " : "";
-        const formattedWords = new Array(len);
-        for (let i = 0; i < len; i++) {
-            const w = words[i];
-            if (i === 0 && format === "camel") {
-                formattedWords[i] = w.toLowerCase();
-            } else {
-                const step = _getCodePointStep(w, 0);
-                formattedWords[i] = w.slice(0, step).toUpperCase() + w.slice(step).toLowerCase();
-            }
+    const delimiter =
+        format === "kebab" ? "-" :
+        format === "snake" ? "_" :
+        format === "title" ? " " : "";
+
+    const isLower = format === "kebab" || format === "snake";
+    const result = new Array(len);
+
+    for (let i = 0; i < len; i++) {
+        const w = words[i];
+
+        if (isLower || (i === 0 && format === "camel")) {
+            result[i] = w.toLowerCase();
+        } else {
+            const step = _getCodePointStep(w, 0);
+            result[i] = w.slice(0, step).toUpperCase() + w.slice(step).toLowerCase();
         }
-        return formattedWords.join(joinChar);
     }
 
-    if (format === "kebab" || format === "snake") {
-        const joinChar = format === "kebab" ? "-" : "_";
-        const lowerWords = new Array(len);
-        for (let i = 0; i < len; i++) {
-            lowerWords[i] = words[i].toLowerCase();
-        }
-        return lowerWords.join(joinChar);
-    }
-
-    return words.join(" ");
+    return result.join(delimiter);
 }
 
 
@@ -729,48 +719,32 @@ export function toCleanRegExp(
 ): { reg: RegExp; input: string } | null {
     if (str == null || pattern == null) return null;
 
-    const input = typeof str === "string" ? str : String(str);
-    const isGlobal = options?.global ?? false;
-
     try {
         const isReg = isRegExp(pattern);
-        const patStr = isReg ? pattern.source : (typeof pattern === "string" ? pattern : String(pattern));
+        const patStr = isReg ? pattern.source : String(pattern);
 
         let flags = isReg ? pattern.flags.replace(/y/g, "") : "";
-        if (isGlobal) {
-            if (!flags.includes("g")) flags += "g";
-        } else {
-            flags = flags.replace(/g/g, "");
-        }
+
+        flags = flags.replace(/g/g, "");
+        if (options?.global) flags += "g";
 
         if (options?.asciiCaseInsensitive !== undefined) {
-            flags = options.asciiCaseInsensitive
-                ? (flags.includes("i") ? flags : flags + "i")
-                : flags.replace(/i/g, "");
+            flags = flags.replace(/i/g, "");
+            if (options.asciiCaseInsensitive) flags += "i";
         }
 
-        if ((patStr.includes("\\p{") || patStr.includes("\\P{")) && !flags.includes("u") && !flags.includes("v")) {
-            try {
-                const reg = new RegExp(patStr, flags + "u");
-                reg.lastIndex = 0;
-                return { reg, input };
-            } catch {
-                try {
-                    const reg = new RegExp(patStr, flags + "v");
-                    reg.lastIndex = 0;
-                    return { reg, input };
-                } catch {
-                    // Fall through to standard compilation
-                }
-            }
-        }
+        const candidates = (/\\p\{/i.test(patStr) && !/[uv]/.test(flags))
+            ? [flags + "u", flags + "v", flags]
+            : [flags];
 
-        const reg = new RegExp(patStr, flags);
-        reg.lastIndex = 0;
-        return { reg, input };
+        for (const f of candidates) {
+            try { return { reg: new RegExp(patStr, f), input: str }; } catch { }
+        }
     } catch {
-        return null;
+        // Fall through
     }
+
+    return null;
 }
 
 function _matchToRecord(match: RegExpMatchArray | RegExpExecArray): Record<string, string | null> {
@@ -1137,9 +1111,7 @@ export function splitString(
     const targetCount = limit + 1;
 
     if (strict && parts.length < targetCount) {
-        throw new InvalidArgumentError(
-            `split exact error: expected string to split into at least ${targetCount} parts, but got ${parts.length}`
-        );
+        throw new InvalidArgumentError(`Expected at least ${targetCount} parts, got ${parts.length}`);
     }
 
     if (exact) {
