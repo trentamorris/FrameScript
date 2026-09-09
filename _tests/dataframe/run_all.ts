@@ -4,10 +4,12 @@ console.log("=========================================");
 
 import "./clone.test";
 import "./columns.test";
+import "./cast.test";
 import "./concat.test";
 import "./drop.test";
 import "./dropNulls.test";
 import "./dtypes.test";
+import "./equals.test";
 import "../exceptions.test";
 import "./explode.test";
 import "./fillNull.test";

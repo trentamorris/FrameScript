@@ -230,7 +230,7 @@ The following list tracks the complete surface of Polars functionality to achiev
 - [ ] `/DataFrame.__getitem__`      (Deferred: requires standalone `Series` type)
 - [ ] `/DataFrame.__setitem__`      (Deferred: requires standalone `Series` type)
 - [x] `/DataFrame/bottom_k`         (`$df.data(...).sort({ by: <col>, descending: false }).head(k)`)
-- [ ] `/DataFrame.cast`
+- [x] `/DataFrame.cast`             (`$df.data(...).cast(dtype)` or `$df.data(...).cast({ col: dtype })`)
 - [x] `/DataFrame/clear`            (`$df.data(...).slice(0, 0)`)
 - [x] `/DataFrame/collect_schema`   (`$df.data(...).schema`)
 - [ ] `/DataFrame/corr`
@@ -239,13 +239,13 @@ The following list tracks the complete surface of Polars functionality to achiev
 - [ ] `/DataFrame/drop_in_place`    (Deferred: requires standalone `Series` type)
 - [x] `/DataFrame/drop_nans`        (`$df.data(...).filter($df.all().isNotNan())`)
 - [x] `/DataFrame/drop_nulls`       (`$df.data(...).dropNulls(<subset>)`)
-- [ ] `/DataFrame/equals`
+- [x] `/DataFrame/equals`           (`$df.data(...).equals(other, { nullsEqual })`)
 - [x] `/DataFrame/extend`           (`$df.concat([df1, df2], { how: "vertical" })` — in Polars this is in-place Arrow chunk reallocation; DFScript's immutable vertical concat already builds contiguous arrays directly)
 - [ ] `/DataFrame/fill_nan`
 - [ ] `/DataFrame/flags`            (Polars internal engine metadata exposing chunk-level optimization flags like SORTED_ASC / FAST_EXPLODE)
 - [ ] `/DataFrame/fold`
-- [x] `/DataFrame/gather`
-- [x] `/DataFrame/gather_every`
+- [ ] `/DataFrame/gather`
+- [ ] `/DataFrame/gather_every`
 - [ ] `/DataFrame/get_column`       (Deferred: requires standalone `Series` type)
 - [x] `/DataFrame/get_column_index` (`$df.data(...).columns.indexOf(<col>)`)
 - [ ] `/DataFrame/get_columns`      (Deferred: requires standalone `Series` type; currently `$df.data(...).toDict()`)
@@ -280,7 +280,7 @@ The following list tracks the complete surface of Polars functionality to achiev
 - [x] `/DataFrame/select_seq`       (`$df.data(...).select(...)` — in Polars this executes sequentially rather than multi-threaded; in JS/TS the event loop engine is already strictly sequential and deterministic by default)
 - [ ] `/DataFrame/serialize`        (JSON format available via `$df.data(...).writeJson()`; binary buffer format tracked in Future Scope)
 - [ ] `/DataFrame/set_sorted`       (Future candidate: internal metadata flag asserting pre-sorted column order to bypass sorting checks)
-- [x] `/DataFrame/shift`            (`$df.data(...).shift(n, { fillValue })`)
+- [x] `/DataFrame/shift`            (`$df.data(...).select($df.all().shift(n, { fillValue }))`)
 - [ ] `/DataFrame/shrink_to_fit`    (N/A in JS: Rust/Arrow uses this to release excess heap `capacity` down to `len`; in JS/V8, array backing stores and memory compaction are handled automatically by the engine GC)
 - [ ] `/DataFrame/sql`              (Planned as tree-shakeable standalone function or separate subpath plugin `df-script/sql` to avoid bloating the core bundle with SQL parser/grammar overhead. Use a separate parser / plugin for now)
 - [x] `/DataFrame/std`              (`$df.data(...).select($df.all().std())`)

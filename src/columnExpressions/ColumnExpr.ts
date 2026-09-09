@@ -226,6 +226,7 @@ export function resolveColumnSelectors(
                 concrete._partitionOpsIndex = expr._partitionOpsIndex;
                 concrete._groupingOpsIndex = expr._groupingOpsIndex;
                 concrete._partitionBy = expr._partitionBy;
+                if (expr._castType) concrete._castType = expr._castType;
                 if (expr._evaluateWindow) concrete._evaluateWindow = expr._evaluateWindow;
                 if (expr._outputName && expr._outputName !== ALL_COLUMNS_MARKER) {
                     concrete._outputName = expr._outputName;

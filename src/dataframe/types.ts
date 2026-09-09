@@ -8,6 +8,11 @@ export type JoinMaintainOrder = "none" | "left" | "right" | "left_right" | "righ
 export type LimitPosition = "start" | "end";
 export type GroupMap = Map<string, number[]>;
 
+
+export interface EqualsOptions {
+    nullsEqual?: boolean;
+}
+
 export interface LimitOptions {
     offset?: number;
     from?: LimitPosition;

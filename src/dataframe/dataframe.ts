@@ -2,8 +2,8 @@ import { ColumnExpr, resolveColumnSelectors, ALL_COLUMNS_MARKER, seqRange, all, 
 import { GroupedData } from "./grouped"
 import { NEWLINE, MS_PER_DAY, DAY_OF_WEEK_MAP } from "../constants"
 import { createSafeJsonReplacer } from "../utils/json"
-import type { IExpr, ColumnData, ColumnDict, DataFrameColumns, ConcatOptions, ConcatItem, RowRecord, DataFrameSchema, RegisteredDataType, ExplodeOptions, IntoExpr, FillNullOptions, SortArrayOptions } from "../types"
-import type { LimitOptions, SortOptions, PivotOptions, JoinOptions, JoinMaintainOrder, JoinAsofOptions, JoinWhereOptions, GroupByDynamicOptions, UnpivotOptions, TransposeOptions, UnstackOptions, WriteJSONOptions, WriteCSVOptions } from "./types"
+import type { IExpr, ColumnData, ColumnDict, DataFrameColumns, ConcatOptions, ConcatItem, RowRecord, DataFrameSchema, RegisteredDataType, ExplodeOptions, IntoExpr, FillNullOptions, SortArrayOptions, CastOptions } from "../types"
+import type { EqualsOptions, LimitOptions, SortOptions, PivotOptions, JoinOptions, JoinMaintainOrder, JoinAsofOptions, JoinWhereOptions, GroupByDynamicOptions, UnpivotOptions, TransposeOptions, UnstackOptions, WriteJSONOptions, WriteCSVOptions } from "./types"
 import { DataTypeRegistry, DataType } from "../datatypes"
 import { isArrayOrTypedArray, toValidArray, toArrayOfType, isObj, isArrayOfType, isRegExp, clamp, stringifyCSV, compareScalarValues, filterByMask, toDuration, toValidDate, toValidNumber, isValidNumber, binarySearch, addCalendarDuration, parseDurationInterval, createUTCDate } from "../utils"
 import { assertColumnExists, assertHeight, DataFrameError, ShapeError, ColumnNotFoundError, InvalidArgumentError, IOStreamError } from "../exceptions"
@@ -171,6 +171,42 @@ export class DataFrame<T extends RowRecord = any> {
     }
 
     /**
+     * Casts columns in the DataFrame to the specified data type(s).
+     *
+     * @param {RegisteredDataType | Record<string, RegisteredDataType>} dtypes Target data type for all columns, or mapping of column names to target data types.
+     * @param {CastOptions} [options] Casting options (e.g. strict).
+     * @returns {DataFrame}
+     *
+     * @example
+     * <!-- doc:base_2x2 -->
+     * >>> df.cast($df.Float64)
+     * >>> df.cast({ a: $df.Float64, b: $df.Utf8 })
+     * >>> df.cast({ num_str: $df.Int64 }, { strict: false })
+     */
+    cast(
+        dtypes: RegisteredDataType | Record<string, RegisteredDataType>,
+        options: CastOptions = {}
+    ): DataFrame<any> {
+        if (this._height === 0) return this;
+        if (dtypes instanceof DataType) {
+            return this.withColumns(all().cast(dtypes, options));
+        }
+
+        if (isObj(dtypes)) {
+            const keys = Object.keys(dtypes);
+            const numKeys = keys.length;
+            const exprs: IExpr[] = new Array(numKeys);
+            for (let i = 0; i < numKeys; i++) {
+                const k = keys[i];
+                exprs[i] = new ColumnExpr(k).cast(dtypes[k], options);
+            }
+            return this.withColumns(...exprs);
+        }
+
+        throw new InvalidArgumentError("Invalid cast target");
+    }
+
+    /**
      * Creates a deep copy of the current DataFrame instance, duplicating all underlying column data arrays and schema metadata.
      * Modifying columns or values in the cloned DataFrame will not mutate the original.
      * @returns {DataFrame<T>}
@@ -315,6 +351,63 @@ export class DataFrame<T extends RowRecord = any> {
             result[i] = this._schema[keys[i]];
         }
         return result;
+    }
+
+    /**
+     * Compares this DataFrame with another for equality.
+     * Checks shape, column names, column order, schemas, and row values.
+     * @param {DataFrame} other The other DataFrame to compare with.
+     * @param {EqualsOptions} [options] Comparison configuration options.
+     * @param {boolean} [options.nullsEqual] Whether nulls / NaNs compare as equal. Default: `true`.
+     * @returns {boolean} `true` if both DataFrames are equal, `false` otherwise.
+     * @example
+     * <!-- doc:base_2x2 -->
+     * >>> const df2 = df.clone()
+     * >>> df.equals(df2)
+     * true
+     */
+    equals<U extends RowRecord = any>(other: DataFrame<U>, { nullsEqual = true }: EqualsOptions = {}): boolean {
+        if ((this as unknown) === other) return true;
+        if (!(other instanceof DataFrame)) return false;
+
+        if (this._height !== other._height) return false;
+
+        const thisCols = this._columns;
+        const otherCols = other._columns;
+        const keys = Object.keys(thisCols);
+        const otherKeys = Object.keys(otherCols);
+        const numCols = keys.length;
+        if (numCols !== otherKeys.length) return false;
+
+        const thisSchema = this._schema;
+        const otherSchema = other._schema;
+        const h = this._height;
+
+        for (let i = 0; i < numCols; i++) {
+            const k = keys[i];
+            if (k !== otherKeys[i]) return false;
+
+            const typeA = thisSchema[k];
+            const typeB = otherSchema[k];
+            if (typeA && typeB && !typeA.equals(typeB)) return false;
+
+            const colA = thisCols[k];
+            const colB = otherCols[k];
+            for (let r = 0; r < h; r++) {
+                const valA = colA[r];
+                const valB = colB[r];
+
+                if (!nullsEqual && (valA == null || Number.isNaN(valA))) {
+                    return false;
+                }
+
+                if (!Object.is(valA, valB)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /**

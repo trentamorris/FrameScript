@@ -1,4 +1,4 @@
-import type { IExpr, OpFn, AggFn, ColumnData, ColumnDict, RegisteredDataType } from "../types"
+import type { IExpr, OpFn, AggFn, ColumnData, ColumnDict, RegisteredDataType, CastOptions } from "../types"
 import { ALL_COLUMNS_MARKER } from "./constants"
 import { ColumnNotFoundError } from "../exceptions"
 import { evaluateExpression, kleeneUnary, kleeneBinary } from "./utils"
@@ -108,8 +108,11 @@ export class ExprBase implements IExpr {
     /**
      * Coerces the column data type to another type.
      */
-    cast(dataType: RegisteredDataType): this {
-        const derivedInst = this._deriveUnary((val) => dataType.coerce(val));
+    cast(dataType: RegisteredDataType, options: CastOptions = {}): this {
+        const strict = options.strict ?? true;
+        const derivedInst = this._deriveUnary((v) => strict ? dataType.coerce(v) : (() => {
+            try { return dataType.coerce(v); } catch { return null; }
+        })());
         derivedInst._castType = dataType;
         return derivedInst as this;
     }

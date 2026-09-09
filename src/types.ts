@@ -38,6 +38,14 @@ export type ValidScalarTypes = Exclude<ValidPrimitiveTypes, symbol> | Date | Any
 export type AggFn<V, R = any> = (values: V[]) => R;
 export type OpFn = (vals: ColumnData, columns: ColumnDict) => ColumnData;
 
+export interface CastOptions {
+    /**
+     * Whether cast errors should throw or produce null values.
+     * @default true
+     */
+    strict?: boolean;
+}
+
 export type IntoExpr = string | RegExp | IExpr;
 
 export interface IExpr {
@@ -60,7 +68,7 @@ export interface IExpr {
     _branchOperands?: any[];
     _isGlobalAgg?(): boolean;
     alias(name: string): this;
-    cast(dataType: RegisteredDataType): this;
+    cast(dataType: RegisteredDataType, options?: CastOptions): this;
     _resolve(val: any, columns: ColumnDict, height: number): ColumnData | any;
     evaluate(columns: ColumnDict, height: number): ColumnData;
     _evaluatePre(opsIndex: number | undefined, columns: ColumnDict, height: number): ColumnData;
