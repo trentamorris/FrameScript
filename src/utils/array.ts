@@ -1,6 +1,6 @@
 /** @internalfile */
 import { isClass, isObj, isPlainObj, isValidDateObj, typedArrayTagGetter } from "./object";
-import { toValidNumber, isValidNumber, isValidInt, toValidBigInt, isValidBigInt, clamp } from "./number";
+import { toValidNumber, isValidNumber, isValidInt, toValidBigInt, isValidBigInt, clamp, SAFE_BIGINT_RANGE } from "./number";
 import { toValidDate } from "./date";
 import { toCanonicalString } from "./string";
 import type { AnyTypedArray, ColumnData, SkewOptions, KurtosisOptions, EntropyOptions, SortArrayOptions } from "../types";
@@ -1296,7 +1296,7 @@ export function reduceBitwise(
     }
     if (res === null) return null;
 
-    return res >= Number.MIN_SAFE_INTEGER && res <= Number.MAX_SAFE_INTEGER
+    return isValidBigInt(res, SAFE_BIGINT_RANGE)
         ? Number(res)
         : res;
 }

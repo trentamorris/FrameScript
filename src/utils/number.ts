@@ -343,6 +343,13 @@ export const BIGINT_RANGES = {
     UInt64: { min: UINT64_MIN, max: UINT64_MAX }
 } as const;
 
+export const SAFE_BIGINT_RANGE = {
+    range: {
+        min: BigInt(Number.MIN_SAFE_INTEGER),
+        max: BigInt(Number.MAX_SAFE_INTEGER)
+    }
+} as const;
+
 export type BigIntRangeType = keyof typeof BIGINT_RANGES;
 export type BigIntRange = { min: bigint; max: bigint } | BigIntRangeType;
 

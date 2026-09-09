@@ -2,7 +2,7 @@
 import type { JSONFormat } from "../types";
 import { isTypedArray, stepSliceArray } from "./array";
 import { isObj, isSet, isMap, isRegExp, isError, isURLSearchParams, isValidDateObj, unboxPrimitiveObj } from "./object";
-import { isValidBigInt, toValidInt } from "./number";
+import { isValidBigInt, toValidInt, SAFE_BIGINT_RANGE } from "./number";
 import { isBlankString, stripChars } from "./string";
 import { InvalidArgumentError, IOStreamError } from "../exceptions";
 import { CONTROL_UNESCAPE_MAP, NEWLINE_PATTERN } from "../constants";
@@ -265,24 +265,26 @@ export interface SafeJsonReplacerOptions {
 
 export function createSafeJsonReplacer(options: SafeJsonReplacerOptions = {}) {
     const bigintStrat = options.bigintStrategy ?? "string";
-    let seen = options.handleCircular ? new WeakSet<any>() : null;
-    const whitelist = Array.isArray(options.replacer) ? (options.replacer as (string | number)[]).map(String) : null;
+    const whitelist = Array.isArray(options.replacer)
+        ? new Set(options.replacer.map(String))
+        : null;
+
+    let seen = options.handleCircular ? new WeakSet<object>() : null;
 
     return function replacer(this: any, k: string, v: any): any {
         let val = v;
+
         if (typeof options.replacer === "function") {
             val = options.replacer.call(this, k, v);
-        } else if (whitelist) {
-            if (k !== "" && !Array.isArray(this) && !whitelist.includes(k)) {
-                return undefined;
-            }
+        } else if (whitelist && k !== "" && !Array.isArray(this) && !whitelist.has(k)) {
+            return undefined;
         }
 
         if (val === undefined) return undefined;
 
         const raw = (val === v && this != null) ? this[k] : val;
 
-        if (typeof options.onCustom === "function") {
+        if (options.onCustom) {
             const customVal = options.onCustom.call(this, k, raw);
             if (customVal !== raw || (customVal === undefined && raw !== undefined)) {
                 return customVal;
@@ -305,38 +307,17 @@ export function createSafeJsonReplacer(options: SafeJsonReplacerOptions = {}) {
         if (typeof unboxed === "bigint") {
             if (options.voidBigIntReplacement) return val;
             if (options.onBigInt) return options.onBigInt(unboxed);
-            if (bigintStrat === "number" && isValidBigInt(unboxed, { range: { min: BigInt(Number.MIN_SAFE_INTEGER), max: BigInt(Number.MAX_SAFE_INTEGER) } })) {
-                return Number(unboxed);
-            }
+            if (bigintStrat === "number" && isValidBigInt(unboxed, SAFE_BIGINT_RANGE)) return Number(unboxed);
             return unboxed.toString();
         }
-        if (isTypedArray(unboxed)) {
-            if (options.voidTypedArrayReplacement) return val;
-            return options.onTypedArray ? options.onTypedArray(unboxed) : Array.from(unboxed as any);
-        }
-        if (isSet(unboxed)) {
-            if (options.voidSetReplacement) return val;
-            return options.onSet ? options.onSet(unboxed) : Array.from(unboxed);
-        }
-        if (isMap(unboxed)) {
-            if (options.voidMapReplacement) return val;
-            return options.onMap ? options.onMap(unboxed) : Array.from(unboxed.entries());
-        }
-        if (isRegExp(unboxed)) {
-            if (options.voidRegExpReplacement) return val;
-            return options.onRegExp ? options.onRegExp(unboxed) : unboxed.toString();
-        }
-        if (isValidDateObj(unboxed)) {
-            if (options.voidDateReplacement) return val;
-            if (options.onDate) return options.onDate(unboxed);
-            return options.formatDate ? options.formatDate(unboxed) : unboxed.toISOString();
-        }
-        if (isError(unboxed)) {
-            return options.onError ? options.onError(unboxed) : { name: unboxed.name, message: unboxed.message, stack: unboxed.stack };
-        }
-        if (isURLSearchParams(unboxed)) {
-            return options.onURLSearchParams ? options.onURLSearchParams(unboxed) : unboxed.toString();
-        }
+
+        if (isTypedArray(unboxed))       return options.voidTypedArrayReplacement ? val : (options.onTypedArray?.(unboxed) ?? Array.from(unboxed as any));
+        if (isSet(unboxed))              return options.voidSetReplacement        ? val : (options.onSet?.(unboxed) ?? Array.from(unboxed));
+        if (isMap(unboxed))              return options.voidMapReplacement        ? val : (options.onMap?.(unboxed) ?? Array.from(unboxed.entries()));
+        if (isRegExp(unboxed))           return options.voidRegExpReplacement     ? val : (options.onRegExp?.(unboxed) ?? unboxed.toString());
+        if (isValidDateObj(unboxed))     return options.voidDateReplacement       ? val : (options.onDate?.(unboxed) ?? options.formatDate?.(unboxed) ?? unboxed.toISOString());
+        if (isError(unboxed))            return options.onError?.(unboxed)        ?? { name: unboxed.name, message: unboxed.message, stack: unboxed.stack };
+        if (isURLSearchParams(unboxed))  return options.onURLSearchParams?.(unboxed) ?? unboxed.toString();
 
         return val;
     };
