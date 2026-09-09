@@ -14,9 +14,9 @@
       "namespace": "$df.col",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).cast(...)",
-      "signature": "$df.col(<column_name>).cast(\n  dataType: RegisteredDataType\n): this",
+      "signature": "$df.col(<column_name>).cast(\n  dataType: RegisteredDataType,\n  options: CastOptions = {}\n): this",
       "lineStart": 111,
-      "lineEnd": 115
+      "lineEnd": 118
     },
     "debug": {
       "desc": "Prints the current evaluation intermediate array to console for debugging.",
@@ -24,8 +24,8 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).debug(...)",
       "signature": "$df.col(<column_name>).debug(\n  label?: string\n): this",
-      "lineStart": 120,
-      "lineEnd": 125
+      "lineStart": 123,
+      "lineEnd": 128
     }
   },
   "columnExpressions/functions/all.ts": {
@@ -128,7 +128,7 @@
     "horizontal": {
       "desc": "Combines multiple columns or expressions horizontally into an array per row, allowing expression evaluation with `.eval($df.element()...)`, direct horizontal aggregations (`.sum()`, `.min()`, `.max()`, `.mean()`), or `.arr` operations across columns.",
       "examples": [
-        ">>> const df = $df.data({ a: [1, 2], b: [\"x\", \"y\"] })\n>>> df\nshape: (2, 2)\n┌───┬───┐\n│ a │ b │\n├───┼───┤\n│ 1 │ x │\n│ 2 │ y │\n└───┴───┘\n>>> df.select($df.horizontal(\"a\", \"b\").sum().alias(\"row_sum\"))\nshape: (2, 1)\n┌─────────┐\n│ row_sum │\n├─────────┤\n│ 1       │\n│ 2       │\n└─────────┘"
+        ">>> const df = $df.data({ a: [1, 2], b: [\"x\", \"y\"] })\n>>> df\nshape: (2, 2)\n┌───┬───┐\n│ a │ b │\n├───┼───┤\n│ 1 │ x │\n│ 2 │ y │\n└───┴───┘\n>>> df.select($df.horizontal(\"a\", \"b\").sum().alias(\"row_sum\"))\r\nshape: (2, 1)\r\n┌─────────┐\r\n│ row_sum │\r\n├─────────┤\r\n│ 1       │\r\n│ 2       │\r\n└─────────┘"
       ],
       "params": [
         {
@@ -5048,7 +5048,32 @@
       "syntax": "df.DataFrame(...)",
       "signature": "df.DataFrame<T extends RowRecord = any>",
       "lineStart": 31,
-      "lineEnd": 2107
+      "lineEnd": 2200
+    },
+    "cast": {
+      "desc": "Casts columns in the DataFrame to the specified data type(s).",
+      "examples": [
+        ">>> const df = $df.data({ a: [1, 2], b: [\"x\", \"y\"] })\n>>> df\nshape: (2, 2)\n┌───┬───┐\n│ a │ b │\n├───┼───┤\n│ 1 │ x │\n│ 2 │ y │\n└───┴───┘\n>>> df.cast($df.Float64)\r\n>>> df.cast({ a: $df.Float64, b: $df.Utf8 })\r\n>>> df.cast({ num_str: $df.Int64 }, { strict: false })"
+      ],
+      "params": [
+        {
+          "name": "dtypes",
+          "type": "RegisteredDataType | Record<string, RegisteredDataType>",
+          "desc": "Target data type for all columns, or mapping of column names to target data types."
+        },
+        {
+          "name": "[options]",
+          "type": "CastOptions",
+          "desc": "Casting options (e.g. strict)."
+        }
+      ],
+      "returns": "{DataFrame}",
+      "namespace": "df",
+      "category": "DataFrame",
+      "syntax": "df.cast(...)",
+      "signature": "df.cast(\n  dtypes: RegisteredDataType | Record<string, RegisteredDataType>,\n  options: CastOptions = {}\n): DataFrame<any>",
+      "lineStart": 186,
+      "lineEnd": 207
     },
     "clone": {
       "desc": "Creates a deep copy of the current DataFrame instance, duplicating all underlying column data arrays and schema metadata. Modifying columns or values in the cloned DataFrame will not mutate the original.",
@@ -5060,8 +5085,8 @@
       "category": "DataFrame",
       "syntax": "df.clone(...)",
       "signature": "df.clone(): DataFrame<T>",
-      "lineStart": 189,
-      "lineEnd": 191
+      "lineStart": 225,
+      "lineEnd": 227
     },
     "columns": {
       "desc": "Gets array of column names in the DataFrame.",
@@ -5073,8 +5098,8 @@
       "category": "DataFrame",
       "syntax": "df.columns(...)",
       "signature": "df.get columns(): string[]",
-      "lineStart": 201,
-      "lineEnd": 203
+      "lineStart": 237,
+      "lineEnd": 239
     },
     "concat": {
       "desc": "Concatenates items vertically, horizontally, or diagonally.",
@@ -5110,8 +5135,8 @@
       "category": "DataFrame",
       "syntax": "df.concat(...)",
       "signature": "df.concat<U extends RowRecord = any>(\n  items: ConcatItem | ConcatItem[],\n  options?: {\n    how?: ConcatHow,\n    horizontal.strict?: boolean\n  }\n): DataFrame<U>",
-      "lineStart": 254,
-      "lineEnd": 262
+      "lineStart": 290,
+      "lineEnd": 298
     },
     "drop": {
       "desc": "Drops specified columns from the DataFrame.",
@@ -5130,8 +5155,8 @@
       "category": "DataFrame",
       "syntax": "df.drop(...)",
       "signature": "df.drop<K extends keyof T>(\n  ...args: (K | K[])[]\n): DataFrame<Omit<T, K>>",
-      "lineStart": 279,
-      "lineEnd": 281
+      "lineStart": 315,
+      "lineEnd": 317
     },
     "dropNulls": {
       "desc": "Drops rows with null or undefined values.",
@@ -5150,8 +5175,8 @@
       "category": "DataFrame",
       "syntax": "df.dropNulls(...)",
       "signature": "df.dropNulls(\n  subset?: string | string[]\n): DataFrame<T>",
-      "lineStart": 298,
-      "lineEnd": 300
+      "lineStart": 334,
+      "lineEnd": 336
     },
     "dtypes": {
       "desc": "Gets array of registered column DataTypes matching current schema order.",
@@ -5163,8 +5188,38 @@
       "category": "DataFrame",
       "syntax": "df.dtypes(...)",
       "signature": "df.get dtypes(): RegisteredDataType[]",
-      "lineStart": 310,
-      "lineEnd": 318
+      "lineStart": 346,
+      "lineEnd": 354
+    },
+    "equals": {
+      "desc": "Compares this DataFrame with another for equality. Checks shape, column names, column order, schemas, and row values.",
+      "examples": [
+        ">>> const df = $df.data({ a: [1, 2], b: [\"x\", \"y\"] })\n>>> df\nshape: (2, 2)\n┌───┬───┐\n│ a │ b │\n├───┼───┤\n│ 1 │ x │\n│ 2 │ y │\n└───┴───┘\n>>> df.equals(df2)\r\ntrue"
+      ],
+      "params": [
+        {
+          "name": "other",
+          "type": "DataFrame",
+          "desc": "The other DataFrame to compare with."
+        },
+        {
+          "name": "[options]",
+          "type": "EqualsOptions",
+          "desc": "Comparison configuration options."
+        },
+        {
+          "name": "[options.nullsEqual]",
+          "type": "boolean",
+          "desc": "Whether nulls / NaNs compare as equal. Default: `true`."
+        }
+      ],
+      "returns": "{boolean} `true` if both DataFrames are equal, `false` otherwise.",
+      "namespace": "df",
+      "category": "DataFrame",
+      "syntax": "df.equals(...)",
+      "signature": "df.equals<U extends RowRecord = any>(\n  other: DataFrame<U>,\n  {\n    nullsEqual = true\n  }: EqualsOptions = {}\n): boolean",
+      "lineStart": 369,
+      "lineEnd": 411
     },
     "explode": {
       "desc": "Explodes an array column into multiple rows, replicating non-target row attributes.",
@@ -5198,8 +5253,8 @@
       "category": "DataFrame",
       "syntax": "df.explode(...)",
       "signature": "df.explode(\n  columns: IntoExpr | IntoExpr[],\n  options?: {\n    emptyAsNull?: boolean,\n    keepNulls?: boolean\n  }\n): DataFrame<any>",
-      "lineStart": 338,
-      "lineEnd": 357
+      "lineStart": 431,
+      "lineEnd": 450
     },
     "fillNull": {
       "desc": "Fills null values across columns using scalar values or statistical strategies.",
@@ -5233,8 +5288,8 @@
       "category": "DataFrame",
       "syntax": "df.fillNull(...)",
       "signature": "df.fillNull(\n  options?: {\n    value?: any,\n    strategy?: FillNullStrategy,\n    limit?: number\n  }\n): DataFrame<T>",
-      "lineStart": 378,
-      "lineEnd": 381
+      "lineStart": 471,
+      "lineEnd": 474
     },
     "filter": {
       "desc": "Filters rows matching boolean column expressions or predicate callbacks.",
@@ -5253,8 +5308,8 @@
       "category": "DataFrame",
       "syntax": "df.filter(...)",
       "signature": "df.filter(\n  ...exprs: (IExpr | ((row: T) => any))[]\n): DataFrame<T>",
-      "lineStart": 398,
-      "lineEnd": 468
+      "lineStart": 491,
+      "lineEnd": 561
     },
     "groupBy": {
       "desc": "Groups rows by key columns to prepare for aggregations.",
@@ -5273,8 +5328,8 @@
       "category": "DataFrame",
       "syntax": "df.groupBy(...)",
       "signature": "df.groupBy<K extends keyof T>(\n  keys: K | K[]\n): GroupedData<T, K>",
-      "lineStart": 485,
-      "lineEnd": 496
+      "lineStart": 578,
+      "lineEnd": 589
     },
     "groupByDynamic": {
       "desc": "Groups dynamically based on a time or integer index column over sliding / stepping windows.",
@@ -5296,8 +5351,8 @@
       "category": "DataFrame",
       "syntax": "df.groupByDynamic(...)",
       "signature": "df.groupByDynamic<K extends keyof T & string>(\n  indexColumn: K | IntoExpr,\n  options: GroupByDynamicOptions<T>\n): GroupedData<T, K>",
-      "lineStart": 515,
-      "lineEnd": 712
+      "lineStart": 608,
+      "lineEnd": 805
     },
     "head": {
       "desc": "Returns the first N rows as a new DataFrame.",
@@ -5315,8 +5370,8 @@
       "category": "DataFrame",
       "syntax": "df.head(...)",
       "signature": "df.head(\n  n: number = 10\n): DataFrame<T>",
-      "lineStart": 730,
-      "lineEnd": 732
+      "lineStart": 823,
+      "lineEnd": 825
     },
     "height": {
       "desc": "Gets height (total row count) of the DataFrame.",
@@ -5328,8 +5383,8 @@
       "category": "DataFrame",
       "syntax": "df.height(...)",
       "signature": "df.get height(): number",
-      "lineStart": 742,
-      "lineEnd": 744
+      "lineStart": 835,
+      "lineEnd": 837
     },
     "insertColumn": {
       "desc": "Inserts a new column at a specific ordinal index position.",
@@ -5358,8 +5413,8 @@
       "category": "DataFrame",
       "syntax": "df.insertColumn(...)",
       "signature": "df.insertColumn(\n  index: number,\n  name: string,\n  expr: IntoExpr\n): DataFrame<any>",
-      "lineStart": 763,
-      "lineEnd": 780
+      "lineStart": 856,
+      "lineEnd": 873
     },
     "item": {
       "desc": "Retrieves a single scalar cell value by row and column position or name.",
@@ -5383,8 +5438,8 @@
       "category": "DataFrame",
       "syntax": "df.item(...)",
       "signature": "df.item(\n  row?: number,\n  column?: number | string\n): any",
-      "lineStart": 794,
-      "lineEnd": 823
+      "lineStart": 887,
+      "lineEnd": 916
     },
     "iterColumns": {
       "desc": "Yields a generator iterating over raw column arrays.",
@@ -5396,8 +5451,8 @@
       "category": "DataFrame",
       "syntax": "df.iterColumns(...)",
       "signature": "df.iterColumns(): Generator<ColumnData>",
-      "lineStart": 833,
-      "lineEnd": 839
+      "lineStart": 926,
+      "lineEnd": 932
     },
     "iterRows": {
       "desc": "Yields a generator iterating over rows as tuples or named objects.",
@@ -5419,8 +5474,8 @@
       "category": "DataFrame",
       "syntax": "df.iterRows(...)",
       "signature": "df.iterRows(\n  { named = false }: { named?: boolean } = {}\n): Generator<any[] | Record<string, any>>",
-      "lineStart": 851,
-      "lineEnd": 873
+      "lineStart": 944,
+      "lineEnd": 966
     },
     "join": {
       "desc": "Joins two DataFrames on key columns using a specified join strategy. - `\"inner\"` — Only rows with matching keys in both DataFrames. - `\"left\"` — All left rows; unmatched right values are `null`. - `\"right\"` — All right rows; unmatched left values are `null`. - `\"outer\"` — All rows from both sides; unmatched values are `null`. - `\"semi\"` — Left rows that have a match in the right DataFrame (only left columns retained). - `\"anti\"` — Left rows that have **no** match in the right DataFrame (only left columns retained). - `\"cross\"` — Cartesian product pairing every left row with every right row (keyless). non-key column names (default `[\"\", \"_right\"]`). Ignored for `\"semi\"` and `\"anti\"` joins. across DataFrames. Default `false` (SQL-standard: `NULL != NULL`). - `\"none\"` (or `false`) — No specific ordering is desired. - `\"left\"` (or `true`) — Preserves the order of the left DataFrame. - `\"right\"` — Preserves the order of the right DataFrame. - `\"left_right\"` — Preserves the order of the left DataFrame first, then the right. - `\"right_left\"` — Preserves the order of the right DataFrame first, then the left.",
@@ -5479,8 +5534,8 @@
       "category": "DataFrame",
       "syntax": "df.join(...)",
       "signature": "df.join<U extends RowRecord = any, R extends RowRecord = any>(\n  other: DataFrame<U>,\n  options?: {\n    on?: string | string[],\n    leftOn?: string | string[],\n    rightOn?: string | string[],\n    how?: JoinType,\n    suffixes?: [string, string],\n    joinNulls?: boolean,\n    coalesce?: boolean,\n    maintainOrder?: JoinMaintainOrder | boolean\n  }\n): DataFrame<R>",
-      "lineStart": 913,
-      "lineEnd": 1008
+      "lineStart": 1006,
+      "lineEnd": 1101
     },
     "joinAsof": {
       "desc": "Performs an asof (as-of) join for inexact matching on ordered numeric or temporal key columns.\n\nSimilar to a left join, but instead of exact key equality, matches the nearest key row from the right DataFrame according to the selected `strategy` (\"backward\", \"forward\", or \"nearest\") and optional `tolerance`. Both DataFrames must be sorted in ascending order on their respective `on` / `leftOn` / `rightOn` join keys.\n\n- `\"backward\"` — Matches the latest right row where `rightKey <= leftKey`. - `\"forward\"` — Matches the earliest right row where `rightKey >= leftKey`. - `\"nearest\"` — Matches the right row with the absolute nearest key value to `leftKey`.",
@@ -5564,8 +5619,8 @@
       "category": "DataFrame",
       "syntax": "df.joinAsof(...)",
       "signature": "df.joinAsof<U extends RowRecord = any, R extends RowRecord = any>(\n  other: DataFrame<U>,\n  options: {\n    on?: string,\n    leftOn?: string,\n    rightOn?: string,\n    by?: string | string[],\n    leftBy?: string | string[],\n    rightBy?: string | string[],\n    strategy?: JoinAsofStrategy,\n    tolerance?: number | string,\n    allowExactMatches?: boolean,\n    suffixes?: [string, string],\n    coalesce?: boolean,\n    checkSorted?: boolean\n  }\n): DataFrame<R>",
-      "lineStart": 1047,
-      "lineEnd": 1126
+      "lineStart": 1140,
+      "lineEnd": 1219
     },
     "joinWhere": {
       "desc": "Joins two DataFrames based on arbitrary expression predicates (non-equi joins).\n\nEvaluates one or more boolean expressions across combined rows from both DataFrames. When column names collide between the two DataFrames, columns are suffixed according to `options.suffixes` (default `[\"\", \"_right\"]`).\n\nand an optional configuration options object (`{ how, suffixes }`).",
@@ -5589,8 +5644,8 @@
       "category": "DataFrame",
       "syntax": "df.joinWhere(...)",
       "signature": "df.joinWhere<U extends RowRecord = any, R extends RowRecord = any>(\n  other: DataFrame<U>,\n  ...args: (IntoExpr | IntoExpr[] | JoinWhereOptions)[]\n): DataFrame<R>",
-      "lineStart": 1157,
-      "lineEnd": 1210
+      "lineStart": 1250,
+      "lineEnd": 1303
     },
     "limit": {
       "desc": "Limits the output to N rows starting from offset.",
@@ -5624,8 +5679,8 @@
       "category": "DataFrame",
       "syntax": "df.limit(...)",
       "signature": "df.limit(\n  n: number,\n  {\n    offset = 0,\n    from = \"start\"\n  }: LimitOptions = {}\n): DataFrame<T>",
-      "lineStart": 1230,
-      "lineEnd": 1254
+      "lineStart": 1323,
+      "lineEnd": 1347
     },
     "pivot": {
       "desc": "Pivots columns from long format to a wide datagrid structure.",
@@ -5663,8 +5718,8 @@
       "category": "DataFrame",
       "syntax": "df.pivot(...)",
       "signature": "df.pivot<U extends RowRecord = any>(\n  config: {\n    index: string | string[],\n    columns: string,\n    values: string,\n    agg?: AggFn | string\n  }\n): DataFrame<U>",
-      "lineStart": 1275,
-      "lineEnd": 1336
+      "lineStart": 1368,
+      "lineEnd": 1429
     },
     "rename": {
       "desc": "Renames columns based on a key-value mapping dictionary.",
@@ -5683,8 +5738,8 @@
       "category": "DataFrame",
       "syntax": "df.rename(...)",
       "signature": "df.rename(\n  mapping: Partial<Record<keyof T, string>> = {}\n): DataFrame<any>",
-      "lineStart": 1353,
-      "lineEnd": 1365
+      "lineStart": 1446,
+      "lineEnd": 1458
     },
     "reverse": {
       "desc": "Reverses the row ordering of the DataFrame.",
@@ -5696,8 +5751,8 @@
       "category": "DataFrame",
       "syntax": "df.reverse(...)",
       "signature": "df.reverse(): DataFrame<T>",
-      "lineStart": 1381,
-      "lineEnd": 1383
+      "lineStart": 1474,
+      "lineEnd": 1476
     },
     "schema": {
       "desc": "Gets current DataFrameSchema dictionary mapping column names to DataType.",
@@ -5709,8 +5764,8 @@
       "category": "DataFrame",
       "syntax": "df.schema(...)",
       "signature": "df.get schema(): DataFrameSchema",
-      "lineStart": 1393,
-      "lineEnd": 1395
+      "lineStart": 1486,
+      "lineEnd": 1488
     },
     "select": {
       "desc": "Selects specific columns or evaluates column expressions.",
@@ -5729,8 +5784,8 @@
       "category": "DataFrame",
       "syntax": "df.select(...)",
       "signature": "df.select<U extends RowRecord = any>(\n  ...args: (string | IExpr | Record<string, any> | (string | IExpr | Record<string, any>)[])[]\n): DataFrame<U>",
-      "lineStart": 1412,
-      "lineEnd": 1509
+      "lineStart": 1505,
+      "lineEnd": 1602
     },
     "shape": {
       "desc": "Gets DataFrame dimensions as [height, width] tuple.",
@@ -5742,8 +5797,8 @@
       "category": "DataFrame",
       "syntax": "df.shape(...)",
       "signature": "df.get shape(): [number, number]",
-      "lineStart": 1519,
-      "lineEnd": 1521
+      "lineStart": 1612,
+      "lineEnd": 1614
     },
     "slice": {
       "desc": "Slices a subset range of rows between start and end index.",
@@ -5767,8 +5822,8 @@
       "category": "DataFrame",
       "syntax": "df.slice(...)",
       "signature": "df.slice(\n  start: number,\n  end?: number\n): DataFrame<T>",
-      "lineStart": 1539,
-      "lineEnd": 1548
+      "lineStart": 1632,
+      "lineEnd": 1641
     },
     "sort": {
       "desc": "Sorts DataFrame rows by one or more column expressions or custom sorters.",
@@ -5807,8 +5862,8 @@
       "category": "DataFrame",
       "syntax": "df.sort(...)",
       "signature": "df.sort(\n  config?: {\n    by: keyof T | (keyof T)[] | IExpr | IExpr[],\n    descending?: boolean | boolean[],\n    nullsLast?: boolean,\n    custom?: Partial<Record<keyof T, (a: any, b: any) => number>>\n  }\n): DataFrame<T>",
-      "lineStart": 1570,
-      "lineEnd": 1604
+      "lineStart": 1663,
+      "lineEnd": 1697
     },
     "tail": {
       "desc": "Returns the last N rows as a new DataFrame.",
@@ -5826,8 +5881,8 @@
       "category": "DataFrame",
       "syntax": "df.tail(...)",
       "signature": "df.tail(\n  n: number = 10\n): DataFrame<T>",
-      "lineStart": 1621,
-      "lineEnd": 1623
+      "lineStart": 1714,
+      "lineEnd": 1716
     },
     "toArray": {
       "desc": "Evaluates a column expression or retrieves column values as a raw JavaScript array.",
@@ -5846,8 +5901,8 @@
       "category": "DataFrame",
       "syntax": "df.toArray(...)",
       "signature": "df.toArray<K extends keyof T>(\n  nameOrExpr: K | IExpr\n): any[]",
-      "lineStart": 1634,
-      "lineEnd": 1636
+      "lineStart": 1727,
+      "lineEnd": 1729
     },
     "toDict": {
       "desc": "Converts columns into a JavaScript dictionary mapping column keys to raw arrays.",
@@ -5859,8 +5914,8 @@
       "category": "DataFrame",
       "syntax": "df.toDict(...)",
       "signature": "df.toDict(): DataFrameColumns<T>",
-      "lineStart": 1646,
-      "lineEnd": 1648
+      "lineStart": 1739,
+      "lineEnd": 1741
     },
     "toDicts": {
       "desc": "Converts rows into an array of JavaScript objects.",
@@ -5872,8 +5927,8 @@
       "category": "DataFrame",
       "syntax": "df.toDicts(...)",
       "signature": "df.toDicts(): T[]",
-      "lineStart": 1658,
-      "lineEnd": 1660
+      "lineStart": 1751,
+      "lineEnd": 1753
     },
     "transpose": {
       "desc": "Transposes rows into columns and columns into rows.",
@@ -5907,8 +5962,8 @@
       "category": "DataFrame",
       "syntax": "df.transpose(...)",
       "signature": "df.transpose(\n  {\n    includeHeader = false,\n    headerName = \"column\",\n    columnNames: colNamesOpt\n  }: TransposeOptions = {}\n): DataFrame<any>",
-      "lineStart": 1680,
-      "lineEnd": 1737
+      "lineStart": 1773,
+      "lineEnd": 1830
     },
     "unique": {
       "desc": "Filters distinct unique rows matching target key columns.",
@@ -5927,8 +5982,8 @@
       "category": "DataFrame",
       "syntax": "df.unique(...)",
       "signature": "df.unique<K extends keyof T>(\n  columns?: K | K[]\n): DataFrame<T>",
-      "lineStart": 1754,
-      "lineEnd": 1757
+      "lineStart": 1847,
+      "lineEnd": 1850
     },
     "unpivot": {
       "desc": "Unpivots a wide DataFrame into a long format structure.",
@@ -5967,8 +6022,8 @@
       "category": "DataFrame",
       "syntax": "df.unpivot(...)",
       "signature": "df.unpivot<U extends RowRecord = any>(\n  config: {\n    idVars: keyof T | (keyof T)[],\n    valueVars: keyof T | (keyof T)[],\n    varName?: string,\n    valueName?: string\n  }\n): DataFrame<U>",
-      "lineStart": 1780,
-      "lineEnd": 1827
+      "lineStart": 1873,
+      "lineEnd": 1920
     },
     "unstack": {
       "desc": "Unstacks selected columns into multiple wide columns of size `step`. Reshapes data from long to wide format without aggregation.",
@@ -5990,8 +6045,8 @@
       "category": "DataFrame",
       "syntax": "df.unstack(...)",
       "signature": "df.unstack(\n  columns: IntoExpr | IntoExpr[],\n  options: UnstackOptions\n): DataFrame<any>",
-      "lineStart": 1847,
-      "lineEnd": 1903
+      "lineStart": 1940,
+      "lineEnd": 1996
     },
     "width": {
       "desc": "Gets width (total column count) of the DataFrame.",
@@ -6003,8 +6058,8 @@
       "category": "DataFrame",
       "syntax": "df.width(...)",
       "signature": "df.get width(): number",
-      "lineStart": 1913,
-      "lineEnd": 1915
+      "lineStart": 2006,
+      "lineEnd": 2008
     },
     "withColumns": {
       "desc": "Adds new columns or updates existing ones using column expressions.",
@@ -6023,8 +6078,8 @@
       "category": "DataFrame",
       "syntax": "df.withColumns(...)",
       "signature": "df.withColumns(\n  ...args: (string | IExpr | Record<string, any> | (string | IExpr | Record<string, any>)[])[]\n): DataFrame<any>",
-      "lineStart": 1932,
-      "lineEnd": 1963
+      "lineStart": 2025,
+      "lineEnd": 2056
     },
     "withRowIndex": {
       "desc": "Appends an incremental index column.",
@@ -6048,8 +6103,8 @@
       "category": "DataFrame",
       "syntax": "df.withRowIndex(...)",
       "signature": "df.withRowIndex(\n  name: string = \"index\",\n  offset: number = 0\n): DataFrame<any>",
-      "lineStart": 1981,
-      "lineEnd": 1991
+      "lineStart": 2074,
+      "lineEnd": 2084
     },
     "writeCsv": {
       "desc": "Writes DataFrame to CSV format string or file/stream target.",
@@ -6091,8 +6146,8 @@
       "category": "DataFrame",
       "syntax": "df.writeCsv(...)",
       "signature": "df.writeCsv(\n  file?: string | { write: (str: string) => void },\n  options?: {\n    delimiter?: string,\n    header?: boolean,\n    quoteChar?: string\n  }\n): string",
-      "lineStart": 2008,
-      "lineEnd": 2043
+      "lineStart": 2101,
+      "lineEnd": 2136
     },
     "writeJson": {
       "desc": "Writes DataFrame rows to JSON format string or file/stream target.",
@@ -6229,8 +6284,8 @@
       "category": "DataFrame",
       "syntax": "df.writeJson(...)",
       "signature": "df.writeJson(\n  file?: string | { write: (str: string) => void },\n  {\n    format = \"json\",\n    replacerOptions\n  }: WriteJSONOptions = {}\n): string",
-      "lineStart": 2079,
-      "lineEnd": 2106
+      "lineStart": 2172,
+      "lineEnd": 2199
     }
   },
   "dataframe/grouped.ts": {
@@ -6282,192 +6337,192 @@
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).how(...)",
       "signature": "$df.col(<column_name>).how?: \"vertical\" | \"horizontal\"",
-      "lineStart": 114,
-      "lineEnd": 114
+      "lineStart": 119,
+      "lineEnd": 119
     },
     "suffixes": {
       "desc": "Column name suffixes [leftSuffix, rightSuffix] to resolve duplicate column names. Default [\"\", \"_right\"].",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).suffixes(...)",
       "signature": "$df.col(<column_name>).suffixes?: [string, string]",
-      "lineStart": 57,
-      "lineEnd": 57
+      "lineStart": 62,
+      "lineEnd": 62
     },
     "every": {
       "desc": "Time interval window period (e.g. \"1d\", \"1h\", 1000). Defaults to every if not specified.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).every(...)",
       "signature": "$df.col(<column_name>).every: string | number",
-      "lineStart": 66,
-      "lineEnd": 66
+      "lineStart": 71,
+      "lineEnd": 71
     },
     "period": {
       "desc": "Time period duration window width. Defaults to every if omitted.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).period(...)",
       "signature": "$df.col(<column_name>).period?: string | number",
-      "lineStart": 68,
-      "lineEnd": 68
+      "lineStart": 73,
+      "lineEnd": 73
     },
     "offset": {
       "desc": "Offset window start by a duration. Defaults to 0.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).offset(...)",
       "signature": "$df.col(<column_name>).offset?: string | number",
-      "lineStart": 70,
-      "lineEnd": 70
+      "lineStart": 75,
+      "lineEnd": 75
     },
     "truncate": {
       "desc": "Truncate the index column values to the window start. Default: true",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).truncate(...)",
       "signature": "$df.col(<column_name>).truncate?: boolean",
-      "lineStart": 72,
-      "lineEnd": 72
+      "lineStart": 77,
+      "lineEnd": 77
     },
     "includeBoundaries": {
       "desc": "Include the lower and upper window boundaries (_lower_boundary, _upper_boundary). Default: false",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).includeBoundaries(...)",
       "signature": "$df.col(<column_name>).includeBoundaries?: boolean",
-      "lineStart": 74,
-      "lineEnd": 74
+      "lineStart": 79,
+      "lineEnd": 79
     },
     "closed": {
       "desc": "Which boundary of the window interval is closed (\"left\", \"right\", \"both\", \"none\"). Default: \"left\"",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).closed(...)",
       "signature": "$df.col(<column_name>).closed?: DynamicClosed",
-      "lineStart": 76,
-      "lineEnd": 76
+      "lineStart": 81,
+      "lineEnd": 81
     },
     "label": {
       "desc": "Which window boundary to use as the timestamp label (\"left\", \"right\", \"data_point\"). Default: \"left\"",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).label(...)",
       "signature": "$df.col(<column_name>).label?: DynamicLabel",
-      "lineStart": 78,
-      "lineEnd": 78
+      "lineStart": 83,
+      "lineEnd": 83
     },
     "by": {
       "desc": "Additional columns to partition / group by before dynamic windowing",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).by(...)",
       "signature": "$df.col(<column_name>).by?: (\n  keyof T) | (keyof T\n)[]",
-      "lineStart": 80,
-      "lineEnd": 80
+      "lineStart": 85,
+      "lineEnd": 85
     },
     "groupBy": {
       "desc": "Polars alias for by",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).groupBy(...)",
       "signature": "$df.col(<column_name>).groupBy?: (\n  keyof T) | (keyof T\n)[]",
-      "lineStart": 82,
-      "lineEnd": 82
+      "lineStart": 87,
+      "lineEnd": 87
     },
     "startBy": {
       "desc": "Strategy to determine window start (\"window\", \"datapoint\", or day of week). Default: \"window\"",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).startBy(...)",
       "signature": "$df.col(<column_name>).startBy?: DynamicStartBy",
-      "lineStart": 84,
-      "lineEnd": 84
+      "lineStart": 89,
+      "lineEnd": 89
     },
     "checkSorted": {
       "desc": "Verify whether index column is sorted in ascending order. Default: true",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).checkSorted(...)",
       "signature": "$df.col(<column_name>).checkSorted?: boolean",
-      "lineStart": 86,
-      "lineEnd": 86
+      "lineStart": 91,
+      "lineEnd": 91
     },
     "step": {
       "desc": "Number of columns to reshape each input column into.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).step(...)",
       "signature": "$df.col(<column_name>).step: number",
-      "lineStart": 106,
-      "lineEnd": 106
+      "lineStart": 111,
+      "lineEnd": 111
     },
     "fillValues": {
       "desc": "Value to fill in empty cells when length is not evenly divisible by step.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).fillValues(...)",
       "signature": "$df.col(<column_name>).fillValues?: any",
-      "lineStart": 120,
-      "lineEnd": 120
+      "lineStart": 125,
+      "lineEnd": 125
     },
     "schema": {
       "desc": "Optional explicit schema mapping column names to their registered data types.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).schema(...)",
       "signature": "$df.col(<column_name>).schema?: DataFrameSchema",
-      "lineStart": 183,
-      "lineEnd": 183
+      "lineStart": 188,
+      "lineEnd": 188
     },
     "type": {
       "desc": "The `replacer` argument type extracted directly from the overloads of the built-in `JSON.stringify`. Hover or Go-to-Definition on `JSON.stringify` below to inspect the standard library signatures.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).type(...)",
       "signature": "$df.col(<column_name>).typeJSONStringifyReplacer = typeof JSON.stringify extends",
-      "lineStart": 135,
-      "lineEnd": 138
+      "lineStart": 140,
+      "lineEnd": 143
     },
     "format": {
       "desc": "The format of the JSON output.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).format(...)",
       "signature": "$df.col(<column_name>).format?: JSONFormat",
-      "lineStart": 145,
-      "lineEnd": 145
+      "lineStart": 150,
+      "lineEnd": 150
     },
     "replacerOptions": {
       "desc": "Options for the safe JSON replacer.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).replacerOptions(...)",
       "signature": "$df.col(<column_name>).replacerOptions?: SafeJsonReplacerOptions",
-      "lineStart": 150,
-      "lineEnd": 150
+      "lineStart": 155,
+      "lineEnd": 155
     },
     "hasHeader": {
       "desc": "Whether the CSV has a header row.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).hasHeader(...)",
       "signature": "$df.col(<column_name>).hasHeader?: boolean",
-      "lineStart": 160,
-      "lineEnd": 160
+      "lineStart": 165,
+      "lineEnd": 165
     },
     "separator": {
       "desc": "Character that separates fields.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).separator(...)",
       "signature": "$df.col(<column_name>).separator?: string",
-      "lineStart": 166,
-      "lineEnd": 166
+      "lineStart": 171,
+      "lineEnd": 171
     },
     "quoteChar": {
       "desc": "The character used for quoting fields.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).quoteChar(...)",
       "signature": "$df.col(<column_name>).quoteChar?: string",
-      "lineStart": 172,
-      "lineEnd": 172
+      "lineStart": 177,
+      "lineEnd": 177
     },
     "nullValues": {
       "desc": "String representations of null values.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).nullValues(...)",
       "signature": "$df.col(<column_name>).nullValues?: string[]",
-      "lineStart": 178,
-      "lineEnd": 178
+      "lineStart": 183,
+      "lineEnd": 183
     },
     "inferSchema": {
       "desc": "Try to infer types from values if no schema is provided.",
       "category": "ColumnExpression",
       "syntax": "$df.col(<column_name>).inferSchema(...)",
       "signature": "$df.col(<column_name>).inferSchema?: boolean",
-      "lineStart": 189,
-      "lineEnd": 189
+      "lineStart": 194,
+      "lineEnd": 194
     }
   },
   "exceptions/index.ts": {
